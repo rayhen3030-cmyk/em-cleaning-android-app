@@ -21,7 +21,7 @@
         header {
             background: #087f5b;
             color: white;
-            padding: 30px 20px;
+            padding: 35px 20px 30px;
             text-align: center;
         }
 
@@ -36,6 +36,21 @@
 
         .container {
             padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .welcome {
+            margin-bottom: 20px;
+        }
+
+        .welcome h2 {
+            font-size: 23px;
+            margin-bottom: 5px;
+        }
+
+        .welcome p {
+            color: #667085;
         }
 
         .card {
@@ -66,9 +81,128 @@
             color: white;
             font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:active {
+            opacity: 0.8;
         }
 
         .status {
             display: inline-block;
             margin-top: 10px;
-            background:
+            background: #dcfae6;
+            color: #067647;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .contact {
+            text-align: center;
+        }
+
+        .contact a {
+            color: #087f5b;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            color: #98a2b3;
+            font-size: 12px;
+            padding: 10px 20px 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>E-M Cleaning</h1>
+    <p>Gebäudereinigung</p>
+</header>
+
+<div class="container">
+
+    <div class="welcome">
+        <h2>Willkommen 👋</h2>
+        <p>E-M Cleaning Service</p>
+    </div>
+
+    <div class="card">
+        <h2>🧹 Meine Aufträge</h2>
+        <p>
+            Hier kannst du deine aktuellen und kommenden
+            Reinigungsaufträge verwalten.
+        </p>
+        <span class="status">Bereit</span>
+        <button onclick="showMessage('Aufträge')">
+            Aufträge öffnen
+        </button>
+    </div>
+
+    <div class="card">
+        <h2>👥 Mitarbeiter</h2>
+        <p>
+            Mitarbeiter, Arbeitszeiten und Einsätze
+            übersichtlich verwalten.
+        </p>
+        <button onclick="showMessage('Mitarbeiter')">
+            Mitarbeiter öffnen
+        </button>
+    </div>
+
+    <div class="card">
+        <h2>⏱ Arbeitszeiten</h2>
+        <p>
+            Arbeitsbeginn und Arbeitsende dokumentieren.
+        </p>
+        <button onclick="showMessage('Arbeitszeiten')">
+            Arbeitszeiten öffnen
+        </button>
+    </div>
+
+    <div class="card">
+        <h2>📋 Kunden</h2>
+        <p>
+            Kundendaten und Reinigungsobjekte verwalten.
+        </p>
+        <button onclick="showMessage('Kunden')">
+            Kunden öffnen
+        </button>
+    </div>
+
+    <div class="card">
+        <h2>📄 Angebote & Rechnungen</h2>
+        <p>
+            Angebote und Rechnungen für Kunden verwalten.
+        </p>
+        <button onclick="showMessage('Angebote & Rechnungen')">
+            Öffnen
+        </button>
+    </div>
+
+    <div class="card contact">
+        <h2>📞 E-M Cleaning Service</h2>
+        <p>
+            Professionelle Gebäudereinigung
+        </p>
+    </div>
+
+</div>
+
+<footer>
+    E-M Cleaning Service
+</footer>
+
+<script>
+    function showMessage(area) {
+        alert(area + " funktioniert! Der Bereich wird als Nächstes eingerichtet.");
+    }
+</script>
+
+</body>
+</html>
