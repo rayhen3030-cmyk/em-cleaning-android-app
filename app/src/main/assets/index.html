@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-M Cleaning Service</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f3f6f7;
+    color:#1f2937;
+}
+header{
+    background:#07845f;
+    color:white;
+    padding:24px 18px;
+}
+header h1{margin:0;font-size:27px}
+header p{margin:6px 0 0}
+.page{
+    display:none;
+    max-width:750px;
+    margin:auto;
+    padding:16px;
+}
+.page.active{display:block}
+.card{
+    background:white;
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:15px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+h2{margin-top:0}
+button{
+    width:100%;
+    border:0;
+    border-radius:12px;
+    padding:14px;
+    margin-top:10px;
+    font-size:16px;
+    font-weight:bold;
+    background:#07845f;
+    color:white;
+}
+.secondary{background:#475467}
+.danger{background:#d92d20}
+input,select{
+    width:100%;
+    padding:13px;
+    margin-top:10px;
+    border:1px solid #d0d5dd;
+    border-radius:10px;
+    font-size:16px;
+    background:white;
+}
+label{
+    display:block;
+    font-weight:bold;
+    margin-top:13px;
+}
+.item{
+    border:1px solid #e4e7ec;
+    background:#f9fafb;
+    padding:14px;
+    border-radius:12px;
+    margin-top:10px;
+}
+.result{
+    background:#ecfdf3;
+    border:1px solid #abefc6;
+    border-radius:12px;
+    padding:15px;
+    margin-top:15px;
+}
+.big{
+    color:#067647;
+    font-size:27px;
+    font-weight:bold;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+    font-size:13px;
+}
+th,td{
+    border:1px solid #aaa;
+    padding:7px 4px;
+    text-align:center;
+}
+th{background:#eee}
+.tableWrap{overflow-x:auto}
+.frei{background:#f2f4f7}
+.arbeit{background:#ecfdf3}
+footer{
+    text-align:center;
+    color:#98a2b3;
+    padding:25px;
+}
+@media print{
+    header,.noPrint,footer{display:none!important}
+    body{background:white}
+    .page{display:none!important}
+    #stundenzettel{display:block!important}
+    .card{
+        box-shadow:none;
+        padding:0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>E-M Cleaning Service</h1>
+<p>Verwaltung & Arbeitszeiten</p>
+</header>
+
+<!-- HOME -->
+<div id="home" class="page active">
+
+<div class="card">
+<h2>👥 Mitarbeiter</h2>
+<p>Mitarbeiter anlegen und gespeicherte Stundenzettel öffnen.</p>
+<button onclick="openPage('mitarbeiter')">Mitarbeiter öffnen</button>
+</div>
+
+<div class="card">
+<h2>⏱ Stundenzettel</h2>
+<p>Monat automatisch erstellen und Arbeitsstunden berechnen.</p>
+<button onclick="openPage('stundenzettel')">Stundenzettel öffnen</button>
+</div>
+
+</div>
+
+
+<!-- MITARBEITER -->
+<div id="mitarbeiter" class="page">
+
+<div class="noPrint">
+<button class="secondary" onclick="openPage('home')">← Zurück</button>
+</div>
+
+<h1>👥 Mitarbeiter</h1>
+
+<div class="card noPrint">
+
+<label>Name</label>
+<input id="mitarbeiterName" placeholder="Vorname Nachname">
+
+<label>Telefon</label>
+<input id="mitarbeiterTelefon" placeholder="Telefon">
+
+<label>Beschäftigung</label>
+<select id="mitarbeiterArt">
+<option>Vollzeit</option>
+<option>Teilzeit</option>
+<option>Minijob</option>
+</select>
+
+<label>Stundenlohn €</label>
+<input id="mitarbeiterLohn" type="number" step="0.01">
+
+<button onclick="mitarbeiterSpeichern()">Mitarbeiter speichern</button>
+
+</div>
+
+<div class="card">
+<h2>Gespeicherte Mitarbeiter</h2>
+<div id="mitarbeiterListe"></div>
+</div>
+
+</div>
+
+
+<!-- STUNDENZETTEL -->
+<div id="stundenzettel" class="page">
+
+<div class="noPrint">
+<button class="secondary" onclick="openPage('home')">← Zurück</button>
+</div>
+
+<h1>E-M Cleaning Service</h1>
+<h2>Stundennachweis</h2>
+
+<div class="card noPrint">
+
+<label>Mitarbeiter</label>
+<select id="zeitMitarbeiter"></select>
+
+<label>Monat</label>
+<input id="zeitMonat" type="month">
+
+<label>Arbeitsbeginn</label>
+<input id="zeitStart" type="time" value="22:00">
+
+<label>Arbeitsende</label>
+<input id="zeitEnde" type="time" value="23:30">
+
+<label>Pause in Minuten</label>
+<input id="zeitPause" type="number" value="0">
+
+<label>Objekt / Kunde</label>
+<input id="zeitObjekt" placeholder="z.B. Fitnessstudio Fallersleben">
+
+<label>Arbeitstage</label>
+
+<div>
+<label><input type="checkbox" class="tag" value="1" checked> Montag</label>
+<label><input type="checkbox" class="tag" value="2" checked> Dienstag</label>
+<label><input type="checkbox" class="tag" value="3" checked> Mittwoch</label>
+<label><input type="checkbox" class="tag" value="4" checked> Donnerstag</label>
+<label><input type="checkbox" class="tag" value="5" checked> Freitag</label>
+<label><input type="checkbox" class="tag" value="6"> Samstag</label>
+<label><input type="checkbox" class="tag" value="0"> Sonntag</label>
+</div>
+
+<button onclick="monatErstellen()">Monat automatisch erstellen</button>
+
+</div>
+
+<div class="card">
+
+<div id="stundenKopf"></div>
+
+<div class="tableWrap">
+<table>
+<thead>
+<tr>
+<th>Datum</th>
+<th>Status</th>
+<th>Beginn</th>
+<th>Ende</th>
+<th>Pause</th>
+<th>Std.</th>
+<th>Objekt</th>
+</tr>
+</thead>
+<tbody id="stundenTabelle"></tbody>
+</table>
+</div>
+
+<div id="stundenGesamt" class="result"></div>
+
+<div class="noPrint">
+<button onclick="stundenzettelSpeichern()">💾 Stundenzettel speichern</button>
+<button onclick="pdfErstellen()">📄 Als PDF speichern / drucken</button>
+</div>
+
+</div>
+
+</div>
+
+<footer>E-M Cleaning Service</footer>
+
+<script>
+
+let aktuellerZettel=[];
+
+function openPage(id){
+    document.querySelectorAll('.page').forEach(p=>{
+        p.classList.remove('active');
+    });
+
+    const seite=document.getElementById(id);
+    if(seite) seite.classList.add('active');
+
+    if(id==='mitarbeiter'){
+        mitarbeiterAnzeigen();
+    }
+
+    if(id==='stundenzettel'){
+        mitarbeiterAuswahl();
+    }
+
+    window.scrollTo(0,0);
+}
+
+function laden(key){
+    try{
+        return JSON.parse(localStorage.getItem(key)||'[]');
+    }catch(e){
+        return [];
+    }
+}
+
+function speichern(key,daten){
+    localStorage.setItem(key,JSON.stringify(daten));
+}
+
+function esc(t){
+    return String(t||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+
+/* MITARBEITER */
+
+function mitarbeiterSpeichern(){
+
+    const name=document.getElementById('mitarbeiterName').value.trim();
+
+    if(!name){
+        alert('Bitte Namen eingeben.');
+        return;
+    }
+
+    const daten=laden('mitarbeiter');
+
+    daten.push({
+        id:Date.now(),
+        name:name,
+        telefon:document.getElementById('mitarbeiterTelefon').value,
+        art:document.getElementById('mitarbeiterArt').value,
+        lohn:document.getElementById('mitarbeiterLohn').value
+    });
+
+    speichern('mitarbeiter',daten);
+
+    document.getElementById('mitarbeiterName').value='';
+    document.getElementById('mitarbeiterTelefon').value='';
+    document.getElementById('mitarbeiterLohn').value='';
+
+    mitarbeiterAnzeigen();
+
+    alert('Mitarbeiter gespeichert.');
+}
+
+function mitarbeiterAnzeigen(){
+
+    const daten=laden('mitarbeiter');
+    const box=document.getElementById('mitarbeiterListe');
+
+    box.innerHTML='';
+
+    if(!daten.length){
+        box.innerHTML='<p>Noch keine Mitarbeiter gespeichert.</p>';
+        return;
+    }
+
+    daten.forEach((m,i)=>{
+
+        const div=document.createElement('div');
+        div.className='item';
+
+        div.innerHTML=
+        '<strong style="font-size:19px">'+esc(m.name)+'</strong><br>'+
+        esc(m.art)+'<br>'+
+        (m.telefon ? esc(m.telefon)+'<br>' : '')+
+        (m.lohn ? esc(m.lohn)+' €/Std.<br>' : '')+
+        '<button onclick="mitarbeiterOeffnen('+i+')">📋 Stundenzettel anzeigen</button>'+
+        '<button class="danger" onclick="mitarbeiterLoeschen('+i+')">Löschen</button>';
+
+        box.appendChild(div);
+    });
+}
+
+function mitarbeiterLoeschen(index){
+
+    if(!confirm('Mitarbeiter wirklich löschen?')) return;
+
+    const daten=laden('mitarbeiter');
+    daten.splice(index,1);
+    speichern('mitarbeiter',daten);
+
+    mitarbeiterAnzeigen();
+}
+
+function mitarbeiterOeffnen(index){
+
+    const daten=laden('mitarbeiter');
+    const m=daten[index];
+
+    if(!m) return;
+
+    openPage('stundenzettel');
+
+    setTimeout(()=>{
+
+        const select=document.getElementById('zeitMitarbeiter');
+
+        for(let i=0;i<select.options.length;i++){
+            if(select.options[i].value===String(m.id)){
+                select.selectedIndex=i;
+                break;
+            }
+        }
+
+        gespeichertenZettelLaden();
+
+    },50);
+}
+
+function mitarbeiterAuswahl(){
+
+    const daten=laden('mitarbeiter');
+    const select=document.getElementById('zeitMitarbeiter');
+
+    select.innerHTML='';
+
+    if(!daten.length){
+        select.innerHTML='<option value="">Bitte zuerst Mitarbeiter anlegen</option>';
+        return;
+    }
+
+    daten.forEach(m=>{
+        const option=document.createElement('option');
+        option.value=m.id;
+        option.textContent=m.name;
+        select.appendChild(option);
+    });
+
+    select.onchange=gespeichertenZettelLaden;
+}
+
+
+/* ZEIT */
+
+function zeitInMinuten(zeit){
+
+    if(!zeit) return 0;
+
+    const p=zeit.split(':');
+
+    return Number(p[0])*60+Number(p[1]);
+}
+
+function stundenBerechnen(start,ende,pause){
+
+    let s=zeitInMinuten(start);
+    let e=zeitInMinuten(ende);
+
+    if(e<s){
+        e+=24*60;
+    }
+
+    let minuten=e-s-Number(pause||0);
+
+    if(minuten<0) minuten=0;
+
+    return minuten/60;
+}
+
+function formatDatum(date){
+
+    return String(date.getDate()).padStart(2,'0')+'.'+
+    String(date.getMonth()+1).padStart(2,'0')+'.'+
+    date.getFullYear();
+}
+
+
+/* MONAT ERSTELLEN */
+
+function monatErstellen(){
+
+    const mitarbeiterId=
+        document.getElementById('zeitMitarbeiter').value;
+
+    const monat=
+        document.getElementById('zeitMonat').value;
+
+    if(!mitarbeiterId){
+        alert('Bitte Mitarbeiter auswählen.');
+        return;
+    }
+
+    if(!monat){
+        alert('Bitte Monat auswählen.');
+        return;
+    }
+
+    const start=document.getElementById('zeitStart').value;
+    const ende=document.getElementById('zeitEnde').value;
+    const pause=Number(document.getElementById('zeitPause').value||0);
+    const objekt=document.getElementById('zeitObjekt').value;
+
+    if(!start || !ende){
+        alert('Bitte Beginn und Ende eingeben.');
+        return;
+    }
+
+    const tage=[];
+
+    document.querySelectorAll('.tag:checked').forEach(c=>{
+        tage.push(Number(c.value));
+    });
+
+    if(!tage.length){
+        alert('Bitte mindestens einen Arbeitstag auswählen.');
+        return;
+    }
+
+    const [jahr,mon]=monat.split('-').map(Number);
+
+    const letzterTag=
+        new Date(jahr,mon,0).getDate();
+
+    aktuellerZettel=[];
+
+    for(let tag=1;tag<=letzterTag;tag++){
+
+        const datum=
+            new Date(jahr,mon-1,tag);
+
+        const wochentag=
+            datum.getDay();
+
+        const arbeit=
+            tage.includes(wochentag);
+
+        let std=0;
+
+        if(arbeit){
+            std=stundenBerechnen(start,ende,pause);
+        }
+
+        aktuellerZettel.push({
+            datum:formatDatum(datum),
+            status:arbeit?'Arbeit':'Frei',
+            start:arbeit?start:'',
+            ende:arbeit?ende:'',
+            pause:arbeit?pause:0,
+            stunden:arbeit?std:0,
+            objekt:arbeit?objekt:''
+        });
+    }
+
+    zettelAnzeigen();
+}
+
+
+/* ANZEIGE */
+
+function zettelAnzeigen(){
+
+    const tbody=document.getElementById('stundenTabelle');
+    tbody.innerHTML='';
+
+    let gesamt=0;
+
+    aktuellerZettel.forEach((z,index)=>{
+
+        gesamt+=Number(z.stunden||0);
+
+        const tr=document.createElement('tr');
+
+        tr.className=
+            z.status==='Arbeit'
+            ? 'arbeit'
+            : 'frei';
+
+        tr.innerHTML=
+        '<td>'+esc(z.datum)+'</td>'+
+        '<td>'+esc(z.status)+'</td>'+
+        '<td>'+esc(z.start)+'</td>'+
+        '<td>'+esc(z.ende)+'</td>'+
+        '<td>'+esc(z.pause)+'</td>'+
+        '<td>'+Number(z.stunden||0).toFixed(2).replace('.',',')+'</td>'+
+        '<td>'+esc(z.objekt)+'</td>';
+
+        tbody.appendChild(tr);
+    });
+
+    const mitarbeiter=
+        getMitarbeiterName();
+
+    const monat=
+        document.getElementById('zeitMonat').value;
+
+    document.getElementById('stundenKopf').innerHTML=
+        '<strong>Mitarbeiter:</strong> '+esc(mitarbeiter)+'<br>'+
+        '<strong>Monat:</strong> '+esc(monat);
+
+    document.getElementById('stundenGesamt').innerHTML=
+        '<strong>Arbeitsstunden insgesamt</strong>'+
+        '<div class="big">'+
+        gesamt.toFixed(2).replace('.',',')+
+        ' Stunden</div>';
+}
+
+function getMitarbeiterName(){
+
+    const select=document.getElementById('zeitMitarbeiter');
+
+    if(!select || select.selectedIndex<0) return '';
+
+    return select.options[select.selectedIndex].text;
+}
+
+
+/* SPEICHERN */
+
+function stundenzettelSpeichern(){
+
+    if(!aktuellerZettel.length){
+        alert('Bitte zuerst einen Monat erstellen.');
+        return;
+    }
+
+    const mitarbeiterId=
+        document.getElementById('zeitMitarbeiter').value;
+
+    const monat=
+        document.getElementById('zeitMonat').value;
+
+    const alle=laden('stundenzettel');
+
+    const key=
+        String(mitarbeiterId)+'_'+monat;
+
+    const neuer={
+        key:key,
+        mitarbeiterId:String(mitarbeiterId),
+        mitarbeiter:getMitarbeiterName(),
+        monat:monat,
+        tage:aktuellerZettel
+    };
+
+    const index=
+        alle.findIndex(x=>x.key===key);
+
+    if(index>=0){
+        alle[index]=neuer;
+    }else{
+        alle.push(neuer);
+    }
+
+    speichern('stundenzettel',alle);
+
+    alert('Stundenzettel gespeichert.');
+}
+
+
+/* GESPEICHERTEN ZETTEL LADEN */
+
+function gespeichertenZettelLaden(){
+
+    const mitarbeiterId=
+        document.getElementById('zeitMitarbeiter').value;
+
+    if(!mitarbeiterId) return;
+
+    const alle=laden('stundenzettel');
+
+    const mitarbeiterZettel=
+        alle.filter(
+            x=>String(x.mitarbeiterId)===String(mitarbeiterId)
+        );
+
+    if(!mitarbeiterZettel.length){
+
+        aktuellerZettel=[];
+        document.getElementById('stundenTabelle').innerHTML='';
+        document.getElementById('stundenKopf').innerHTML=
+            '<strong>Mitarbeiter:</strong> '+esc(getMitarbeiterName())+
+            '<br>Noch kein Stundenzettel gespeichert.';
+        document.getElementById('stundenGesamt').innerHTML='';
+        return;
+    }
+
+    mitarbeiterZettel.sort((a,b)=>
+        String(b.monat).localeCompare(String(a.monat))
+    );
+
+    const zettel=mitarbeiterZettel[0];
+
+    document.getElementById('zeitMonat').value=
+        zettel.monat;
+
+    aktuellerZettel=
+        zettel.tage||[];
+
+    zettelAnzeigen();
+}
+
+
+/* PDF */
+
+function pdfErstellen(){
+
+    if(!aktuellerZettel.length){
+        alert('Kein Stundenzettel vorhanden.');
+        return;
+    }
+
+    window.print();
+}
+
+
+/* ANDROID ZURÜCK */
+
+window.androidBack=function(){
+
+    const aktive=
+        document.querySelector('.page.active');
+
+    if(!aktive) return false;
+
+    if(aktive.id!=='home'){
+        openPage('home');
+        return true;
+    }
+
+    return false;
+};
+
+
+/* START */
+
+(function(){
+
+    const heute=new Date();
+
+    document.getElementById('zeitMonat').value=
+        heute.getFullYear()+'-'+
+        String(heute.getMonth()+1).padStart(2,'0');
+
+    mitarbeiterAnzeigen();
+    mitarbeiterAuswahl();
+
+})();
+
+</script>
+
+</body>
+</html>
