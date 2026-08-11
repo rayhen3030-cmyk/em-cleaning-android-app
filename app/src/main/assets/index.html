@@ -206,6 +206,7 @@ footer{
 
     <div class="card">
         <h2>⏱ Arbeitszeiten</h2>
+        <p>Monats-Stundenzettel automatisch erstellen.</p>
         <button onclick="openPage('arbeitszeiten')">Arbeitszeiten öffnen</button>
     </div>
 
@@ -269,7 +270,6 @@ footer{
 
             <div class="info">
                 Die App berechnet die benötigte Zeit automatisch aus Fläche und Reinigungsleistung.
-                Beispiel: 500 m² ÷ 180 m²/Std. = ca. 2,78 Std. pro Reinigung.
             </div>
 
         </div>
@@ -532,22 +532,109 @@ footer{
 
     <div class="card">
 
-        <input id="zeitMitarbeiter" placeholder="Mitarbeiter">
-        <input id="zeitDatum" type="date">
+        <h2>Monats-Stundenzettel</h2>
 
-        <div class="grid2">
-            <input id="zeitStart" type="time">
-            <input id="zeitEnde" type="time">
+        <label>Mitarbeiter</label>
+
+        <select id="zeitMitarbeiterSelect" onchange="monatsplanErstellen()">
+            <option value="">Mitarbeiter auswählen</option>
+        </select>
+
+        <label>Monat</label>
+
+        <input
+            id="zeitMonat"
+            type="month"
+            onchange="monatsplanErstellen()"
+        >
+
+        <label>Reguläre Arbeitstage</label>
+
+        <select id="arbeitsWoche" onchange="monatsplanErstellen(true)">
+            <option value="mo-fr">Montag bis Freitag</option>
+            <option value="mo-sa">Montag bis Samstag</option>
+            <option value="alle">Montag bis Sonntag</option>
+        </select>
+
+        <div class="info">
+            Bei Montag bis Freitag werden Samstag und Sonntag automatisch als frei markiert.
         </div>
 
-        <input id="zeitObjekt" placeholder="Objekt / Kunde">
+        <h2 style="margin-top:22px;">Standard-Arbeitszeit</h2>
 
-        <button onclick="zeitSpeichern()">Arbeitszeit speichern</button>
+        <div class="grid2">
+
+            <div>
+                <label>Beginn</label>
+                <input id="standardStart" type="time" value="22:00">
+            </div>
+
+            <div>
+                <label>Ende</label>
+                <input id="standardEnde" type="time" value="23:30">
+            </div>
+
+        </div>
+
+        <label>Pause in Minuten</label>
+
+        <input
+            id="standardPause"
+            type="number"
+            value="0"
+            min="0"
+            step="5"
+        >
+
+        <label>Objekt / Kunde</label>
+
+        <input
+            id="standardObjekt"
+            placeholder="z. B. Büro Wolfsburg"
+        >
+
+        <button onclick="zeitAufAlleTage()">
+            Arbeitszeit auf alle Arbeitstage übernehmen
+        </button>
+
+        <button class="secondary" onclick="monatsplanErstellen(true)">
+            Monat zurücksetzen
+        </button>
 
     </div>
 
     <div class="card">
-        <div id="zeitListe"></div>
+
+        <h2>Tage im Monat</h2>
+
+        <div id="monatsTage">
+            Bitte Mitarbeiter und Monat auswählen.
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>Monatsauswertung</h2>
+
+        <div id="monatsErgebnis" class="result">
+
+            <strong>Gesamtstunden</strong>
+
+            <div class="big">
+                0,00 Std.
+            </div>
+
+        </div>
+
+        <button onclick="monatszeitenSpeichern()">
+            💾 Stundenzettel speichern
+        </button>
+
+        <button onclick="stundenzettelDrucken()">
+            📄 Stundenzettel / PDF
+        </button>
+
     </div>
 
 </div>
@@ -597,6 +684,8 @@ let arBreite = 0;
 let arHoehe = 0;
 let arFlaeche = 0;
 
+let monatsZeiten = {};
+
 function openPage(id){
 
     document.querySelectorAll('.page').forEach(function(p){
@@ -608,6 +697,24 @@ function openPage(id){
     window.scrollTo(0,0);
 
     aktualisieren();
+
+    if(id === 'arbeitszeiten'){
+        aktuellerMonatSetzen();
+        mitarbeiterAuswahlAktualisieren();
+    }
+}
+
+function laden(key){
+    return JSON.parse(
+        localStorage.getItem(key) || '[]'
+    );
+}
+
+function speichern(key,daten){
+    localStorage.setItem(
+        key,
+        JSON.stringify(daten)
+    );
 }
 
 function arMessungStarten(){
@@ -846,23 +953,13 @@ function preisBerechnen(){
                 document.getElementById('leistungProStunde').value || 180
             );
 
-        if(leistung <= 0){
-
-            alert('Bitte eine gültige Reinigungsleistung eingeben.');
-            return;
-        }
-
         const stundenProEinsatz =
             flaeche /
             leistung;
 
-        const wochenProMonat =
-            52 /
-            12;
-
         const einsaetzeMonat =
             proWoche *
-            wochenProMonat;
+            (52 / 12);
 
         arbeitsstunden =
             stundenProEinsatz *
@@ -906,60 +1003,34 @@ function preisBerechnen(){
         box.style.display = 'block';
 
         box.innerHTML =
-            '<strong style="font-size:20px;">Unterhaltsreinigung</strong><br><br>' +
-
-            'Reinigungsfläche: <strong>' +
+            '<strong>Unterhaltsreinigung</strong><br><br>' +
+            'Reinigungsfläche: ' +
             flaeche.toFixed(2) +
-            ' m²</strong><br>' +
-
-            'Reinigungsleistung: <strong>' +
-            leistung.toFixed(0) +
-            ' m²/Std.</strong><br><br>' +
-
-            'Reinigung: <strong>' +
+            ' m²<br>' +
+            'Reinigung: ' +
             proWoche +
-            '× pro Woche</strong><br>' +
-
-            'Ø Einsätze pro Monat: <strong>' +
-            einsaetzeMonat.toFixed(1) +
-            '</strong><br><br>' +
-
+            '× pro Woche<br>' +
             'Zeit pro Reinigung: <strong>' +
             stundenProEinsatz.toFixed(2) +
             ' Std.</strong><br>' +
-
             'Arbeitsstunden pro Monat: <strong>' +
             arbeitsstunden.toFixed(2) +
             ' Std.</strong><br><br>' +
-
-            'Stundensatz: ' +
-            stundensatz.toFixed(2) +
-            ' €<br>' +
-
             'Arbeitskosten monatlich: ' +
             arbeitskosten.toFixed(2) +
             ' €<br>' +
-
             'Anfahrt monatlich: ' +
             anfahrtMonat.toFixed(2) +
             ' €<br>' +
-
             'Material: ' +
             material.toFixed(2) +
             ' €<br>' +
-
-            'Zuschlag: ' +
-            zuschlagEuro.toFixed(2) +
-            ' €<br><br>' +
-
-            'Monatlich Netto: <strong>' +
+            'Netto: ' +
             netto.toFixed(2) +
-            ' €</strong><br>' +
-
+            ' €<br>' +
             'MwSt.: ' +
             steuer.toFixed(2) +
             ' €<br>' +
-
             '<div class="big">' +
             brutto.toFixed(2).replace('.', ',') +
             ' € / Monat</div>';
@@ -1064,9 +1135,6 @@ function preisBerechnen(){
         'Material: ' +
         material.toFixed(2) +
         ' €<br>' +
-        'Zuschlag: ' +
-        zuschlagEuro.toFixed(2) +
-        ' €<br><br>' +
         'Netto: ' +
         netto.toFixed(2) +
         ' €<br>' +
@@ -1076,19 +1144,6 @@ function preisBerechnen(){
         '<div class="big">' +
         brutto.toFixed(2).replace('.', ',') +
         ' €</div>';
-}
-
-function laden(key){
-    return JSON.parse(
-        localStorage.getItem(key) || '[]'
-    );
-}
-
-function speichern(key,daten){
-    localStorage.setItem(
-        key,
-        JSON.stringify(daten)
-    );
 }
 
 function kundeSpeichern(){
@@ -1113,6 +1168,7 @@ function kundeSpeichern(){
     });
 
     speichern('kunden',d);
+
     kundenAnzeigen();
 }
 
@@ -1124,7 +1180,7 @@ function kundenAnzeigen(){
     const box =
         document.getElementById('kundenListe');
 
-    box.innerHTML='';
+    box.innerHTML = '';
 
     d.forEach(function(x,i){
 
@@ -1160,7 +1216,9 @@ function mitarbeiterSpeichern(){
     });
 
     speichern('mitarbeiter',d);
+
     mitarbeiterAnzeigen();
+    mitarbeiterAuswahlAktualisieren();
 }
 
 function mitarbeiterAnzeigen(){
@@ -1171,7 +1229,7 @@ function mitarbeiterAnzeigen(){
     const box =
         document.getElementById('mitarbeiterListe');
 
-    box.innerHTML='';
+    box.innerHTML = '';
 
     d.forEach(function(x,i){
 
@@ -1209,6 +1267,7 @@ function auftragSpeichern(){
     });
 
     speichern('auftraege',d);
+
     auftraegeAnzeigen();
 }
 
@@ -1220,7 +1279,7 @@ function auftraegeAnzeigen(){
     const box =
         document.getElementById('auftragListe');
 
-    box.innerHTML='';
+    box.innerHTML = '';
 
     d.forEach(function(x,i){
 
@@ -1236,52 +1295,976 @@ function auftraegeAnzeigen(){
     });
 }
 
-function zeitSpeichern(){
+function mitarbeiterAuswahlAktualisieren(){
 
-    const name =
-        document.getElementById('zeitMitarbeiter').value.trim();
+    const select =
+        document.getElementById('zeitMitarbeiterSelect');
 
-    if(!name){
-        alert('Bitte Mitarbeiter eingeben.');
+    if(!select){
         return;
     }
 
-    const d =
-        laden('zeiten');
+    const alterWert =
+        select.value;
 
-    d.push({
-        mitarbeiter:name,
-        datum:document.getElementById('zeitDatum').value,
-        start:document.getElementById('zeitStart').value,
-        ende:document.getElementById('zeitEnde').value,
-        objekt:document.getElementById('zeitObjekt').value
+    const mitarbeiter =
+        laden('mitarbeiter');
+
+    select.innerHTML =
+        '<option value="">Mitarbeiter auswählen</option>';
+
+    mitarbeiter.forEach(function(m){
+
+        const option =
+            document.createElement('option');
+
+        option.value =
+            m.name;
+
+        option.textContent =
+            m.name;
+
+        select.appendChild(option);
     });
 
-    speichern('zeiten',d);
-    zeitenAnzeigen();
+    select.value =
+        alterWert;
 }
 
-function zeitenAnzeigen(){
+function aktuellerMonatSetzen(){
 
-    const d =
-        laden('zeiten');
+    const feld =
+        document.getElementById('zeitMonat');
+
+    if(!feld || feld.value){
+        return;
+    }
+
+    const jetzt =
+        new Date();
+
+    const jahr =
+        jetzt.getFullYear();
+
+    const monat =
+        String(
+            jetzt.getMonth() + 1
+        ).padStart(2,'0');
+
+    feld.value =
+        jahr + '-' + monat;
+}
+
+function monatsplanErstellen(neu){
+
+    const mitarbeiter =
+        document.getElementById('zeitMitarbeiterSelect').value;
+
+    const monat =
+        document.getElementById('zeitMonat').value;
 
     const box =
-        document.getElementById('zeitListe');
+        document.getElementById('monatsTage');
 
-    box.innerHTML='';
+    if(
+        !mitarbeiter ||
+        !monat
+    ){
 
-    d.forEach(function(x,i){
+        box.innerHTML =
+            'Bitte Mitarbeiter und Monat auswählen.';
 
-        box.innerHTML +=
-            '<div class="item">' +
-            '<strong>' + esc(x.mitarbeiter) + '</strong><br>' +
-            esc(x.datum) + '<br>' +
-            esc(x.start) + ' - ' + esc(x.ende) + '<br>' +
+        return;
+    }
+
+    const teile =
+        monat.split('-');
+
+    const jahr =
+        parseInt(teile[0]);
+
+    const monatNummer =
+        parseInt(teile[1]);
+
+    const tageImMonat =
+        new Date(
+            jahr,
+            monatNummer,
+            0
+        ).getDate();
+
+    const speicherKey =
+        'monatszeit_' +
+        mitarbeiter +
+        '_' +
+        monat;
+
+    if(neu){
+
+        monatsZeiten = {};
+
+    }else{
+
+        try{
+
+            monatsZeiten =
+                JSON.parse(
+                    localStorage.getItem(speicherKey) ||
+                    '{}'
+                );
+
+        }catch(e){
+
+            monatsZeiten = {};
+        }
+    }
+
+    const arbeitsWoche =
+        document.getElementById('arbeitsWoche').value;
+
+    const tagNamen = [
+        'So',
+        'Mo',
+        'Di',
+        'Mi',
+        'Do',
+        'Fr',
+        'Sa'
+    ];
+
+    box.innerHTML = '';
+
+    for(
+        let tag = 1;
+        tag <= tageImMonat;
+        tag++
+    ){
+
+        const datum =
+            new Date(
+                jahr,
+                monatNummer - 1,
+                tag
+            );
+
+        const wochentag =
+            datum.getDay();
+
+        let istArbeitstag =
+            true;
+
+        if(
+            arbeitsWoche === 'mo-fr' &&
+            (
+                wochentag === 0 ||
+                wochentag === 6
+            )
+        ){
+
+            istArbeitstag =
+                false;
+        }
+
+        if(
+            arbeitsWoche === 'mo-sa' &&
+            wochentag === 0
+        ){
+
+            istArbeitstag =
+                false;
+        }
+
+        const datumKey =
+            jahr +
+            '-' +
+            String(monatNummer).padStart(2,'0') +
+            '-' +
+            String(tag).padStart(2,'0');
+
+        if(!monatsZeiten[datumKey]){
+
+            monatsZeiten[datumKey] = {
+
+                start:'',
+                ende:'',
+                pause:0,
+                objekt:'',
+                status:
+                    istArbeitstag
+                    ? 'Arbeit'
+                    : 'Frei'
+            };
+        }
+
+        if(!istArbeitstag){
+
+            monatsZeiten[datumKey].status =
+                'Frei';
+
+            monatsZeiten[datumKey].start =
+                '';
+
+            monatsZeiten[datumKey].ende =
+                '';
+        }
+
+        const x =
+            monatsZeiten[datumKey];
+
+        const div =
+            document.createElement('div');
+
+        div.className =
+            'item';
+
+        if(!istArbeitstag){
+
+            div.style.opacity =
+                '0.65';
+        }
+
+        div.innerHTML =
+
+            '<strong>' +
+            tagNamen[wochentag] +
+            ', ' +
+            String(tag).padStart(2,'0') +
+            '.' +
+            String(monatNummer).padStart(2,'0') +
+            '.' +
+            jahr +
+            '</strong>' +
+
+            '<select id="status_' +
+            datumKey +
+            '" onchange="tagGeaendert(\'' +
+            datumKey +
+            '\')">' +
+
+            '<option value="Arbeit">Arbeit</option>' +
+            '<option value="Frei">Frei</option>' +
+            '<option value="Urlaub">Urlaub</option>' +
+            '<option value="Krank">Krank</option>' +
+            '<option value="Feiertag">Feiertag</option>' +
+
+            '</select>' +
+
+            '<div class="grid2">' +
+
+            '<input id="start_' +
+            datumKey +
+            '" type="time" value="' +
+            esc(x.start) +
+            '" onchange="tagGeaendert(\'' +
+            datumKey +
+            '\')">' +
+
+            '<input id="ende_' +
+            datumKey +
+            '" type="time" value="' +
+            esc(x.ende) +
+            '" onchange="tagGeaendert(\'' +
+            datumKey +
+            '\')">' +
+
+            '</div>' +
+
+            '<input id="pause_' +
+            datumKey +
+            '" type="number" min="0" value="' +
+            (x.pause || 0) +
+            '" placeholder="Pause Minuten" onchange="tagGeaendert(\'' +
+            datumKey +
+            '\')">' +
+
+            '<input id="objekt_' +
+            datumKey +
+            '" value="' +
             esc(x.objekt) +
-            '<button class="danger" onclick="loeschen(\'zeiten\','+i+')">Löschen</button>' +
-            '</div>';
+            '" placeholder="Objekt / Kunde" onchange="tagGeaendert(\'' +
+            datumKey +
+            '\')">' +
+
+            '<div id="stunden_' +
+            datumKey +
+            '" class="stat">0,00 Std.</div>';
+
+        box.appendChild(div);
+
+        document.getElementById(
+            'status_' + datumKey
+        ).value =
+            x.status;
+
+        tagAnzeigeAktualisieren(
+            datumKey
+        );
+    }
+
+    monatsSummeBerechnen();
+}
+
+function zeitAufAlleTage(){
+
+    const mitarbeiter =
+        document.getElementById(
+            'zeitMitarbeiterSelect'
+        ).value;
+
+    const monat =
+        document.getElementById(
+            'zeitMonat'
+        ).value;
+
+    if(
+        !mitarbeiter ||
+        !monat
+    ){
+
+        alert(
+            'Bitte zuerst Mitarbeiter und Monat auswählen.'
+        );
+
+        return;
+    }
+
+    const start =
+        document.getElementById(
+            'standardStart'
+        ).value;
+
+    const ende =
+        document.getElementById(
+            'standardEnde'
+        ).value;
+
+    const pause =
+        parseInt(
+            document.getElementById(
+                'standardPause'
+            ).value || 0
+        );
+
+    const objekt =
+        document.getElementById(
+            'standardObjekt'
+        ).value;
+
+    if(
+        !start ||
+        !ende
+    ){
+
+        alert(
+            'Bitte Beginn und Ende eingeben.'
+        );
+
+        return;
+    }
+
+    Object.keys(
+        monatsZeiten
+    ).forEach(function(datumKey){
+
+        const x =
+            monatsZeiten[datumKey];
+
+        if(
+            x.status === 'Arbeit'
+        ){
+
+            x.start =
+                start;
+
+            x.ende =
+                ende;
+
+            x.pause =
+                pause;
+
+            x.objekt =
+                objekt;
+
+            const startFeld =
+                document.getElementById(
+                    'start_' + datumKey
+                );
+
+            const endeFeld =
+                document.getElementById(
+                    'ende_' + datumKey
+                );
+
+            const pauseFeld =
+                document.getElementById(
+                    'pause_' + datumKey
+                );
+
+            const objektFeld =
+                document.getElementById(
+                    'objekt_' + datumKey
+                );
+
+            if(startFeld){
+                startFeld.value = start;
+            }
+
+            if(endeFeld){
+                endeFeld.value = ende;
+            }
+
+            if(pauseFeld){
+                pauseFeld.value = pause;
+            }
+
+            if(objektFeld){
+                objektFeld.value = objekt;
+            }
+
+            tagAnzeigeAktualisieren(
+                datumKey
+            );
+        }
     });
+
+    monatsSummeBerechnen();
+}
+
+function tagGeaendert(datumKey){
+
+    const status =
+        document.getElementById(
+            'status_' + datumKey
+        ).value;
+
+    const start =
+        document.getElementById(
+            'start_' + datumKey
+        ).value;
+
+    const ende =
+        document.getElementById(
+            'ende_' + datumKey
+        ).value;
+
+    const pause =
+        parseInt(
+            document.getElementById(
+                'pause_' + datumKey
+            ).value || 0
+        );
+
+    const objekt =
+        document.getElementById(
+            'objekt_' + datumKey
+        ).value;
+
+    monatsZeiten[datumKey] = {
+
+        status:status,
+        start:start,
+        ende:ende,
+        pause:pause,
+        objekt:objekt
+    };
+
+    if(status !== 'Arbeit'){
+
+        monatsZeiten[datumKey].start =
+            '';
+
+        monatsZeiten[datumKey].ende =
+            '';
+
+        document.getElementById(
+            'start_' + datumKey
+        ).value =
+            '';
+
+        document.getElementById(
+            'ende_' + datumKey
+        ).value =
+            '';
+    }
+
+    tagAnzeigeAktualisieren(
+        datumKey
+    );
+
+    monatsSummeBerechnen();
+}
+
+function stundenBerechnen(
+    start,
+    ende,
+    pause
+){
+
+    if(
+        !start ||
+        !ende
+    ){
+
+        return 0;
+    }
+
+    const startTeile =
+        start.split(':');
+
+    const endeTeile =
+        ende.split(':');
+
+    let startMinuten =
+        parseInt(startTeile[0]) * 60 +
+        parseInt(startTeile[1]);
+
+    let endeMinuten =
+        parseInt(endeTeile[0]) * 60 +
+        parseInt(endeTeile[1]);
+
+    if(
+        endeMinuten <
+        startMinuten
+    ){
+
+        endeMinuten +=
+            24 * 60;
+    }
+
+    let minuten =
+        endeMinuten -
+        startMinuten -
+        (parseInt(pause) || 0);
+
+    if(minuten < 0){
+
+        minuten = 0;
+    }
+
+    return minuten / 60;
+}
+
+function tagAnzeigeAktualisieren(
+    datumKey
+){
+
+    const x =
+        monatsZeiten[datumKey];
+
+    if(!x){
+        return;
+    }
+
+    let stunden =
+        0;
+
+    if(
+        x.status === 'Arbeit'
+    ){
+
+        stunden =
+            stundenBerechnen(
+                x.start,
+                x.ende,
+                x.pause
+            );
+    }
+
+    const box =
+        document.getElementById(
+            'stunden_' + datumKey
+        );
+
+    if(box){
+
+        box.textContent =
+            stunden
+                .toFixed(2)
+                .replace('.', ',') +
+            ' Std.';
+    }
+}
+
+function monatsSummeBerechnen(){
+
+    let gesamt =
+        0;
+
+    let arbeitstage =
+        0;
+
+    Object.keys(
+        monatsZeiten
+    ).forEach(function(key){
+
+        const x =
+            monatsZeiten[key];
+
+        if(
+            x.status === 'Arbeit' &&
+            x.start &&
+            x.ende
+        ){
+
+            const stunden =
+                stundenBerechnen(
+                    x.start,
+                    x.ende,
+                    x.pause
+                );
+
+            gesamt +=
+                stunden;
+
+            if(stunden > 0){
+
+                arbeitstage++;
+            }
+        }
+    });
+
+    const mitarbeiterName =
+        document.getElementById(
+            'zeitMitarbeiterSelect'
+        ).value;
+
+    const mitarbeiter =
+        laden('mitarbeiter');
+
+    const person =
+        mitarbeiter.find(function(m){
+
+            return m.name ===
+                mitarbeiterName;
+        });
+
+    const stundenlohn =
+        person
+        ? parseFloat(person.lohn || 0)
+        : 0;
+
+    const lohn =
+        gesamt *
+        stundenlohn;
+
+    const box =
+        document.getElementById(
+            'monatsErgebnis'
+        );
+
+    if(box){
+
+        box.innerHTML =
+
+            'Arbeitstage: <strong>' +
+            arbeitstage +
+            '</strong><br>' +
+
+            'Stundenlohn: <strong>' +
+            stundenlohn.toFixed(2) +
+            ' €</strong><br><br>' +
+
+            '<strong>Gesamtstunden</strong>' +
+
+            '<div class="big">' +
+            gesamt
+                .toFixed(2)
+                .replace('.', ',') +
+            ' Std.</div>' +
+
+            '<br>Berechneter Lohn: <strong>' +
+            lohn
+                .toFixed(2)
+                .replace('.', ',') +
+            ' €</strong>';
+    }
+
+    return gesamt;
+}
+
+function monatszeitenSpeichern(){
+
+    const mitarbeiter =
+        document.getElementById(
+            'zeitMitarbeiterSelect'
+        ).value;
+
+    const monat =
+        document.getElementById(
+            'zeitMonat'
+        ).value;
+
+    if(
+        !mitarbeiter ||
+        !monat
+    ){
+
+        alert(
+            'Bitte Mitarbeiter und Monat auswählen.'
+        );
+
+        return;
+    }
+
+    const key =
+        'monatszeit_' +
+        mitarbeiter +
+        '_' +
+        monat;
+
+    localStorage.setItem(
+        key,
+        JSON.stringify(
+            monatsZeiten
+        )
+    );
+
+    alert(
+        'Stundenzettel wurde gespeichert ✅'
+    );
+}
+
+function stundenzettelDrucken(){
+
+    const mitarbeiter =
+        document.getElementById(
+            'zeitMitarbeiterSelect'
+        ).value;
+
+    const monat =
+        document.getElementById(
+            'zeitMonat'
+        ).value;
+
+    if(
+        !mitarbeiter ||
+        !monat
+    ){
+
+        alert(
+            'Bitte Mitarbeiter und Monat auswählen.'
+        );
+
+        return;
+    }
+
+    const gesamt =
+        monatsSummeBerechnen();
+
+    let zeilen =
+        '';
+
+    Object.keys(
+        monatsZeiten
+    )
+    .sort()
+    .forEach(function(datum){
+
+        const x =
+            monatsZeiten[datum];
+
+        const stunden =
+            x.status === 'Arbeit'
+            ?
+            stundenBerechnen(
+                x.start,
+                x.ende,
+                x.pause
+            )
+            :
+            0;
+
+        const teile =
+            datum.split('-');
+
+        const deutschesDatum =
+            teile[2] +
+            '.' +
+            teile[1] +
+            '.' +
+            teile[0];
+
+        zeilen +=
+
+            '<tr>' +
+
+            '<td>' +
+            deutschesDatum +
+            '</td>' +
+
+            '<td>' +
+            esc(x.status) +
+            '</td>' +
+
+            '<td>' +
+            esc(x.start) +
+            '</td>' +
+
+            '<td>' +
+            esc(x.ende) +
+            '</td>' +
+
+            '<td>' +
+            (x.pause || 0) +
+            '</td>' +
+
+            '<td>' +
+            stunden
+                .toFixed(2)
+                .replace('.', ',') +
+            '</td>' +
+
+            '<td>' +
+            esc(x.objekt) +
+            '</td>' +
+
+            '</tr>';
+    });
+
+    const html =
+
+        '<!DOCTYPE html>' +
+
+        '<html lang="de">' +
+
+        '<head>' +
+
+        '<meta charset="UTF-8">' +
+
+        '<title>Stundenzettel</title>' +
+
+        '<style>' +
+
+        'body{' +
+        'font-family:Arial,sans-serif;' +
+        'padding:20px;' +
+        'color:#222;' +
+        '}' +
+
+        'h1{' +
+        'color:#07845f;' +
+        '}' +
+
+        'table{' +
+        'width:100%;' +
+        'border-collapse:collapse;' +
+        'font-size:11px;' +
+        '}' +
+
+        'th,td{' +
+        'border:1px solid #999;' +
+        'padding:5px;' +
+        '}' +
+
+        'th{' +
+        'background:#eee;' +
+        '}' +
+
+        '.gesamt{' +
+        'font-size:20px;' +
+        'font-weight:bold;' +
+        'margin-top:20px;' +
+        '}' +
+
+        '</style>' +
+
+        '</head>' +
+
+        '<body>' +
+
+        '<h1>E-M Cleaning Service</h1>' +
+
+        '<h2>Stundennachweis</h2>' +
+
+        '<p>' +
+
+        '<strong>Mitarbeiter:</strong> ' +
+        esc(mitarbeiter) +
+        '<br>' +
+
+        '<strong>Monat:</strong> ' +
+        esc(monat) +
+
+        '</p>' +
+
+        '<table>' +
+
+        '<thead>' +
+
+        '<tr>' +
+
+        '<th>Datum</th>' +
+        '<th>Status</th>' +
+        '<th>Beginn</th>' +
+        '<th>Ende</th>' +
+        '<th>Pause</th>' +
+        '<th>Std.</th>' +
+        '<th>Objekt</th>' +
+
+        '</tr>' +
+
+        '</thead>' +
+
+        '<tbody>' +
+
+        zeilen +
+
+        '</tbody>' +
+
+        '</table>' +
+
+        '<div class="gesamt">' +
+
+        'Gesamtstunden: ' +
+        gesamt
+            .toFixed(2)
+            .replace('.', ',') +
+        ' Std.' +
+
+        '</div>' +
+
+        '<br><br>' +
+
+        '<p>' +
+        'Unterschrift Mitarbeiter: _________________________' +
+        '</p>' +
+
+        '<br>' +
+
+        '<p>' +
+        'Unterschrift Arbeitgeber: _________________________' +
+        '</p>' +
+
+        '</body>' +
+
+        '</html>';
+
+    const fenster =
+        window.open(
+            '',
+            '_blank'
+        );
+
+    if(!fenster){
+
+        alert(
+            'Druckansicht konnte nicht geöffnet werden.'
+        );
+
+        return;
+    }
+
+    fenster.document.write(
+        html
+    );
+
+    fenster.document.close();
+
+    setTimeout(function(){
+
+        fenster.print();
+
+    },500);
 }
 
 function rechnungSpeichern(){
@@ -1306,6 +2289,7 @@ function rechnungSpeichern(){
     });
 
     speichern('rechnungen',d);
+
     rechnungenAnzeigen();
 }
 
@@ -1317,7 +2301,7 @@ function rechnungenAnzeigen(){
     const box =
         document.getElementById('rechnungListe');
 
-    box.innerHTML='';
+    box.innerHTML = '';
 
     d.forEach(function(x,i){
 
@@ -1338,9 +2322,15 @@ function loeschen(key,index){
     const d =
         laden(key);
 
-    d.splice(index,1);
+    d.splice(
+        index,
+        1
+    );
 
-    speichern(key,d);
+    speichern(
+        key,
+        d
+    );
 
     aktualisieren();
 }
@@ -1360,8 +2350,10 @@ function aktualisieren(){
     kundenAnzeigen();
     mitarbeiterAnzeigen();
     auftraegeAnzeigen();
-    zeitenAnzeigen();
     rechnungenAnzeigen();
+
+    mitarbeiterAuswahlAktualisieren();
+    aktuellerMonatSetzen();
 }
 
 serviceChanged();
