@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -13,10 +14,10 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
 
     private WebView webView;
-
     private ValueCallback<Uri[]> filePathCallback;
 
     private static final int FILE_CHOOSER_REQUEST = 1001;
+    private static final int AR_MEASURE_REQUEST = 2001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,20 +39,19 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean onShowFileChooser(
-                    WebView webView,
-                    ValueCallback<Uri[]> filePathCallbackNew,
-                    FileChooserParams fileChooserParams) {
+                    WebView view,
+                    ValueCallback<Uri[]> callback,
+                    FileChooserParams params) {
 
                 if (filePathCallback != null) {
                     filePathCallback.onReceiveValue(null);
                 }
 
-                filePathCallback = filePathCallbackNew;
-
-                Intent intent;
+                filePathCallback = callback;
 
                 try {
-                    intent = fileChooserParams.createIntent();
+
+                    Intent intent = params.createIntent();
                     intent.setType("image/*");
 
                     startActivityForResult(
@@ -59,19 +59,60 @@ public class MainActivity extends Activity {
                             FILE_CHOOSER_REQUEST
                     );
 
+                    return true;
+
                 } catch (Exception e) {
 
                     filePathCallback = null;
                     return false;
                 }
-
-                return true;
             }
         });
+
+
+        webView.addJavascriptInterface(
+                new AndroidBridge(),
+                "Android"
+        );
+
 
         webView.loadUrl(
                 "file:///android_asset/index.html"
         );
+    }
+
+
+    private class AndroidBridge {
+
+        @JavascriptInterface
+        public void startArMeasurement() {
+
+            runOnUiThread(() -> {
+
+                try {
+
+                    Intent intent =
+                            new Intent(
+                                    MainActivity.this,
+                                    MeasureActivity.class
+                            );
+
+                    startActivityForResult(
+                            intent,
+                            AR_MEASURE_REQUEST
+                    );
+
+                } catch (Exception e) {
+
+                    runOnUiThread(() ->
+                            webView.evaluateJavascript(
+                                    "alert('AR-Messung konnte nicht geöffnet werden.');",
+                                    null
+                            )
+                    );
+                }
+            });
+        }
     }
 
 
@@ -87,6 +128,7 @@ public class MainActivity extends Activity {
                 data
         );
 
+
         if (requestCode == FILE_CHOOSER_REQUEST) {
 
             if (filePathCallback == null) {
@@ -98,7 +140,8 @@ public class MainActivity extends Activity {
             if (resultCode == RESULT_OK) {
 
                 results =
-                        WebChromeClient.FileChooserParams
+                        WebChromeClient
+                                .FileChooserParams
                                 .parseResult(
                                         resultCode,
                                         data
@@ -108,6 +151,52 @@ public class MainActivity extends Activity {
             filePathCallback.onReceiveValue(results);
 
             filePathCallback = null;
+
+            return;
+        }
+
+
+        if (
+                requestCode == AR_MEASURE_REQUEST
+                        &&
+                resultCode == RESULT_OK
+                        &&
+                data != null
+        ) {
+
+            double width =
+                    data.getDoubleExtra(
+                            "width",
+                            0
+                    );
+
+            double height =
+                    data.getDoubleExtra(
+                            "height",
+                            0
+                    );
+
+            double area =
+                    data.getDoubleExtra(
+                            "area",
+                            0
+                    );
+
+
+            String javascript =
+                    "if(window.receiveArMeasurement){" +
+                    "window.receiveArMeasurement(" +
+                    width + "," +
+                    height + "," +
+                    area +
+                    ");" +
+                    "}";
+
+
+            webView.evaluateJavascript(
+                    javascript,
+                    null
+            );
         }
     }
 
@@ -115,9 +204,16 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
 
-        if (webView.canGoBack()) {
+        if (
+                webView != null
+                        &&
+                webView.canGoBack()
+        ) {
+
             webView.goBack();
+
         } else {
+
             super.onBackPressed();
         }
     }
