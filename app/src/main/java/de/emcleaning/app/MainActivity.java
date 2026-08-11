@@ -1,6 +1,7 @@
 package de.emcleaning.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -38,15 +39,23 @@ public class MainActivity extends Activity {
     private String pendingPdfMonth = "";
     private String pendingPdfJson = "[]";
 
+    /*
+     * Zuletzt gespeicherte PDF.
+     * Damit können wir sie anschließend teilen.
+     */
+    private Uri lastSavedPdfUri = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
+
         setContentView(webView);
 
-        WebSettings settings = webView.getSettings();
+        WebSettings settings =
+                webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -55,7 +64,9 @@ public class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(false);
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(
+                new WebViewClient()
+        );
 
         webView.setWebChromeClient(
                 new WebChromeClient() {
@@ -68,15 +79,23 @@ public class MainActivity extends Activity {
                     ) {
 
                         if (filePathCallback != null) {
-                            filePathCallback.onReceiveValue(null);
+
+                            filePathCallback.onReceiveValue(
+                                    null
+                            );
                         }
 
-                        filePathCallback = callback;
+                        filePathCallback =
+                                callback;
 
                         try {
 
-                            Intent intent = params.createIntent();
-                            intent.setType("image/*");
+                            Intent intent =
+                                    params.createIntent();
+
+                            intent.setType(
+                                    "image/*"
+                            );
 
                             startActivityForResult(
                                     intent,
@@ -87,21 +106,31 @@ public class MainActivity extends Activity {
 
                         } catch (Exception e) {
 
-                            filePathCallback = null;
+                            filePathCallback =
+                                    null;
+
                             return false;
                         }
                     }
                 }
         );
 
+
+        /*
+         * Verbindung HTML -> Android
+         */
+
         webView.addJavascriptInterface(
                 new AndroidBridge(),
                 "Android"
         );
 
+
         if (savedInstanceState != null) {
 
-            webView.restoreState(savedInstanceState);
+            webView.restoreState(
+                    savedInstanceState
+            );
 
         } else {
 
@@ -112,41 +141,60 @@ public class MainActivity extends Activity {
     }
 
 
+    /*
+     * =====================================================
+     * JAVASCRIPT BRIDGE
+     * =====================================================
+     */
+
     private class AndroidBridge {
+
+
+        /*
+         * AR-Messung starten
+         */
 
         @JavascriptInterface
         public void startArMeasurement() {
 
-            runOnUiThread(() -> {
+            runOnUiThread(
+                    () -> {
 
-                try {
+                        try {
 
-                    arMeasurementRunning = true;
+                            arMeasurementRunning =
+                                    true;
 
-                    Intent intent =
-                            new Intent(
-                                    MainActivity.this,
-                                    MeasureActivity.class
+                            Intent intent =
+                                    new Intent(
+                                            MainActivity.this,
+                                            MeasureActivity.class
+                                    );
+
+                            startActivityForResult(
+                                    intent,
+                                    AR_MEASURE_REQUEST
                             );
 
-                    startActivityForResult(
-                            intent,
-                            AR_MEASURE_REQUEST
-                    );
+                        } catch (Exception e) {
 
-                } catch (Exception e) {
+                            arMeasurementRunning =
+                                    false;
 
-                    arMeasurementRunning = false;
-
-                    Toast.makeText(
-                            MainActivity.this,
-                            "AR-Messung konnte nicht geöffnet werden.",
-                            Toast.LENGTH_LONG
-                    ).show();
-                }
-            });
+                            Toast.makeText(
+                                    MainActivity.this,
+                                    "AR-Messung konnte nicht geöffnet werden.",
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                    }
+            );
         }
 
+
+        /*
+         * Stundenzettel PDF erstellen
+         */
 
         @JavascriptInterface
         public void createTimesheetPdf(
@@ -155,62 +203,97 @@ public class MainActivity extends Activity {
                 String jsonData
         ) {
 
-            runOnUiThread(() -> {
+            runOnUiThread(
+                    () -> {
 
-                pendingPdfEmployee =
-                        employee == null || employee.trim().isEmpty()
-                                ? "Mitarbeiter"
-                                : employee.trim();
+                        pendingPdfEmployee =
+                                employee == null ||
+                                employee.trim().isEmpty()
+                                        ?
+                                        "Mitarbeiter"
+                                        :
+                                        employee.trim();
 
-                pendingPdfMonth =
-                        month == null
-                                ? ""
-                                : month.trim();
+                        pendingPdfMonth =
+                                month == null
+                                        ?
+                                        ""
+                                        :
+                                        month.trim();
 
-                pendingPdfJson =
-                        jsonData == null
-                                ? "[]"
-                                : jsonData;
+                        pendingPdfJson =
+                                jsonData == null
+                                        ?
+                                        "[]"
+                                        :
+                                        jsonData;
 
-                String safeEmployee =
-                        pendingPdfEmployee.replaceAll(
-                                "[^a-zA-Z0-9ÄÖÜäöüß_-]",
-                                "_"
-                        );
 
-                String fileName =
-                        "Stundenzettel_" +
+                        String safeEmployee =
+                                pendingPdfEmployee.replaceAll(
+                                        "[^a-zA-Z0-9ÄÖÜäöüß_-]",
+                                        "_"
+                                );
+
+
+                        String fileName =
+                                "Stundenzettel_" +
                                 safeEmployee +
                                 "_" +
                                 pendingPdfMonth +
                                 ".pdf";
 
-                Intent intent =
-                        new Intent(
-                                Intent.ACTION_CREATE_DOCUMENT
+
+                        Intent intent =
+                                new Intent(
+                                        Intent.ACTION_CREATE_DOCUMENT
+                                );
+
+                        intent.addCategory(
+                                Intent.CATEGORY_OPENABLE
                         );
 
-                intent.addCategory(
-                        Intent.CATEGORY_OPENABLE
-                );
+                        intent.setType(
+                                "application/pdf"
+                        );
 
-                intent.setType(
-                        "application/pdf"
-                );
+                        intent.putExtra(
+                                Intent.EXTRA_TITLE,
+                                fileName
+                        );
 
-                intent.putExtra(
-                        Intent.EXTRA_TITLE,
-                        fileName
-                );
+                        startActivityForResult(
+                                intent,
+                                PDF_CREATE_REQUEST
+                        );
+                    }
+            );
+        }
 
-                startActivityForResult(
-                        intent,
-                        PDF_CREATE_REQUEST
-                );
-            });
+
+        /*
+         * Optional:
+         * Falls wir später in index.html einen
+         * separaten "PDF teilen"-Button einbauen.
+         */
+
+        @JavascriptInterface
+        public void shareLastPdf() {
+
+            runOnUiThread(
+                    () -> sharePdf(
+                            lastSavedPdfUri
+                    )
+            );
         }
     }
 
+
+    /*
+     * =====================================================
+     * ACTIVITY ERGEBNISSE
+     * =====================================================
+     */
 
     @Override
     protected void onActivityResult(
@@ -226,19 +309,33 @@ public class MainActivity extends Activity {
         );
 
 
+        /*
+         * DATEIAUSWAHL
+         */
+
         if (
                 requestCode
                         ==
                 FILE_CHOOSER_REQUEST
         ) {
 
-            if (filePathCallback == null) {
+            if (
+                    filePathCallback
+                            ==
+                    null
+            ) {
+
                 return;
             }
 
-            Uri[] results = null;
+            Uri[] results =
+                    null;
 
-            if (resultCode == RESULT_OK) {
+            if (
+                    resultCode
+                            ==
+                    RESULT_OK
+            ) {
 
                 results =
                         WebChromeClient
@@ -249,12 +346,20 @@ public class MainActivity extends Activity {
                                 );
             }
 
-            filePathCallback.onReceiveValue(results);
-            filePathCallback = null;
+            filePathCallback.onReceiveValue(
+                    results
+            );
+
+            filePathCallback =
+                    null;
 
             return;
         }
 
+
+        /*
+         * PDF-SPEICHERN
+         */
 
         if (
                 requestCode
@@ -263,15 +368,27 @@ public class MainActivity extends Activity {
         ) {
 
             if (
-                    resultCode == RESULT_OK
-                            &&
-                    data != null
-                            &&
-                    data.getData() != null
+                    resultCode
+                            ==
+                    RESULT_OK
+                    &&
+                    data
+                            !=
+                    null
+                    &&
+                    data.getData()
+                            !=
+                    null
             ) {
 
+                Uri uri =
+                        data.getData();
+
+                lastSavedPdfUri =
+                        uri;
+
                 createPdfFile(
-                        data.getData()
+                        uri
                 );
 
             } else {
@@ -287,18 +404,27 @@ public class MainActivity extends Activity {
         }
 
 
+        /*
+         * AR-MESSUNG
+         */
+
         if (
                 requestCode
                         ==
                 AR_MEASURE_REQUEST
         ) {
 
-            arMeasurementRunning = false;
+            arMeasurementRunning =
+                    false;
 
             if (
-                    resultCode == RESULT_OK
-                            &&
-                    data != null
+                    resultCode
+                            ==
+                    RESULT_OK
+                    &&
+                    data
+                            !=
+                    null
             ) {
 
                 double width =
@@ -319,51 +445,65 @@ public class MainActivity extends Activity {
                                 0
                         );
 
+
                 if (
                         width <= 0
-                                ||
+                        ||
                         height <= 0
-                                ||
+                        ||
                         area <= 0
                 ) {
 
                     webView.postDelayed(
-                            () -> webView.evaluateJavascript(
-                                    "alert('Die Messung war ungültig.');",
-                                    null
-                            ),
+                            () ->
+                                    webView.evaluateJavascript(
+                                            "alert('Die Messung war ungültig.');",
+                                            null
+                                    ),
                             250
                     );
 
                     return;
                 }
 
+
                 String javascript =
                         "if(typeof window.receiveArMeasurement==='function'){" +
-                                "window.receiveArMeasurement(" +
-                                width + "," +
-                                height + "," +
-                                area +
-                                ");" +
-                                "}";
+
+                        "window.receiveArMeasurement(" +
+
+                        width +
+                        "," +
+
+                        height +
+                        "," +
+
+                        area +
+
+                        ");" +
+
+                        "}";
+
 
                 webView.postDelayed(
-                        () -> webView.evaluateJavascript(
-                                javascript,
-                                null
-                        ),
+                        () ->
+                                webView.evaluateJavascript(
+                                        javascript,
+                                        null
+                                ),
                         250
                 );
 
             } else {
 
                 webView.postDelayed(
-                        () -> webView.evaluateJavascript(
-                                "if(typeof openPage==='function'){" +
+                        () ->
+                                webView.evaluateJavascript(
+                                        "if(typeof openPage==='function'){" +
                                         "openPage('foto');" +
                                         "}",
-                                null
-                        ),
+                                        null
+                                ),
                         200
                 );
             }
@@ -371,10 +511,21 @@ public class MainActivity extends Activity {
     }
 
 
-    private void createPdfFile(Uri uri) {
+    /*
+     * =====================================================
+     * PDF ERSTELLEN
+     * =====================================================
+     */
+
+    private void createPdfFile(
+            Uri uri
+    ) {
 
         PdfDocument document =
                 new PdfDocument();
+
+        OutputStream outputStream =
+                null;
 
         try {
 
@@ -383,21 +534,35 @@ public class MainActivity extends Activity {
                             pendingPdfJson
                     );
 
-            final int pageWidth = 595;
-            final int pageHeight = 842;
 
-            final int marginLeft = 28;
-            final int marginRight = 28;
-            final int contentWidth =
-                    pageWidth -
-                            marginLeft -
-                            marginRight;
+            /*
+             * A4 in Punkten
+             */
 
-            final int headerHeight = 92;
-            final int footerHeight = 35;
+            final int pageWidth =
+                    595;
+
+            final int pageHeight =
+                    842;
+
+            final int marginLeft =
+                    28;
+
+            final int marginRight =
+                    28;
+
+            final int footerHeight =
+                    35;
+
+
+            /*
+             * Farben / Schrift
+             */
 
             Paint titlePaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             titlePaint.setColor(
                     Color.rgb(
@@ -415,8 +580,11 @@ public class MainActivity extends Activity {
                     true
             );
 
+
             Paint subtitlePaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             subtitlePaint.setColor(
                     Color.DKGRAY
@@ -426,8 +594,11 @@ public class MainActivity extends Activity {
                     10.5f
             );
 
+
             Paint boldPaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             boldPaint.setColor(
                     Color.BLACK
@@ -441,8 +612,11 @@ public class MainActivity extends Activity {
                     true
             );
 
+
             Paint normalPaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             normalPaint.setColor(
                     Color.BLACK
@@ -452,8 +626,11 @@ public class MainActivity extends Activity {
                     8.3f
             );
 
+
             Paint smallPaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             smallPaint.setColor(
                     Color.DKGRAY
@@ -463,8 +640,11 @@ public class MainActivity extends Activity {
                     7.5f
             );
 
+
             Paint linePaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             linePaint.setColor(
                     Color.rgb(
@@ -478,6 +658,7 @@ public class MainActivity extends Activity {
                     1f
             );
 
+
             Paint headerBackgroundPaint =
                     new Paint();
 
@@ -488,6 +669,7 @@ public class MainActivity extends Activity {
                             246
                     )
             );
+
 
             Paint totalBackgroundPaint =
                     new Paint();
@@ -500,8 +682,11 @@ public class MainActivity extends Activity {
                     )
             );
 
+
             Paint totalBorderPaint =
-                    new Paint();
+                    new Paint(
+                            Paint.ANTI_ALIAS_FLAG
+                    );
 
             totalBorderPaint.setStyle(
                     Paint.Style.STROKE
@@ -519,10 +704,45 @@ public class MainActivity extends Activity {
                     )
             );
 
-            int pageNumber = 1;
-            int index = 0;
 
-            double totalHours = 0;
+            /*
+             * Gesamtstunden vorher berechnen.
+             *
+             * Dadurch stimmt die Summe auch
+             * bei mehreren PDF-Seiten.
+             */
+
+            double totalHours =
+                    0;
+
+            for (
+                    int i = 0;
+                    i < rows.length();
+                    i++
+            ) {
+
+                JSONObject row =
+                        rows.getJSONObject(
+                                i
+                        );
+
+                totalHours +=
+                        row.optDouble(
+                                "stunden",
+                                0
+                        );
+            }
+
+
+            /*
+             * Tabellenwerte
+             */
+
+            int pageNumber =
+                    1;
+
+            int index =
+                    0;
 
 
             while (
@@ -538,19 +758,25 @@ public class MainActivity extends Activity {
                                 pageNumber
                         ).create();
 
+
                 PdfDocument.Page page =
                         document.startPage(
                                 pageInfo
                         );
 
+
                 Canvas canvas =
                         page.getCanvas();
 
-                float y = 34;
+
+                float y =
+                        34;
 
 
                 /*
-                 * KOPF
+                 * =================================================
+                 * KOPFBEREICH
+                 * =================================================
                  */
 
                 canvas.drawText(
@@ -560,7 +786,10 @@ public class MainActivity extends Activity {
                         titlePaint
                 );
 
-                y += 22;
+
+                y +=
+                        22;
+
 
                 canvas.drawText(
                         "Stundennachweis",
@@ -569,27 +798,46 @@ public class MainActivity extends Activity {
                         boldPaint
                 );
 
-                y += 16;
+
+                y +=
+                        16;
+
 
                 canvas.drawText(
                         "Mitarbeiter: " +
-                                pendingPdfEmployee,
+                        pendingPdfEmployee,
                         marginLeft,
                         y,
                         subtitlePaint
                 );
 
-                canvas.drawText(
+
+                String monthText =
                         "Monat: " +
-                                formatPdfMonth(
-                                        pendingPdfMonth
-                                ),
-                        pageWidth - marginRight - 145,
+                        formatPdfMonth(
+                                pendingPdfMonth
+                        );
+
+
+                float monthWidth =
+                        subtitlePaint.measureText(
+                                monthText
+                        );
+
+
+                canvas.drawText(
+                        monthText,
+                        pageWidth -
+                        marginRight -
+                        monthWidth,
                         y,
                         subtitlePaint
                 );
 
-                y += 15;
+
+                y +=
+                        15;
+
 
                 canvas.drawLine(
                         marginLeft,
@@ -599,40 +847,72 @@ public class MainActivity extends Activity {
                         linePaint
                 );
 
-                y += 20;
+
+                y +=
+                        20;
 
 
                 /*
+                 * =================================================
                  * TABELLENSPALTEN
+                 * =================================================
                  */
 
-                float xDate = marginLeft;
-                float wDate = 67;
+                float xDate =
+                        marginLeft;
 
-                float xStatus = xDate + wDate;
-                float wStatus = 58;
+                float wDate =
+                        67;
 
-                float xStart = xStatus + wStatus;
-                float wStart = 47;
 
-                float xEnd = xStart + wStart;
-                float wEnd = 47;
+                float xStatus =
+                        xDate +
+                        wDate;
 
-                float xPause = xEnd + wEnd;
-                float wPause = 49;
+                float wStatus =
+                        58;
 
-                float xHours = xPause + wPause;
-                float wHours = 52;
 
-                float xObject = xHours + wHours;
-                float wObject =
-                        pageWidth -
-                                marginRight -
-                                xObject;
+                float xStart =
+                        xStatus +
+                        wStatus;
+
+                float wStart =
+                        47;
+
+
+                float xEnd =
+                        xStart +
+                        wStart;
+
+                float wEnd =
+                        47;
+
+
+                float xPause =
+                        xEnd +
+                        wEnd;
+
+                float wPause =
+                        49;
+
+
+                float xHours =
+                        xPause +
+                        wPause;
+
+                float wHours =
+                        52;
+
+
+                float xObject =
+                        xHours +
+                        wHours;
 
 
                 float tableHeaderTop =
                         y - 13;
+
 
                 float tableHeaderBottom =
                         y + 6;
@@ -699,26 +979,35 @@ public class MainActivity extends Activity {
                 );
 
 
-                y += 14;
+                y +=
+                        14;
 
-
-                /*
-                 * VERTIKALE TABELLENLINIEN
-                 */
 
                 float[] columnLines = {
+
                         marginLeft,
+
                         xStatus,
+
                         xStart,
+
                         xEnd,
+
                         xPause,
+
                         xHours,
+
                         xObject,
-                        pageWidth - marginRight
+
+                        pageWidth -
+                        marginRight
                 };
 
 
-                for (float x : columnLines) {
+                for (
+                        float x :
+                        columnLines
+                ) {
 
                     canvas.drawLine(
                             x,
@@ -740,19 +1029,21 @@ public class MainActivity extends Activity {
 
 
                 /*
-                 * ZEILEN
+                 * =================================================
+                 * TABELLENZEILEN
+                 * =================================================
                  */
 
                 while (
                         index
                                 <
                         rows.length()
-                                &&
+                        &&
                         y
                                 <
                         pageHeight -
-                                footerHeight -
-                                125
+                        footerHeight -
+                        125
                 ) {
 
                     JSONObject row =
@@ -760,30 +1051,36 @@ public class MainActivity extends Activity {
                                     index
                             );
 
+
                     String date =
                             row.optString(
                                     "datum"
                             );
+
 
                     String status =
                             row.optString(
                                     "status"
                             );
 
+
                     String start =
                             row.optString(
                                     "start"
                             );
+
 
                     String end =
                             row.optString(
                                     "ende"
                             );
 
+
                     String pause =
                             row.optString(
                                     "pause"
                             );
+
 
                     double hours =
                             row.optDouble(
@@ -791,17 +1088,16 @@ public class MainActivity extends Activity {
                                     0
                             );
 
+
                     String object =
                             row.optString(
                                     "objekt"
                             );
 
-                    totalHours +=
-                            hours;
-
 
                     float rowTop =
                             y - 9;
+
 
                     float rowBottom =
                             y + 7;
@@ -817,6 +1113,7 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
+
                     canvas.drawText(
                             shorten(
                                     status,
@@ -826,6 +1123,7 @@ public class MainActivity extends Activity {
                             y,
                             normalPaint
                     );
+
 
                     canvas.drawText(
                             shorten(
@@ -837,6 +1135,7 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
+
                     canvas.drawText(
                             shorten(
                                     end,
@@ -847,6 +1146,7 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
+
                     canvas.drawText(
                             shorten(
                                     pause,
@@ -856,6 +1156,7 @@ public class MainActivity extends Activity {
                             y,
                             normalPaint
                     );
+
 
                     canvas.drawText(
                             String.format(
@@ -868,6 +1169,7 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
+
                     canvas.drawText(
                             shorten(
                                     object,
@@ -879,7 +1181,10 @@ public class MainActivity extends Activity {
                     );
 
 
-                    for (float x : columnLines) {
+                    for (
+                            float x :
+                            columnLines
+                    ) {
 
                         canvas.drawLine(
                                 x,
@@ -900,13 +1205,18 @@ public class MainActivity extends Activity {
                     );
 
 
-                    y += 16;
+                    y +=
+                            16;
+
+
                     index++;
                 }
 
 
                 /*
+                 * =================================================
                  * LETZTE SEITE
+                 * =================================================
                  */
 
                 if (
@@ -915,7 +1225,8 @@ public class MainActivity extends Activity {
                         rows.length()
                 ) {
 
-                    y += 18;
+                    y +=
+                            18;
 
 
                     RectF totalBox =
@@ -953,12 +1264,9 @@ public class MainActivity extends Activity {
 
                     Paint totalHoursPaint =
                             new Paint(
-                                    boldPaint
+                                    Paint.ANTI_ALIAS_FLAG
                             );
 
-                    totalHoursPaint.setTextSize(
-                            16f
-                    );
 
                     totalHoursPaint.setColor(
                             Color.rgb(
@@ -966,6 +1274,16 @@ public class MainActivity extends Activity {
                                     118,
                                     71
                             )
+                    );
+
+
+                    totalHoursPaint.setTextSize(
+                            16f
+                    );
+
+
+                    totalHoursPaint.setFakeBoldText(
+                            true
                     );
 
 
@@ -981,7 +1299,12 @@ public class MainActivity extends Activity {
                     );
 
 
-                    y += 78;
+                    /*
+                     * Unterschriften
+                     */
+
+                    y +=
+                            78;
 
 
                     canvas.drawText(
@@ -1003,16 +1326,21 @@ public class MainActivity extends Activity {
 
                     canvas.drawText(
                             "Unterschrift Arbeitgeber",
-                            pageWidth - marginRight - 220,
+                            pageWidth -
+                            marginRight -
+                            220,
                             y,
                             smallPaint
                     );
 
 
                     canvas.drawLine(
-                            pageWidth - marginRight - 220,
+                            pageWidth -
+                            marginRight -
+                            220,
                             y + 18,
-                            pageWidth - marginRight,
+                            pageWidth -
+                            marginRight,
                             y + 18,
                             linePaint
                     );
@@ -1020,7 +1348,9 @@ public class MainActivity extends Activity {
 
 
                 /*
+                 * =================================================
                  * FUßZEILE
+                 * =================================================
                  */
 
                 canvas.drawLine(
@@ -1040,12 +1370,16 @@ public class MainActivity extends Activity {
                 );
 
 
+                /*
+                 * Nur EIN Seitentext.
+                 */
+
                 String pageText =
                         "Seite " +
-                                pageNumber;
+                        pageNumber;
 
 
-                float textWidth =
+                float pageTextWidth =
                         smallPaint.measureText(
                                 pageText
                         );
@@ -1053,7 +1387,9 @@ public class MainActivity extends Activity {
 
                 canvas.drawText(
                         pageText,
-                        pageWidth - marginRight - textWidth,
+                        pageWidth -
+                        marginRight -
+                        pageTextWidth,
                         pageHeight - 16,
                         smallPaint
                 );
@@ -1063,11 +1399,16 @@ public class MainActivity extends Activity {
                         page
                 );
 
+
                 pageNumber++;
             }
 
 
-            OutputStream outputStream =
+            /*
+             * PDF schreiben
+             */
+
+            outputStream =
                     getContentResolver()
                             .openOutputStream(
                                     uri
@@ -1092,7 +1433,6 @@ public class MainActivity extends Activity {
 
 
             outputStream.flush();
-            outputStream.close();
 
 
             Toast.makeText(
@@ -1102,22 +1442,202 @@ public class MainActivity extends Activity {
             ).show();
 
 
+            /*
+             * Nach erfolgreichem Speichern:
+             * Teilen anbieten.
+             */
+
+            showShareDialog(
+                    uri
+            );
+
+
         } catch (Exception e) {
 
             Toast.makeText(
                     this,
                     "PDF-Fehler: " +
-                            e.getMessage(),
+                    e.getMessage(),
                     Toast.LENGTH_LONG
             ).show();
 
 
         } finally {
 
+            try {
+
+                if (
+                        outputStream
+                                !=
+                        null
+                ) {
+
+                    outputStream.close();
+                }
+
+            } catch (
+                    Exception ignored
+            ) {
+
+            }
+
+
             document.close();
         }
     }
 
+
+    /*
+     * =====================================================
+     * NACH DEM SPEICHERN: TEILEN?
+     * =====================================================
+     */
+
+    private void showShareDialog(
+            Uri uri
+    ) {
+
+        if (
+                uri
+                        ==
+                null
+        ) {
+
+            return;
+        }
+
+
+        new AlertDialog.Builder(
+                this
+        )
+
+                .setTitle(
+                        "PDF gespeichert ✅"
+                )
+
+                .setMessage(
+                        "Möchtest du den Stundenzettel jetzt teilen?"
+                )
+
+                .setNegativeButton(
+                        "Nein",
+                        null
+                )
+
+                .setPositiveButton(
+                        "PDF teilen",
+                        (dialog, which) ->
+                                sharePdf(
+                                        uri
+                                )
+                )
+
+                .show();
+    }
+
+
+    /*
+     * =====================================================
+     * PDF TEILEN
+     * =====================================================
+     */
+
+    private void sharePdf(
+            Uri uri
+    ) {
+
+        if (
+                uri
+                        ==
+                null
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Bitte zuerst eine PDF speichern.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+
+        try {
+
+            Intent shareIntent =
+                    new Intent(
+                            Intent.ACTION_SEND
+                    );
+
+
+            shareIntent.setType(
+                    "application/pdf"
+            );
+
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_STREAM,
+                    uri
+            );
+
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_SUBJECT,
+                    "Stundenzettel " +
+                    pendingPdfEmployee +
+                    " " +
+                    formatPdfMonth(
+                            pendingPdfMonth
+                    )
+            );
+
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Stundenzettel von " +
+                    pendingPdfEmployee +
+                    " für " +
+                    formatPdfMonth(
+                            pendingPdfMonth
+                    ) +
+                    "."
+            );
+
+
+            /*
+             * Sehr wichtig:
+             * Andere Apps dürfen die PDF lesen.
+             */
+
+            shareIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Stundenzettel teilen"
+                    )
+            );
+
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "PDF konnte nicht geteilt werden.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+
+    /*
+     * =====================================================
+     * MONAT SCHÖN FORMATIEREN
+     * =====================================================
+     */
 
     private String formatPdfMonth(
             String month
@@ -1127,7 +1647,7 @@ public class MainActivity extends Activity {
                 month
                         ==
                 null
-                        ||
+                ||
                 month.trim().isEmpty()
         ) {
 
@@ -1156,25 +1676,38 @@ public class MainActivity extends Activity {
 
 
             String[] monthNames = {
+
                     "",
+
                     "Januar",
+
                     "Februar",
+
                     "März",
+
                     "April",
+
                     "Mai",
+
                     "Juni",
+
                     "Juli",
+
                     "August",
+
                     "September",
+
                     "Oktober",
+
                     "November",
+
                     "Dezember"
             };
 
 
             if (
                     monthNumber >= 1
-                            &&
+                    &&
                     monthNumber <= 12
             ) {
 
@@ -1186,7 +1719,9 @@ public class MainActivity extends Activity {
             }
 
 
-        } catch (Exception ignored) {
+        } catch (
+                Exception ignored
+        ) {
 
         }
 
@@ -1194,6 +1729,12 @@ public class MainActivity extends Activity {
         return month;
     }
 
+
+    /*
+     * =====================================================
+     * TEXT KÜRZEN
+     * =====================================================
+     */
 
     private String shorten(
             String text,
@@ -1230,6 +1771,12 @@ public class MainActivity extends Activity {
     }
 
 
+    /*
+     * =====================================================
+     * WEBVIEW ZUSTAND
+     * =====================================================
+     */
+
     @Override
     protected void onSaveInstanceState(
             Bundle outState
@@ -1253,6 +1800,12 @@ public class MainActivity extends Activity {
     }
 
 
+    /*
+     * =====================================================
+     * ZURÜCK-TASTE
+     * =====================================================
+     */
+
     @Override
     public void onBackPressed() {
 
@@ -1263,6 +1816,7 @@ public class MainActivity extends Activity {
         ) {
 
             super.onBackPressed();
+
             return;
         }
 
@@ -1272,21 +1826,28 @@ public class MainActivity extends Activity {
         ) {
 
             super.onBackPressed();
+
             return;
         }
 
 
         webView.evaluateJavascript(
+
                 "if(typeof window.androidBack==='function'){" +
-                        "window.androidBack();" +
-                        "}else{" +
-                        "false;" +
-                        "}",
+
+                "window.androidBack();" +
+
+                "}else{" +
+
+                "false;" +
+
+                "}",
+
                 value -> {
 
                     boolean handled =
                             value != null
-                                    &&
+                            &&
                             value.contains(
                                     "true"
                             );
@@ -1305,6 +1866,7 @@ public class MainActivity extends Activity {
                     ) {
 
                         webView.goBack();
+
                         return;
                     }
 
@@ -1314,6 +1876,12 @@ public class MainActivity extends Activity {
         );
     }
 
+
+    /*
+     * =====================================================
+     * APP SCHLIESSEN
+     * =====================================================
+     */
 
     @Override
     protected void onDestroy() {
@@ -1329,6 +1897,7 @@ public class MainActivity extends Activity {
             );
 
             webView.stopLoading();
+
             webView.destroy();
 
             webView =
