@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
+import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.DepthPoint;
 import com.google.ar.core.Frame;
@@ -25,7 +26,9 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableException;
+import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,7 @@ public class MeasureActivity extends Activity
     private CameraRenderer cameraRenderer;
 
     private boolean cameraTextureSet = false;
+    private boolean userRequestedInstall = true;
 
     private final List<Anchor> anchors = new ArrayList<>();
     private final List<View> markers = new ArrayList<>();
@@ -68,19 +72,6 @@ public class MeasureActivity extends Activity
         super.onCreate(savedInstanceState);
 
         buildUi();
-
-        if (checkSelfPermission(Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(
-                    new String[]{Manifest.permission.CAMERA},
-                    CAMERA_PERMISSION
-            );
-
-        } else {
-
-            createArSession();
-        }
     }
 
 
@@ -112,8 +103,8 @@ public class MeasureActivity extends Activity
         statusText = new TextView(this);
 
         statusText.setText(
-                "Bewege das Handy langsam.\n" +
-                "Danach 4 Fensterecken antippen."
+                "AR wird gestartet...\n" +
+                "Danach das Handy langsam bewegen."
         );
 
         statusText.setTextColor(Color.WHITE);
@@ -189,9 +180,7 @@ public class MeasureActivity extends Activity
 
         resetButton = new Button(this);
 
-        resetButton.setText(
-                "Neu messen"
-        );
+        resetButton.setText("Neu messen");
 
         FrameLayout.LayoutParams resetParams =
                 new FrameLayout.LayoutParams(
@@ -226,8 +215,7 @@ public class MeasureActivity extends Activity
                         120
                 );
 
-        useParams.gravity =
-                Gravity.BOTTOM;
+        useParams.gravity = Gravity.BOTTOM;
 
         useParams.leftMargin = 20;
         useParams.rightMargin = 20;
@@ -299,60 +287,48 @@ public class MeasureActivity extends Activity
     }
 
 
-    private void createArSession() {
+    private void createArSession()
+            throws UnavailableException {
 
-        try {
+        session = new Session(this);
 
-            session =
-                    new Session(this);
+        Config config =
+                session.getConfig();
 
-            Config config =
-                    session.getConfig();
 
-            if (
-                    session.isDepthModeSupported(
-                            Config.DepthMode.AUTOMATIC
-                    )
-            ) {
-
-                config.setDepthMode(
+        if (
+                session.isDepthModeSupported(
                         Config.DepthMode.AUTOMATIC
-                );
+                )
+        ) {
 
-                statusText.setText(
-                        "Depth aktiv ✅\n" +
-                        "Handy kurz bewegen und dann 4 Ecken antippen."
-                );
-
-            } else {
-
-                statusText.setText(
-                        "AR aktiv ✅\n" +
-                        "Depth nicht verfügbar.\n" +
-                        "Handy kurz bewegen und dann 4 Ecken antippen."
-                );
-            }
-
-
-            config.setPlaneFindingMode(
-                    Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+            config.setDepthMode(
+                    Config.DepthMode.AUTOMATIC
             );
 
-            session.configure(
-                    config
+            statusText.setText(
+                    "Depth aktiv ✅\n" +
+                    "Handy langsam bewegen.\n" +
+                    "Dann 4 Fensterecken antippen."
             );
 
+        } else {
 
-        } catch (UnavailableException e) {
-
-            Toast.makeText(
-                    this,
-                    "ARCore ist auf diesem Gerät nicht verfügbar.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            finish();
+            statusText.setText(
+                    "AR aktiv ✅\n" +
+                    "Depth ist nicht verfügbar.\n" +
+                    "Handy bewegen und 4 Ecken antippen."
+            );
         }
+
+
+        config.setPlaneFindingMode(
+                Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+        );
+
+        session.configure(config);
+
+        cameraTextureSet = false;
     }
 
 
@@ -360,29 +336,119 @@ public class MeasureActivity extends Activity
     protected void onResume() {
         super.onResume();
 
-        if (session != null) {
 
-            try {
+        if (
+                checkSelfPermission(
+                        Manifest.permission.CAMERA
+                )
+                        !=
+                PackageManager.PERMISSION_GRANTED
+        ) {
 
-                session.resume();
+            requestPermissions(
+                    new String[]{
+                            Manifest.permission.CAMERA
+                    },
+                    CAMERA_PERMISSION
+            );
 
-            } catch (
-                    CameraNotAvailableException e
-            ) {
-
-                Toast.makeText(
-                        this,
-                        "Kamera nicht verfügbar.",
-                        Toast.LENGTH_LONG
-                ).show();
-
-                return;
-            }
+            return;
         }
 
-        if (surfaceView != null) {
+
+        try {
+
+            if (session == null) {
+
+                ArCoreApk.InstallStatus status =
+                        ArCoreApk
+                                .getInstance()
+                                .requestInstall(
+                                        this,
+                                        userRequestedInstall
+                                );
+
+
+                if (
+                        status
+                                ==
+                        ArCoreApk.InstallStatus.INSTALL_REQUESTED
+                ) {
+
+                    userRequestedInstall = false;
+
+                    statusText.setText(
+                            "Google Play Services für AR wird installiert..."
+                    );
+
+                    return;
+                }
+
+
+                createArSession();
+            }
+
+
+            session.resume();
 
             surfaceView.onResume();
+
+
+        } catch (
+                UnavailableUserDeclinedInstallationException e
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Google Play Services für AR wurden nicht installiert.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
+
+
+        } catch (
+                UnavailableDeviceNotCompatibleException e
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Dieses Gerät unterstützt ARCore nicht.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
+
+
+        } catch (
+                CameraNotAvailableException e
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Die Kamera ist momentan nicht verfügbar.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+
+        } catch (UnavailableException e) {
+
+            Toast.makeText(
+                    this,
+                    "ARCore konnte nicht gestartet werden.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
+
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "AR-Fehler: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
@@ -392,12 +458,10 @@ public class MeasureActivity extends Activity
         super.onPause();
 
         if (surfaceView != null) {
-
             surfaceView.onPause();
         }
 
         if (session != null) {
-
             session.pause();
         }
     }
@@ -408,9 +472,10 @@ public class MeasureActivity extends Activity
         super.onDestroy();
 
         for (Anchor anchor : anchors) {
-
             anchor.detach();
         }
+
+        anchors.clear();
 
         if (session != null) {
 
@@ -454,6 +519,7 @@ public class MeasureActivity extends Activity
                 height
         );
 
+
         if (session != null) {
 
             session.setDisplayGeometry(
@@ -472,8 +538,9 @@ public class MeasureActivity extends Activity
 
         GLES20.glClear(
                 GLES20.GL_COLOR_BUFFER_BIT |
-                GLES20.GL_DEPTH_BUFFER_BIT
+                        GLES20.GL_DEPTH_BUFFER_BIT
         );
+
 
         if (
                 session == null
@@ -483,6 +550,7 @@ public class MeasureActivity extends Activity
 
             return;
         }
+
 
         try {
 
@@ -502,8 +570,22 @@ public class MeasureActivity extends Activity
             latestFrame =
                     frame;
 
+
             cameraRenderer.draw(
                     frame
+            );
+
+
+        } catch (
+                CameraNotAvailableException e
+        ) {
+
+            runOnUiThread(
+                    () -> Toast.makeText(
+                            this,
+                            "Kamera wurde getrennt.",
+                            Toast.LENGTH_SHORT
+                    ).show()
             );
 
 
@@ -520,6 +602,12 @@ public class MeasureActivity extends Activity
 
         if (latestFrame == null) {
 
+            Toast.makeText(
+                    this,
+                    "AR ist noch nicht bereit.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
             return;
         }
 
@@ -528,7 +616,7 @@ public class MeasureActivity extends Activity
 
             Toast.makeText(
                     this,
-                    "Drücke 'Neu messen', um erneut zu messen.",
+                    "Drücke 'Neu messen'.",
                     Toast.LENGTH_SHORT
             ).show();
 
@@ -543,19 +631,20 @@ public class MeasureActivity extends Activity
                 );
 
 
-        HitResult selected =
-                null;
+        HitResult selected = null;
 
 
-        for (HitResult result : results) {
+        for (
+                HitResult result :
+                results
+        ) {
 
             if (
                     result.getTrackable()
                             instanceof DepthPoint
             ) {
 
-                selected =
-                        result;
+                selected = result;
 
                 break;
             }
@@ -564,7 +653,10 @@ public class MeasureActivity extends Activity
 
         if (selected == null) {
 
-            for (HitResult result : results) {
+            for (
+                    HitResult result :
+                    results
+            ) {
 
                 if (
                         result.getTrackable()
@@ -574,8 +666,7 @@ public class MeasureActivity extends Activity
                                 instanceof Point
                 ) {
 
-                    selected =
-                            result;
+                    selected = result;
 
                     break;
                 }
@@ -587,7 +678,7 @@ public class MeasureActivity extends Activity
 
             Toast.makeText(
                     this,
-                    "Kein Messpunkt erkannt. " +
+                    "Kein Messpunkt erkannt.\n" +
                     "Bewege das Handy etwas und tippe erneut.",
                     Toast.LENGTH_SHORT
             ).show();
@@ -598,6 +689,7 @@ public class MeasureActivity extends Activity
 
         Anchor anchor =
                 selected.createAnchor();
+
 
         anchors.add(
                 anchor
@@ -612,8 +704,10 @@ public class MeasureActivity extends Activity
 
 
         statusText.setText(
-                "Messpunkt " +
-                anchors.size() +
+                "Punkt "
+                        +
+                anchors.size()
+                        +
                 " von 4 gesetzt"
         );
 
@@ -634,6 +728,7 @@ public class MeasureActivity extends Activity
         TextView marker =
                 new TextView(this);
 
+
         marker.setText(
                 String.valueOf(number)
         );
@@ -642,13 +737,12 @@ public class MeasureActivity extends Activity
                 Color.WHITE
         );
 
-        marker.setTextSize(
-                17
-        );
+        marker.setTextSize(17);
 
         marker.setGravity(
                 Gravity.CENTER
         );
+
 
         marker.setBackgroundColor(
                 Color.rgb(
@@ -688,28 +782,34 @@ public class MeasureActivity extends Activity
     private void calculateMeasurement() {
 
         if (anchors.size() != 4) {
-
             return;
         }
 
 
         float[] p0 =
-                anchors.get(0)
+                anchors
+                        .get(0)
                         .getPose()
                         .getTranslation();
+
 
         float[] p1 =
-                anchors.get(1)
+                anchors
+                        .get(1)
                         .getPose()
                         .getTranslation();
+
 
         float[] p2 =
-                anchors.get(2)
+                anchors
+                        .get(2)
                         .getPose()
                         .getTranslation();
 
+
         float[] p3 =
-                anchors.get(3)
+                anchors
+                        .get(3)
                         .getPose()
                         .getTranslation();
 
@@ -720,17 +820,6 @@ public class MeasureActivity extends Activity
                         p1
                 );
 
-        double bottom =
-                distance(
-                        p3,
-                        p2
-                );
-
-        double left =
-                distance(
-                        p0,
-                        p3
-                );
 
         double right =
                 distance(
@@ -739,15 +828,31 @@ public class MeasureActivity extends Activity
                 );
 
 
+        double bottom =
+                distance(
+                        p3,
+                        p2
+                );
+
+
+        double left =
+                distance(
+                        p0,
+                        p3
+                );
+
+
         widthMeters =
                 (top + bottom)
                         /
                 2.0;
 
+
         heightMeters =
                 (left + right)
                         /
                 2.0;
+
 
         areaMeters =
                 widthMeters
@@ -760,7 +865,7 @@ public class MeasureActivity extends Activity
                         Locale.GERMANY,
 
                         "Breite: %.2f m\n" +
-                        "Höhe: %.2f m\n\n" +
+                        "Höhe: %.2f m\n" +
                         "Fläche: %.2f m²",
 
                         widthMeters,
@@ -771,13 +876,12 @@ public class MeasureActivity extends Activity
 
 
         statusText.setText(
-                "Messung fertig ✅"
+                "Messung fertig ✅\n" +
+                "Jetzt Messung übernehmen."
         );
 
 
-        useButton.setEnabled(
-                true
-        );
+        useButton.setEnabled(true);
     }
 
 
@@ -797,8 +901,10 @@ public class MeasureActivity extends Activity
 
 
         return Math.sqrt(
-                dx * dx +
-                dy * dy +
+                dx * dx
+                        +
+                dy * dy
+                        +
                 dz * dz
         );
     }
@@ -837,20 +943,16 @@ public class MeasureActivity extends Activity
         areaMeters = 0;
 
 
-        resultText.setText(
-                ""
-        );
+        resultText.setText("");
 
 
         statusText.setText(
-                "Neu messen:\n" +
-                "4 Fensterecken antippen."
+                "Neu messen ✅\n" +
+                "Handy bewegen und 4 Fensterecken antippen."
         );
 
 
-        useButton.setEnabled(
-                false
-        );
+        useButton.setEnabled(false);
     }
 
 
@@ -882,13 +984,13 @@ public class MeasureActivity extends Activity
                     PackageManager.PERMISSION_GRANTED
             ) {
 
-                createArSession();
+                onResume();
 
             } else {
 
                 Toast.makeText(
                         this,
-                        "Kamera-Berechtigung wird benötigt.",
+                        "Ohne Kamera kann die Fenster-Messung nicht funktionieren.",
                         Toast.LENGTH_LONG
                 ).show();
 
