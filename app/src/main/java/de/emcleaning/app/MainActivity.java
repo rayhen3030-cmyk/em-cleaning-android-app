@@ -15,7 +15,6 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private WebView webView;
-
     private ValueCallback<Uri[]> filePathCallback;
 
     private static final int FILE_CHOOSER_REQUEST = 1001;
@@ -40,6 +39,9 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
+
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setSupportMultipleWindows(false);
 
 
         webView.setWebViewClient(
@@ -114,11 +116,9 @@ public class MainActivity extends Activity {
 
 
         /*
-         * Verbindung:
-         *
-         * HTML / JavaScript
+         * HTML / JAVASCRIPT
          * ->
-         * Android Java
+         * ANDROID
          */
 
         webView.addJavascriptInterface(
@@ -128,13 +128,7 @@ public class MainActivity extends Activity {
 
 
         /*
-         * WICHTIG:
-         *
-         * Wenn Android die Activity nur neu erstellt,
-         * wird der WebView-Zustand wiederhergestellt.
-         *
-         * Dadurch landet die App nicht immer wieder
-         * auf der Hauptseite.
+         * Zustand wiederherstellen
          */
 
         if (savedInstanceState != null) {
@@ -153,7 +147,7 @@ public class MainActivity extends Activity {
 
 
     /*
-     * JAVASCRIPT -> ANDROID
+     * JAVASCRIPT BRIDGE
      */
 
     private class AndroidBridge {
@@ -171,13 +165,14 @@ public class MainActivity extends Activity {
 
 
                             /*
-                             * Vor Öffnen der Kamera:
-                             *
-                             * Fenster-Aufmaß-Seite merken.
+                             * Vor AR sicherstellen,
+                             * dass Fenster-Seite aktiv ist.
                              */
 
                             webView.evaluateJavascript(
-                                    "if(typeof openPage==='function'){openPage('foto');}",
+                                    "if(typeof openPage==='function'){" +
+                                            "openPage('foto');" +
+                                            "}",
                                     null
                             );
 
@@ -211,7 +206,9 @@ public class MainActivity extends Activity {
 
 
                             webView.evaluateJavascript(
-                                    "if(typeof openPage==='function'){openPage('foto');}",
+                                    "if(typeof openPage==='function'){" +
+                                            "openPage('foto');" +
+                                            "}",
                                     null
                             );
                         }
@@ -222,11 +219,7 @@ public class MainActivity extends Activity {
 
 
     /*
-     * ERGEBNISSE VON
-     *
-     * FOTOAUSWAHL
-     * ODER
-     * AR-MESSUNG
+     * ERGEBNISSE
      */
 
     @Override
@@ -244,7 +237,7 @@ public class MainActivity extends Activity {
 
 
         /*
-         * DATEIAUSWAHL
+         * FOTO / DATEI
          */
 
         if (
@@ -283,10 +276,9 @@ public class MainActivity extends Activity {
             }
 
 
-            filePathCallback
-                    .onReceiveValue(
-                            results
-                    );
+            filePathCallback.onReceiveValue(
+                    results
+            );
 
 
             filePathCallback =
@@ -312,25 +304,19 @@ public class MainActivity extends Activity {
 
 
             /*
-             * WICHTIG:
-             *
-             * Egal ob Messung erfolgreich,
-             * abgebrochen oder AR einen Fehler hatte:
-             *
-             * Zurück zur Fenster-Seite.
+             * Immer wieder Fenster-Seite anzeigen
              */
 
             webView.post(
-                    () -> webView.evaluateJavascript(
-                            "if(typeof openPage==='function'){openPage('foto');}",
-                            null
-                    )
+                    () ->
+                            webView.evaluateJavascript(
+                                    "if(typeof openPage==='function'){" +
+                                            "openPage('foto');" +
+                                            "}",
+                                    null
+                            )
             );
 
-
-            /*
-             * Erfolgreiche Messung
-             */
 
             if (
                     resultCode
@@ -363,10 +349,6 @@ public class MainActivity extends Activity {
                         );
 
 
-                /*
-                 * Werte überprüfen
-                 */
-
                 if (
                         width <= 0
                         ||
@@ -384,31 +366,26 @@ public class MainActivity extends Activity {
                             300
                     );
 
-
                     return;
                 }
 
 
-                /*
-                 * Ergebnis zurück an index.html
-                 */
-
                 String javascript =
                         "if(typeof window.receiveArMeasurement==='function'){" +
 
-                        "window.receiveArMeasurement(" +
+                                "window.receiveArMeasurement(" +
 
-                        width +
-                        "," +
+                                width +
+                                "," +
 
-                        height +
-                        "," +
+                                height +
+                                "," +
 
-                        area +
+                                area +
 
-                        ");" +
+                                ");" +
 
-                        "}";
+                                "}";
 
 
                 webView.postDelayed(
@@ -423,16 +400,12 @@ public class MainActivity extends Activity {
 
             } else {
 
-                /*
-                 * Messung wurde abgebrochen
-                 *
-                 * NICHT zurück auf Home.
-                 */
-
                 webView.postDelayed(
                         () ->
                                 webView.evaluateJavascript(
-                                        "if(typeof openPage==='function'){openPage('foto');}",
+                                        "if(typeof openPage==='function'){" +
+                                                "openPage('foto');" +
+                                                "}",
                                         null
                                 ),
                         250
@@ -443,7 +416,7 @@ public class MainActivity extends Activity {
 
 
     /*
-     * WEBVIEW-ZUSTAND SPEICHERN
+     * ZUSTAND SPEICHERN
      */
 
     @Override
@@ -470,7 +443,7 @@ public class MainActivity extends Activity {
 
 
     /*
-     * ZURÜCK-TASTE
+     * ANDROID ZURÜCK-TASTE
      */
 
     @Override
@@ -478,25 +451,135 @@ public class MainActivity extends Activity {
 
         if (
                 webView
-                        !=
+                        ==
                 null
-                &&
-                webView.canGoBack()
         ) {
 
-            webView.goBack();
+            super.onBackPressed();
 
-        } else {
-
-            /*
-             * Erst versuchen,
-             * innerhalb der App auf Home zu gehen.
-             */
-
-            webView.evaluateJavascript(
-                    "if(typeof openPage==='function'){openPage('home');}",
-                    null
-            );
+            return;
         }
+
+
+        /*
+         * Wenn AR gerade läuft,
+         * nicht gleichzeitig WebView ändern.
+         */
+
+        if (arMeasurementRunning) {
+
+            super.onBackPressed();
+
+            return;
+        }
+
+
+        /*
+         * Aktive App-Seite abfragen
+         */
+
+        webView.evaluateJavascript(
+
+                "(function(){" +
+                        "var p=document.querySelector('.page.active');" +
+                        "return p ? p.id : 'home';" +
+                        "})()",
+
+                value -> {
+
+                    String currentPage =
+                            "home";
+
+
+                    if (
+                            value
+                                    !=
+                            null
+                    ) {
+
+                        currentPage =
+                                value
+                                        .replace("\"", "")
+                                        .trim();
+                    }
+
+
+                    /*
+                     * Wenn wir auf einer Unterseite
+                     * der index.html sind:
+                     *
+                     * -> zurück zum Hauptmenü
+                     */
+
+                    if (
+                            !currentPage.equals(
+                                    "home"
+                            )
+                    ) {
+
+                        webView.evaluateJavascript(
+
+                                "if(typeof openPage==='function'){" +
+                                        "openPage('home');" +
+                                        "}",
+
+                                null
+                        );
+
+                        return;
+                    }
+
+
+                    /*
+                     * Auf Home:
+                     *
+                     * echte WebView-History nur dann nutzen,
+                     * wenn wirklich vorhanden.
+                     */
+
+                    if (
+                            webView.canGoBack()
+                    ) {
+
+                        webView.goBack();
+
+                    } else {
+
+                        /*
+                         * App verlassen
+                         */
+
+                        MainActivity.super.onBackPressed();
+                    }
+                }
+        );
+    }
+
+
+    /*
+     * WebView sauber beenden
+     */
+
+    @Override
+    protected void onDestroy() {
+
+        if (
+                webView
+                        !=
+                null
+        ) {
+
+            webView.removeJavascriptInterface(
+                    "Android"
+            );
+
+            webView.stopLoading();
+
+            webView.destroy();
+
+            webView = null;
+        }
+
+        super.onDestroy();
     }
 }
