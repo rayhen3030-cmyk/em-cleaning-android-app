@@ -1,213 +1,901 @@
 package de.emcleaning.app;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.Gravity;
-import android.view.ViewGroup;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.ar.core.Anchor;
+import com.google.ar.core.Config;
+import com.google.ar.core.DepthPoint;
+import com.google.ar.core.Frame;
+import com.google.ar.core.HitResult;
+import com.google.ar.core.Plane;
+import com.google.ar.core.Point;
+import com.google.ar.core.Session;
+import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.core.exceptions.UnavailableException;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-public class MeasureActivity extends Activity {
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
-    private EditText widthInput;
-    private EditText heightInput;
+public class MeasureActivity extends Activity
+        implements GLSurfaceView.Renderer {
+
+    private static final int CAMERA_PERMISSION = 7001;
+
+    private FrameLayout root;
+    private GLSurfaceView surfaceView;
+
+    private Session session;
+    private Frame latestFrame;
+
+    private CameraRenderer cameraRenderer;
+
+    private boolean cameraTextureSet = false;
+
+    private final List<Anchor> anchors = new ArrayList<>();
+    private final List<View> markers = new ArrayList<>();
+
+    private TextView statusText;
     private TextView resultText;
+
+    private Button resetButton;
+    private Button useButton;
+
+    private double widthMeters = 0;
+    private double heightMeters = 0;
+    private double areaMeters = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 60, 40, 40);
-        layout.setGravity(Gravity.CENTER_HORIZONTAL);
+        buildUi();
 
-        TextView title = new TextView(this);
-        title.setText("Fenster messen");
-        title.setTextSize(28);
-        title.setGravity(Gravity.CENTER);
+        if (checkSelfPermission(Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
 
-        TextView info = new TextView(this);
-        info.setText(
-                "\nFensterbreite und Fensterhöhe eingeben.\n" +
-                "Die App berechnet automatisch die Fläche."
+            requestPermissions(
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION
+            );
+
+        } else {
+
+            createArSession();
+        }
+    }
+
+
+    private void buildUi() {
+
+        root = new FrameLayout(this);
+
+        surfaceView = new GLSurfaceView(this);
+
+        surfaceView.setEGLContextClientVersion(2);
+
+        surfaceView.setPreserveEGLContextOnPause(true);
+
+        surfaceView.setRenderer(this);
+
+        surfaceView.setRenderMode(
+                GLSurfaceView.RENDERMODE_CONTINUOUSLY
         );
-        info.setTextSize(17);
-        info.setGravity(Gravity.CENTER);
 
-        widthInput = new EditText(this);
-        widthInput.setHint("Breite in cm");
-        widthInput.setInputType(
-                InputType.TYPE_CLASS_NUMBER |
-                InputType.TYPE_NUMBER_FLAG_DECIMAL
+        root.addView(
+                surfaceView,
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                )
         );
 
-        heightInput = new EditText(this);
-        heightInput.setHint("Höhe in cm");
-        heightInput.setInputType(
-                InputType.TYPE_CLASS_NUMBER |
-                InputType.TYPE_NUMBER_FLAG_DECIMAL
+
+        statusText = new TextView(this);
+
+        statusText.setText(
+                "Bewege das Handy langsam.\n" +
+                "Danach 4 Fensterecken antippen."
         );
 
-        Button calculateButton = new Button(this);
-        calculateButton.setText("Fläche berechnen");
+        statusText.setTextColor(Color.WHITE);
+        statusText.setTextSize(17);
+        statusText.setGravity(Gravity.CENTER);
+
+        statusText.setBackgroundColor(
+                Color.argb(
+                        180,
+                        0,
+                        0,
+                        0
+                )
+        );
+
+        statusText.setPadding(
+                20,
+                25,
+                20,
+                25
+        );
+
+        FrameLayout.LayoutParams statusParams =
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        statusParams.gravity = Gravity.TOP;
+
+        root.addView(
+                statusText,
+                statusParams
+        );
+
 
         resultText = new TextView(this);
-        resultText.setTextSize(22);
-        resultText.setGravity(Gravity.CENTER);
-        resultText.setPadding(0, 30, 0, 30);
 
-        Button useButton = new Button(this);
-        useButton.setText("Messung übernehmen");
+        resultText.setTextColor(Color.WHITE);
+        resultText.setTextSize(20);
+        resultText.setGravity(Gravity.CENTER);
+
+        resultText.setBackgroundColor(
+                Color.argb(
+                        180,
+                        0,
+                        0,
+                        0
+                )
+        );
+
+        resultText.setPadding(
+                20,
+                20,
+                20,
+                20
+        );
+
+        FrameLayout.LayoutParams resultParams =
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        resultParams.gravity = Gravity.BOTTOM;
+        resultParams.bottomMargin = 150;
+
+        root.addView(
+                resultText,
+                resultParams
+        );
+
+
+        resetButton = new Button(this);
+
+        resetButton.setText(
+                "Neu messen"
+        );
+
+        FrameLayout.LayoutParams resetParams =
+                new FrameLayout.LayoutParams(
+                        340,
+                        110
+                );
+
+        resetParams.gravity =
+                Gravity.TOP |
+                Gravity.RIGHT;
+
+        resetParams.topMargin = 120;
+        resetParams.rightMargin = 15;
+
+        root.addView(
+                resetButton,
+                resetParams
+        );
+
+
+        useButton = new Button(this);
+
+        useButton.setText(
+                "Messung übernehmen"
+        );
+
         useButton.setEnabled(false);
 
-        layout.addView(title);
-        layout.addView(info);
+        FrameLayout.LayoutParams useParams =
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        120
+                );
 
-        layout.addView(
-                widthInput,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-        );
+        useParams.gravity =
+                Gravity.BOTTOM;
 
-        layout.addView(
-                heightInput,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-        );
+        useParams.leftMargin = 20;
+        useParams.rightMargin = 20;
+        useParams.bottomMargin = 15;
 
-        layout.addView(
-                calculateButton,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-        );
-
-        layout.addView(resultText);
-
-        layout.addView(
+        root.addView(
                 useButton,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                useParams
         );
 
-        setContentView(layout);
 
-        final double[] measurement = new double[3];
+        setContentView(root);
 
-        calculateButton.setOnClickListener(v -> {
 
-            String widthString =
-                    widthInput.getText().toString()
-                            .trim()
-                            .replace(",", ".");
+        surfaceView.setOnTouchListener(
+                (view, event) -> {
 
-            String heightString =
-                    heightInput.getText().toString()
-                            .trim()
-                            .replace(",", ".");
+                    if (
+                            event.getAction()
+                                    ==
+                            MotionEvent.ACTION_UP
+                    ) {
 
-            if (widthString.isEmpty() || heightString.isEmpty()) {
+                        addMeasurementPoint(
+                                event.getX(),
+                                event.getY()
+                        );
+                    }
+
+                    return true;
+                }
+        );
+
+
+        resetButton.setOnClickListener(
+                view -> resetMeasurement()
+        );
+
+
+        useButton.setOnClickListener(
+                view -> {
+
+                    Intent result =
+                            new Intent();
+
+                    result.putExtra(
+                            "width",
+                            widthMeters
+                    );
+
+                    result.putExtra(
+                            "height",
+                            heightMeters
+                    );
+
+                    result.putExtra(
+                            "area",
+                            areaMeters
+                    );
+
+                    setResult(
+                            RESULT_OK,
+                            result
+                    );
+
+                    finish();
+                }
+        );
+    }
+
+
+    private void createArSession() {
+
+        try {
+
+            session =
+                    new Session(this);
+
+            Config config =
+                    session.getConfig();
+
+            if (
+                    session.isDepthModeSupported(
+                            Config.DepthMode.AUTOMATIC
+                    )
+            ) {
+
+                config.setDepthMode(
+                        Config.DepthMode.AUTOMATIC
+                );
+
+                statusText.setText(
+                        "Depth aktiv ✅\n" +
+                        "Handy kurz bewegen und dann 4 Ecken antippen."
+                );
+
+            } else {
+
+                statusText.setText(
+                        "AR aktiv ✅\n" +
+                        "Depth nicht verfügbar.\n" +
+                        "Handy kurz bewegen und dann 4 Ecken antippen."
+                );
+            }
+
+
+            config.setPlaneFindingMode(
+                    Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+            );
+
+            session.configure(
+                    config
+            );
+
+
+        } catch (UnavailableException e) {
+
+            Toast.makeText(
+                    this,
+                    "ARCore ist auf diesem Gerät nicht verfügbar.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
+        }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (session != null) {
+
+            try {
+
+                session.resume();
+
+            } catch (
+                    CameraNotAvailableException e
+            ) {
 
                 Toast.makeText(
                         this,
-                        "Bitte Breite und Höhe eingeben.",
-                        Toast.LENGTH_SHORT
+                        "Kamera nicht verfügbar.",
+                        Toast.LENGTH_LONG
                 ).show();
 
                 return;
             }
+        }
 
-            try {
+        if (surfaceView != null) {
 
-                double widthCm =
-                        Double.parseDouble(widthString);
+            surfaceView.onResume();
+        }
+    }
 
-                double heightCm =
-                        Double.parseDouble(heightString);
 
-                if (widthCm <= 0 || heightCm <= 0) {
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-                    Toast.makeText(
-                            this,
-                            "Bitte gültige Maße eingeben.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+        if (surfaceView != null) {
 
-                    return;
-                }
+            surfaceView.onPause();
+        }
 
-                double widthM = widthCm / 100.0;
-                double heightM = heightCm / 100.0;
+        if (session != null) {
 
-                double area = widthM * heightM;
+            session.pause();
+        }
+    }
 
-                measurement[0] = widthM;
-                measurement[1] = heightM;
-                measurement[2] = area;
 
-                resultText.setText(
-                        String.format(
-                                Locale.GERMANY,
-                                "Breite: %.2f m\nHöhe: %.2f m\n\nFläche: %.2f m²",
-                                widthM,
-                                heightM,
-                                area
-                        )
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        for (Anchor anchor : anchors) {
+
+            anchor.detach();
+        }
+
+        if (session != null) {
+
+            session.close();
+            session = null;
+        }
+    }
+
+
+    @Override
+    public void onSurfaceCreated(
+            GL10 gl,
+            EGLConfig config
+    ) {
+
+        GLES20.glClearColor(
+                0,
+                0,
+                0,
+                1
+        );
+
+        cameraRenderer =
+                new CameraRenderer();
+
+        cameraRenderer.createOnGlThread();
+    }
+
+
+    @Override
+    public void onSurfaceChanged(
+            GL10 gl,
+            int width,
+            int height
+    ) {
+
+        GLES20.glViewport(
+                0,
+                0,
+                width,
+                height
+        );
+
+        if (session != null) {
+
+            session.setDisplayGeometry(
+                    getWindowManager()
+                            .getDefaultDisplay()
+                            .getRotation(),
+                    width,
+                    height
+            );
+        }
+    }
+
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+
+        GLES20.glClear(
+                GLES20.GL_COLOR_BUFFER_BIT |
+                GLES20.GL_DEPTH_BUFFER_BIT
+        );
+
+        if (
+                session == null
+                        ||
+                cameraRenderer == null
+        ) {
+
+            return;
+        }
+
+        try {
+
+            if (!cameraTextureSet) {
+
+                session.setCameraTextureName(
+                        cameraRenderer.getTextureId()
                 );
 
-                useButton.setEnabled(true);
+                cameraTextureSet = true;
+            }
 
-            } catch (Exception e) {
+
+            Frame frame =
+                    session.update();
+
+            latestFrame =
+                    frame;
+
+            cameraRenderer.draw(
+                    frame
+            );
+
+
+        } catch (Exception ignored) {
+
+        }
+    }
+
+
+    private void addMeasurementPoint(
+            float x,
+            float y
+    ) {
+
+        if (latestFrame == null) {
+
+            return;
+        }
+
+
+        if (anchors.size() >= 4) {
+
+            Toast.makeText(
+                    this,
+                    "Drücke 'Neu messen', um erneut zu messen.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+
+        List<HitResult> results =
+                latestFrame.hitTest(
+                        x,
+                        y
+                );
+
+
+        HitResult selected =
+                null;
+
+
+        for (HitResult result : results) {
+
+            if (
+                    result.getTrackable()
+                            instanceof DepthPoint
+            ) {
+
+                selected =
+                        result;
+
+                break;
+            }
+        }
+
+
+        if (selected == null) {
+
+            for (HitResult result : results) {
+
+                if (
+                        result.getTrackable()
+                                instanceof Plane
+                                ||
+                        result.getTrackable()
+                                instanceof Point
+                ) {
+
+                    selected =
+                            result;
+
+                    break;
+                }
+            }
+        }
+
+
+        if (selected == null) {
+
+            Toast.makeText(
+                    this,
+                    "Kein Messpunkt erkannt. " +
+                    "Bewege das Handy etwas und tippe erneut.",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+
+        Anchor anchor =
+                selected.createAnchor();
+
+        anchors.add(
+                anchor
+        );
+
+
+        addMarker(
+                x,
+                y,
+                anchors.size()
+        );
+
+
+        statusText.setText(
+                "Messpunkt " +
+                anchors.size() +
+                " von 4 gesetzt"
+        );
+
+
+        if (anchors.size() == 4) {
+
+            calculateMeasurement();
+        }
+    }
+
+
+    private void addMarker(
+            float x,
+            float y,
+            int number
+    ) {
+
+        TextView marker =
+                new TextView(this);
+
+        marker.setText(
+                String.valueOf(number)
+        );
+
+        marker.setTextColor(
+                Color.WHITE
+        );
+
+        marker.setTextSize(
+                17
+        );
+
+        marker.setGravity(
+                Gravity.CENTER
+        );
+
+        marker.setBackgroundColor(
+                Color.rgb(
+                        7,
+                        132,
+                        95
+                )
+        );
+
+
+        FrameLayout.LayoutParams params =
+                new FrameLayout.LayoutParams(
+                        70,
+                        70
+                );
+
+
+        params.leftMargin =
+                (int) x - 35;
+
+        params.topMargin =
+                (int) y - 35;
+
+
+        root.addView(
+                marker,
+                params
+        );
+
+
+        markers.add(
+                marker
+        );
+    }
+
+
+    private void calculateMeasurement() {
+
+        if (anchors.size() != 4) {
+
+            return;
+        }
+
+
+        float[] p0 =
+                anchors.get(0)
+                        .getPose()
+                        .getTranslation();
+
+        float[] p1 =
+                anchors.get(1)
+                        .getPose()
+                        .getTranslation();
+
+        float[] p2 =
+                anchors.get(2)
+                        .getPose()
+                        .getTranslation();
+
+        float[] p3 =
+                anchors.get(3)
+                        .getPose()
+                        .getTranslation();
+
+
+        double top =
+                distance(
+                        p0,
+                        p1
+                );
+
+        double bottom =
+                distance(
+                        p3,
+                        p2
+                );
+
+        double left =
+                distance(
+                        p0,
+                        p3
+                );
+
+        double right =
+                distance(
+                        p1,
+                        p2
+                );
+
+
+        widthMeters =
+                (top + bottom)
+                        /
+                2.0;
+
+        heightMeters =
+                (left + right)
+                        /
+                2.0;
+
+        areaMeters =
+                widthMeters
+                        *
+                heightMeters;
+
+
+        resultText.setText(
+                String.format(
+                        Locale.GERMANY,
+
+                        "Breite: %.2f m\n" +
+                        "Höhe: %.2f m\n\n" +
+                        "Fläche: %.2f m²",
+
+                        widthMeters,
+                        heightMeters,
+                        areaMeters
+                )
+        );
+
+
+        statusText.setText(
+                "Messung fertig ✅"
+        );
+
+
+        useButton.setEnabled(
+                true
+        );
+    }
+
+
+    private double distance(
+            float[] a,
+            float[] b
+    ) {
+
+        double dx =
+                a[0] - b[0];
+
+        double dy =
+                a[1] - b[1];
+
+        double dz =
+                a[2] - b[2];
+
+
+        return Math.sqrt(
+                dx * dx +
+                dy * dy +
+                dz * dz
+        );
+    }
+
+
+    private void resetMeasurement() {
+
+        for (
+                Anchor anchor :
+                anchors
+        ) {
+
+            anchor.detach();
+        }
+
+
+        anchors.clear();
+
+
+        for (
+                View marker :
+                markers
+        ) {
+
+            root.removeView(
+                    marker
+            );
+        }
+
+
+        markers.clear();
+
+
+        widthMeters = 0;
+        heightMeters = 0;
+        areaMeters = 0;
+
+
+        resultText.setText(
+                ""
+        );
+
+
+        statusText.setText(
+                "Neu messen:\n" +
+                "4 Fensterecken antippen."
+        );
+
+
+        useButton.setEnabled(
+                false
+        );
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults
+    ) {
+
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+        );
+
+
+        if (
+                requestCode
+                        ==
+                CAMERA_PERMISSION
+        ) {
+
+            if (
+                    grantResults.length > 0
+                            &&
+                    grantResults[0]
+                            ==
+                    PackageManager.PERMISSION_GRANTED
+            ) {
+
+                createArSession();
+
+            } else {
 
                 Toast.makeText(
                         this,
-                        "Die Maße konnten nicht berechnet werden.",
-                        Toast.LENGTH_SHORT
+                        "Kamera-Berechtigung wird benötigt.",
+                        Toast.LENGTH_LONG
                 ).show();
+
+                finish();
             }
-        });
-
-
-        useButton.setOnClickListener(v -> {
-
-            Intent result = new Intent();
-
-            result.putExtra(
-                    "width",
-                    measurement[0]
-            );
-
-            result.putExtra(
-                    "height",
-                    measurement[1]
-            );
-
-            result.putExtra(
-                    "area",
-                    measurement[2]
-            );
-
-            setResult(
-                    RESULT_OK,
-                    result
-            );
-
-            finish();
-        });
+        }
     }
 }
+        
+                
