@@ -1,934 +1,210 @@
+function serviceChanged() {
 
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>E-M Cleaning</title>
+    const service = document.getElementById('service').value;
 
-<style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
+    const fensterBlock = document.getElementById('fensterBlock');
+    const flaechenBlock = document.getElementById('flaechenBlock');
 
-body{
-    font-family:Arial,sans-serif;
-    background:#f3f6f7;
-    color:#1f2937;
-}
+    fensterBlock.style.display =
+        service === 'fenster' ? 'block' : 'none';
 
-header{
-    background:#07845f;
-    color:white;
-    padding:28px 20px;
-}
+    flaechenBlock.style.display =
+        service === 'fenster' ? 'none' : 'block';
 
-header h1{
-    font-size:28px;
-}
 
-header p{
-    margin-top:5px;
-    opacity:.9;
-}
+    // Unterhaltsreinigung
+    if (service === 'unterhalt') {
 
-.page{
-    display:none;
-    padding:18px;
-    max-width:700px;
-    margin:auto;
-}
+        document.getElementById('stundensatz').value = '30';
 
-.page.active{
-    display:block;
-}
+        // Stunden werden automatisch berechnet
+        document.getElementById('stunden').value = '';
+        document.getElementById('stunden').placeholder =
+            'Wird automatisch berechnet';
 
-.card{
-    background:white;
-    border-radius:18px;
-    padding:20px;
-    margin-bottom:16px;
-    box-shadow:0 4px 15px rgba(0,0,0,.07);
-}
+        zeigeUnterhaltOptionen();
 
-.card h2{
-    margin-bottom:8px;
-}
+    } else {
 
-.card p{
-    color:#667085;
-    line-height:1.5;
-}
+        document.getElementById('stunden').placeholder =
+            'Geschätzte Arbeitsstunden';
 
-button{
-    width:100%;
-    background:#07845f;
-    color:white;
-    border:0;
-    border-radius:12px;
-    padding:15px;
-    margin-top:12px;
-    font-size:16px;
-    font-weight:bold;
-}
+        entferneUnterhaltOptionen();
+    }
 
-button.secondary{
-    background:#475467;
-}
 
-button.danger{
-    background:#d92d20;
-}
-
-input,
-textarea,
-select{
-    width:100%;
-    padding:14px;
-    margin-top:10px;
-    border:1px solid #d0d5dd;
-    border-radius:11px;
-    font-size:16px;
-    background:white;
-}
-
-textarea{
-    min-height:90px;
-}
-
-.section-title{
-    font-size:26px;
-    margin-bottom:16px;
-}
-
-.item{
-    background:#f8fafc;
-    border:1px solid #eaecf0;
-    border-radius:12px;
-    padding:14px;
-    margin-top:10px;
-}
-
-.stat{
-    display:inline-block;
-    background:#dcfae6;
-    color:#067647;
-    border-radius:20px;
-    padding:6px 11px;
-    margin-top:10px;
-    font-size:13px;
-    font-weight:bold;
-}
-
-.result{
-    background:#ecfdf3;
-    border:1px solid #abefc6;
-    border-radius:14px;
-    padding:18px;
-    margin-top:15px;
-}
-
-.result .big{
-    font-size:28px;
-    font-weight:bold;
-    color:#067647;
-    margin-top:8px;
-}
-
-.info{
-    background:#eff8ff;
-    border:1px solid #b2ddff;
-    padding:14px;
-    border-radius:12px;
-    margin-top:12px;
-    color:#175cd3;
-    line-height:1.5;
-}
-
-.grid2{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-}
-
-footer{
-    text-align:center;
-    padding:30px 15px;
-    color:#98a2b3;
-    font-size:13px;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-    <h1>E-M Cleaning</h1>
-    <p>Gebäudereinigung – Verwaltung & Kalkulation</p>
-</header>
-
-<div id="home" class="page active">
-
-    <div class="card">
-        <h2>👋 Willkommen</h2>
-        <p>E-M Cleaning Service Verwaltung</p>
-        <span class="stat">App bereit</span>
-    </div>
-
-    <div class="card">
-        <h2>💰 Preisrechner</h2>
-        <p>Reinigungspreise automatisch kalkulieren.</p>
-        <button onclick="openPage('preisrechner')">
-            Preis berechnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>📐 Fenster-Aufmaß</h2>
-        <p>Fenster direkt mit der Kamera messen.</p>
-        <button onclick="openPage('foto')">
-            Fenster messen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>🧹 Aufträge</h2>
-        <button onclick="openPage('auftraege')">
-            Aufträge öffnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>👥 Mitarbeiter</h2>
-        <button onclick="openPage('mitarbeiter')">
-            Mitarbeiter öffnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>⏱ Arbeitszeiten</h2>
-        <button onclick="openPage('arbeitszeiten')">
-            Arbeitszeiten öffnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>📋 Kunden</h2>
-        <button onclick="openPage('kunden')">
-            Kunden öffnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>📄 Rechnungen</h2>
-        <button onclick="openPage('rechnungen')">
-            Rechnungen öffnen
-        </button>
-    </div>
-
-</div>
-
-<div id="preisrechner" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">💰 Preisrechner</h1>
-
-    <div class="card">
-
-        <label>Reinigungsart</label>
-
-        <select id="service" onchange="serviceChanged()">
-            <option value="fenster">Fenster / Glasreinigung</option>
-            <option value="bau">Bauendreinigung</option>
-            <option value="grund">Grundreinigung</option>
-            <option value="treppe">Treppenhausreinigung</option>
-            <option value="unterhalt">Unterhaltsreinigung</option>
-        </select>
-
-        <div id="flaechenBlock">
-            <input
-                id="qm"
-                type="number"
-                step="0.01"
-                placeholder="Fläche in m²"
-            >
-        </div>
-
-        <div id="unterhaltBlock" style="display:none;">
-
-            <h3 style="margin-top:18px;">
-                🧹 Unterhaltsreinigung
-            </h3>
-
-            <label style="display:block;margin-top:12px;">
-                Wie oft wird gereinigt?
-            </label>
-
-            <select id="unterhaltHaeufigkeit">
-                <option value="1">1× pro Woche</option>
-                <option value="2">2× pro Woche</option>
-                <option value="3">3× pro Woche</option>
-                <option value="4">4× pro Woche</option>
-                <option value="5">5× pro Woche</option>
-                <option value="6">6× pro Woche</option>
-                <option value="7">Täglich / 7× pro Woche</option>
-            </select>
-
-            <input
-                id="unterhaltStunden"
-                type="number"
-                step="0.25"
-                min="0"
-                placeholder="Stunden pro Reinigung"
-            >
-
-            <div class="info">
-                Der Monatswert wird mit durchschnittlich
-                4,33 Wochen pro Monat berechnet.
-            </div>
-
-        </div>
-
-        <div id="fensterBlock">
-
-            <input
-                id="fensterAnzahl"
-                type="number"
-                value="1"
-                placeholder="Anzahl Fenster"
-            >
-
-            <input
-                id="fensterBreite"
-                type="number"
-                step="0.01"
-                placeholder="Breite pro Fenster in Meter"
-            >
-
-            <input
-                id="fensterHoehe"
-                type="number"
-                step="0.01"
-                placeholder="Höhe pro Fenster in Meter"
-            >
-
-            <select id="fensterSeiten">
-                <option value="1">Nur eine Seite</option>
-                <option value="2" selected>Innen + Außen</option>
-            </select>
-
-            <button onclick="arMessungStarten()">
-                📐 Maße mit Kamera messen
-            </button>
-
-        </div>
-
-        <input
-            id="stunden"
-            type="number"
-            step="0.25"
-            placeholder="Geschätzte Arbeitsstunden"
-        >
-
-        <input
-            id="stundensatz"
-            type="number"
-            step="0.01"
-            value="35"
-            placeholder="Stundensatz €"
-        >
-
-        <input
-            id="qmPreis"
-            type="number"
-            step="0.01"
-            value="4.50"
-            placeholder="Preis pro m² €"
-        >
-
-        <input
-            id="anfahrt"
-            type="number"
-            step="0.01"
-            value="60"
-            placeholder="Anfahrt €"
-        >
-
-        <input
-            id="material"
-            type="number"
-            step="0.01"
-            value="0"
-            placeholder="Material €"
-        >
-
-        <input
-            id="zuschlag"
-            type="number"
-            step="0.01"
-            value="0"
-            placeholder="Zuschlag in %"
-        >
-
-        <select id="mwst">
-            <option value="19">19 % MwSt.</option>
-            <option value="0">0 % MwSt.</option>
-        </select>
-
-        <button onclick="preisBerechnen()">
-            Berechnen
-        </button>
-
-        <div
-            id="preisErgebnis"
-            class="result"
-            style="display:none">
-        </div>
-
-    </div>
-
-</div>
-
-<div id="foto" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">📐 Fenster-Aufmaß</h1>
-
-    <div class="card">
-
-        <h2>Fenster automatisch messen</h2>
-
-        <div class="info">
-            1. Kamera-Messung starten<br>
-            2. Handy langsam bewegen<br>
-            3. Die 4 Fensterecken antippen<br>
-            4. Breite, Höhe und m² werden berechnet
-        </div>
-
-        <button onclick="arMessungStarten()">
-            📐 Kamera-Messung starten
-        </button>
-
-        <div
-            id="arErgebnis"
-            class="result"
-            style="display:none">
-        </div>
-
-        <input
-            id="fotoFensterAnzahl"
-            type="number"
-            value="1"
-            min="1"
-            placeholder="Anzahl gleicher Fenster"
-        >
-
-        <select id="fotoSeiten">
-            <option value="1">Eine Seite reinigen</option>
-            <option value="2" selected>Innen + Außen</option>
-        </select>
-
-        <input
-            id="fotoPreisQm"
-            type="number"
-            step="0.01"
-            value="4.50"
-            placeholder="Preis pro m²"
-        >
-
-        <button onclick="arPreisBerechnen()">
-            💰 Gesamtfläche & Preis berechnen
-        </button>
-
-        <div
-            id="fotoErgebnis"
-            class="result"
-            style="display:none">
-        </div>
-
-    </div>
-
-</div>
-
-<div id="kunden" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">📋 Kunden</h1>
-
-    <div class="card">
-
-        <input id="kundeName" placeholder="Name / Firma">
-        <input id="kundeAdresse" placeholder="Adresse">
-        <input id="kundeTelefon" placeholder="Telefon">
-        <input id="kundeEmail" placeholder="E-Mail">
-        <textarea id="kundeNotiz" placeholder="Notizen"></textarea>
-
-        <button onclick="kundeSpeichern()">
-            Kunde speichern
-        </button>
-
-    </div>
-
-    <div class="card">
-        <h2>Gespeicherte Kunden</h2>
-        <div id="kundenListe"></div>
-    </div>
-
-</div>
-
-<div id="mitarbeiter" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">👥 Mitarbeiter</h1>
-
-    <div class="card">
-
-        <input id="mitarbeiterName" placeholder="Name">
-        <input id="mitarbeiterTelefon" placeholder="Telefon">
-
-        <select id="mitarbeiterArt">
-            <option>Vollzeit</option>
-            <option>Teilzeit</option>
-            <option>Minijob</option>
-        </select>
-
-        <input
-            id="mitarbeiterLohn"
-            type="number"
-            step="0.01"
-            placeholder="Stundenlohn €"
-        >
-
-        <button onclick="mitarbeiterSpeichern()">
-            Mitarbeiter speichern
-        </button>
-
-    </div>
-
-    <div class="card">
-        <div id="mitarbeiterListe"></div>
-    </div>
-
-</div>
-
-<div id="auftraege" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">🧹 Aufträge</h1>
-
-    <div class="card">
-
-        <input id="auftragKunde" placeholder="Kunde">
-        <input id="auftragOrt" placeholder="Objekt / Adresse">
-
-        <select id="auftragArt">
-            <option>Unterhaltsreinigung</option>
-            <option>Grundreinigung</option>
-            <option>Bauendreinigung</option>
-            <option>Glasreinigung</option>
-            <option>Treppenhausreinigung</option>
-        </select>
-
-        <input id="auftragDatum" type="date">
-
-        <input
-            id="auftragPreis"
-            type="number"
-            step="0.01"
-            placeholder="Preis €"
-        >
-
-        <textarea
-            id="auftragNotiz"
-            placeholder="Beschreibung">
-        </textarea>
-
-        <button onclick="auftragSpeichern()">
-            Auftrag speichern
-        </button>
-
-    </div>
-
-    <div class="card">
-        <div id="auftragListe"></div>
-    </div>
-
-</div>
-
-<div id="arbeitszeiten" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">⏱ Arbeitszeiten</h1>
-
-    <div class="card">
-
-        <input id="zeitMitarbeiter" placeholder="Mitarbeiter">
-        <input id="zeitDatum" type="date">
-
-        <div class="grid2">
-            <input id="zeitStart" type="time">
-            <input id="zeitEnde" type="time">
-        </div>
-
-        <input id="zeitObjekt" placeholder="Objekt / Kunde">
-
-        <button onclick="zeitSpeichern()">
-            Arbeitszeit speichern
-        </button>
-
-    </div>
-
-    <div class="card">
-        <div id="zeitListe"></div>
-    </div>
-
-</div>
-
-<div id="rechnungen" class="page">
-
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">📄 Rechnungen</h1>
-
-    <div class="card">
-
-        <input id="rechnungKunde" placeholder="Kunde">
-        <input id="rechnungNummer" placeholder="Rechnungsnummer">
-
-        <input
-            id="rechnungBetrag"
-            type="number"
-            step="0.01"
-            placeholder="Betrag €"
-        >
-
-        <input id="rechnungDatum" type="date">
-
-        <select id="rechnungStatus">
-            <option>Offen</option>
-            <option>Bezahlt</option>
-        </select>
-
-        <button onclick="rechnungSpeichern()">
-            Rechnung speichern
-        </button>
-
-    </div>
-
-    <div class="card">
-        <div id="rechnungListe"></div>
-    </div>
-
-</div>
-
-<footer>
-E-M Cleaning Service
-</footer>
-
-<script>
-
-let arBreite = 0;
-let arHoehe = 0;
-let arFlaeche = 0;
-
-function openPage(id){
-
-    document.querySelectorAll('.page').forEach(function(p){
-        p.classList.remove('active');
-    });
-
-    document.getElementById(id).classList.add('active');
-
-    window.scrollTo(0,0);
-
-    aktualisieren();
-}
-
-function arMessungStarten(){
-
-    if(
-        window.Android &&
-        typeof Android.startArMeasurement === 'function'
-    ){
-
-        Android.startArMeasurement();
-
-    }else{
-
-        alert(
-            'Die Kamera-Messung funktioniert nur in der Android-App.'
-        );
+    if (service === 'bau' || service === 'grund') {
+        document.getElementById('stundensatz').value = '35';
     }
 }
 
-window.receiveArMeasurement = function(
-    breite,
-    hoehe,
-    flaeche
-){
 
-    arBreite = parseFloat(breite) || 0;
-    arHoehe = parseFloat(hoehe) || 0;
-    arFlaeche = parseFloat(flaeche) || 0;
 
-    const box =
-        document.getElementById('arErgebnis');
+function zeigeUnterhaltOptionen() {
 
-    if(box){
-
-        box.style.display = 'block';
-
-        box.innerHTML =
-            '<strong>✅ Fenster gemessen</strong><br><br>' +
-            'Breite: ' +
-            arBreite.toFixed(2) +
-            ' m<br>' +
-            'Höhe: ' +
-            arHoehe.toFixed(2) +
-            ' m<br>' +
-            '<div class="big">' +
-            arFlaeche.toFixed(2) +
-            ' m²</div>';
-    }
-
-    document.getElementById('fensterBreite').value =
-        arBreite.toFixed(2);
-
-    document.getElementById('fensterHoehe').value =
-        arHoehe.toFixed(2);
-
-    openPage('foto');
-}
-
-function arPreisBerechnen(){
-
-    if(arFlaeche <= 0){
-
-        alert(
-            'Bitte zuerst das Fenster mit der Kamera messen.'
-        );
-
+    if (document.getElementById('unterhaltOptionen')) {
         return;
     }
 
-    const anzahl =
-        parseFloat(
-            document.getElementById(
-                'fotoFensterAnzahl'
-            ).value || 1
-        );
+    const block = document.createElement('div');
 
-    const seiten =
-        parseFloat(
-            document.getElementById(
-                'fotoSeiten'
-            ).value || 1
-        );
+    block.id = 'unterhaltOptionen';
 
-    const preis =
-        parseFloat(
-            document.getElementById(
-                'fotoPreisQm'
-            ).value || 0
-        );
+    block.innerHTML = `
 
-    const gesamt =
-        arFlaeche *
-        anzahl *
-        seiten;
+        <label style="display:block;margin-top:15px;font-weight:bold;">
+            Wie oft wird gereinigt?
+        </label>
 
-    const kosten =
-        gesamt *
-        preis;
+        <select id="reinigungProWoche">
 
-    const box =
-        document.getElementById(
-            'fotoErgebnis'
-        );
+            <option value="1">
+                1× pro Woche
+            </option>
 
-    box.style.display = 'block';
+            <option value="2">
+                2× pro Woche
+            </option>
 
-    box.innerHTML =
-        '<strong>Aufmaß & Kalkulation</strong><br><br>' +
-        'Breite: ' +
-        arBreite.toFixed(2) +
-        ' m<br>' +
-        'Höhe: ' +
-        arHoehe.toFixed(2) +
-        ' m<br>' +
-        'Fläche pro Fenster: ' +
-        arFlaeche.toFixed(2) +
-        ' m²<br>' +
-        'Anzahl: ' +
-        anzahl +
-        '<br>' +
-        'Reinigungsseiten: ' +
-        seiten +
-        '<br><br>' +
-        '<strong>Gesamte Reinigungsfläche:</strong> ' +
-        gesamt.toFixed(2) +
-        ' m²<br>' +
-        '<div class="big">' +
-        kosten.toFixed(2).replace('.', ',') +
-        ' €</div>';
+            <option value="3">
+                3× pro Woche
+            </option>
+
+            <option value="4">
+                4× pro Woche
+            </option>
+
+            <option value="5">
+                5× pro Woche
+            </option>
+
+            <option value="6">
+                6× pro Woche
+            </option>
+
+            <option value="7">
+                Täglich / 7× pro Woche
+            </option>
+
+        </select>
+
+
+        <label style="display:block;margin-top:15px;font-weight:bold;">
+            Reinigungsleistung
+        </label>
+
+        <input
+            id="leistungProStunde"
+            type="number"
+            step="1"
+            value="180"
+            placeholder="m² pro Stunde"
+        >
+
+        <div class="info">
+
+            Die App berechnet automatisch,
+            wie viele Arbeitsstunden für die Fläche
+            benötigt werden.
+
+            <br><br>
+
+            Beispiel:<br>
+            500 m² ÷ 180 m²/Stunde =
+            ca. 2,78 Stunden pro Reinigung.
+
+        </div>
+    `;
+
+
+    const flaechenBlock =
+        document.getElementById('flaechenBlock');
+
+    flaechenBlock.insertAdjacentElement(
+        'afterend',
+        block
+    );
 }
 
-function serviceChanged(){
 
-    const service =
-        document.getElementById('service').value;
 
-    document.getElementById(
-        'fensterBlock'
-    ).style.display =
-        service === 'fenster'
-        ? 'block'
-        : 'none';
+function entferneUnterhaltOptionen() {
 
-    document.getElementById(
-        'flaechenBlock'
-    ).style.display =
-        service === 'fenster'
-        ? 'none'
-        : 'block';
+    const block =
+        document.getElementById('unterhaltOptionen');
 
-    document.getElementById(
-        'unterhaltBlock'
-    ).style.display =
-        service === 'unterhalt'
-        ? 'block'
-        : 'none';
-
-    if(service === 'unterhalt'){
-
-        document.getElementById(
-            'stundensatz'
-        ).value = '30';
-
-    }else if(
-        service === 'bau' ||
-        service === 'grund'
-    ){
-
-        document.getElementById(
-            'stundensatz'
-        ).value = '35';
+    if (block) {
+        block.remove();
     }
 }
 
-function preisBerechnen(){
+
+
+function preisBerechnen() {
 
     const service =
         document.getElementById('service').value;
 
     const stundensatz =
         parseFloat(
-            document.getElementById(
-                'stundensatz'
-            ).value || 0
-        );
+            document.getElementById('stundensatz').value
+        ) || 0;
 
     const qmPreis =
         parseFloat(
-            document.getElementById(
-                'qmPreis'
-            ).value || 0
-        );
+            document.getElementById('qmPreis').value
+        ) || 0;
 
     const anfahrt =
         parseFloat(
-            document.getElementById(
-                'anfahrt'
-            ).value || 0
-        );
+            document.getElementById('anfahrt').value
+        ) || 0;
 
     const material =
         parseFloat(
-            document.getElementById(
-                'material'
-            ).value || 0
-        );
+            document.getElementById('material').value
+        ) || 0;
 
-    const zuschlag =
+    const zuschlagProzent =
         parseFloat(
-            document.getElementById(
-                'zuschlag'
-            ).value || 0
-        );
+            document.getElementById('zuschlag').value
+        ) || 0;
 
     const mwst =
         parseFloat(
-            document.getElementById(
-                'mwst'
-            ).value || 0
-        );
+            document.getElementById('mwst').value
+        ) || 0;
+
 
     let flaeche = 0;
-    let arbeitsstunden = 0;
-    let arbeitskosten = 0;
-    let flaechenkosten = 0;
-    let netto = 0;
-    let zusatzText = '';
 
 
-    if(service === 'fenster'){
+    // ==========================================
+    // FENSTER
+    // ==========================================
+
+    if (service === 'fenster') {
 
         const anzahl =
             parseFloat(
-                document.getElementById(
-                    'fensterAnzahl'
-                ).value || 0
-            );
+                document.getElementById('fensterAnzahl').value
+            ) || 0;
 
         const breite =
             parseFloat(
-                document.getElementById(
-                    'fensterBreite'
-                ).value || 0
-            );
+                document.getElementById('fensterBreite').value
+            ) || 0;
 
         const hoehe =
             parseFloat(
-                document.getElementById(
-                    'fensterHoehe'
-                ).value || 0
-            );
+                document.getElementById('fensterHoehe').value
+            ) || 0;
 
         const seiten =
             parseFloat(
-                document.getElementById(
-                    'fensterSeiten'
-                ).value || 1
-            );
+                document.getElementById('fensterSeiten').value
+            ) || 1;
 
-        arbeitsstunden =
-            parseFloat(
-                document.getElementById(
-                    'stunden'
-                ).value || 0
-            );
 
         flaeche =
             anzahl *
@@ -936,475 +212,345 @@ function preisBerechnen(){
             hoehe *
             seiten;
 
-        arbeitskosten =
-            arbeitsstunden *
-            stundensatz;
-
-        flaechenkosten =
-            flaeche *
-            qmPreis;
-
-        netto =
-            arbeitskosten +
-            flaechenkosten +
-            anfahrt +
-            material;
-    }
-
-    else if(service === 'unterhalt'){
+    } else {
 
         flaeche =
             parseFloat(
-                document.getElementById(
-                    'qm'
-                ).value || 0
+                document.getElementById('qm').value
+            ) || 0;
+    }
+
+
+
+    // ==========================================
+    // UNTERHALTSREINIGUNG
+    // ==========================================
+
+    if (service === 'unterhalt') {
+
+        if (flaeche <= 0) {
+
+            alert(
+                'Bitte die Reinigungsfläche in m² eingeben.'
             );
 
-        const proWoche =
+            return;
+        }
+
+
+        const leistung =
             parseFloat(
                 document.getElementById(
-                    'unterhaltHaeufigkeit'
-                ).value || 1
+                    'leistungProStunde'
+                ).value
+            ) || 180;
+
+
+        const tageProWoche =
+            parseFloat(
+                document.getElementById(
+                    'reinigungProWoche'
+                ).value
+            ) || 1;
+
+
+        if (leistung <= 0) {
+
+            alert(
+                'Bitte eine gültige Reinigungsleistung eingeben.'
             );
 
-        const stundenProReinigung =
-            parseFloat(
-                document.getElementById(
-                    'unterhaltStunden'
-                ).value || 0
-            );
+            return;
+        }
+
+
+        // Benötigte Stunden für EINEN Einsatz
+        const stundenProEinsatz =
+            flaeche / leistung;
+
+
+        // Durchschnitt:
+        // 52 Wochen / 12 Monate
+        const wochenProMonat =
+            52 / 12;
+
 
         const einsaetzeMonat =
-            proWoche *
-            4.33;
+            tageProWoche *
+            wochenProMonat;
 
-        arbeitsstunden =
-            einsaetzeMonat *
-            stundenProReinigung;
 
-        arbeitskosten =
-            arbeitsstunden *
+        const stundenMonat =
+            stundenProEinsatz *
+            einsaetzeMonat;
+
+
+        // Lohn / Arbeitskosten
+        const arbeitskosten =
+            stundenMonat *
             stundensatz;
 
-        netto =
-            arbeitskosten +
-            anfahrt +
+
+        // Anfahrt wird PRO EINSATZ gerechnet
+        const anfahrtMonat =
+            anfahrt *
+            einsaetzeMonat;
+
+
+        // Material als monatlicher Betrag
+        const materialMonat =
             material;
 
-        zusatzText =
-            '<strong>Unterhaltsreinigung</strong><br><br>' +
-            'Reinigung: ' +
-            proWoche +
-            '× pro Woche<br>' +
-            'Ø Einsätze pro Monat: ' +
-            einsaetzeMonat.toFixed(1) +
-            '<br>' +
-            'Stunden pro Reinigung: ' +
-            stundenProReinigung.toFixed(2) +
-            ' Std.<br>' +
-            '<strong>Arbeitsstunden pro Monat: ' +
-            arbeitsstunden.toFixed(2) +
-            ' Std.</strong><br><br>';
-    }
 
-    else{
-
-        flaeche =
-            parseFloat(
-                document.getElementById(
-                    'qm'
-                ).value || 0
-            );
-
-        arbeitsstunden =
-            parseFloat(
-                document.getElementById(
-                    'stunden'
-                ).value || 0
-            );
-
-        arbeitskosten =
-            arbeitsstunden *
-            stundensatz;
-
-        flaechenkosten =
-            flaeche *
-            qmPreis;
-
-        netto =
+        let netto =
             arbeitskosten +
-            flaechenkosten +
-            anfahrt +
-            material;
+            anfahrtMonat +
+            materialMonat;
+
+
+        const zuschlagEuro =
+            netto *
+            zuschlagProzent /
+            100;
+
+
+        netto += zuschlagEuro;
+
+
+        const steuer =
+            netto *
+            mwst /
+            100;
+
+
+        const brutto =
+            netto +
+            steuer;
+
+
+        // Stundenfeld automatisch füllen
+        document.getElementById('stunden').value =
+            stundenProEinsatz.toFixed(2);
+
+
+        const box =
+            document.getElementById('preisErgebnis');
+
+
+        box.style.display = 'block';
+
+
+        box.innerHTML = `
+
+            <strong style="font-size:20px;">
+                Unterhaltsreinigung
+            </strong>
+
+            <br><br>
+
+            Reinigung:
+            <strong>
+                ${tageProWoche}× pro Woche
+            </strong>
+
+            <br>
+
+            Ø Einsätze pro Monat:
+            <strong>
+                ${einsaetzeMonat.toFixed(1)}
+            </strong>
+
+            <br><br>
+
+            Reinigungsfläche:
+            <strong>
+                ${flaeche.toFixed(2)} m²
+            </strong>
+
+            <br>
+
+            Reinigungsleistung:
+            <strong>
+                ${leistung.toFixed(0)} m² / Std.
+            </strong>
+
+            <br><br>
+
+            Stunden pro Reinigung:
+            <strong>
+                ${stundenProEinsatz.toFixed(2)} Std.
+            </strong>
+
+            <br>
+
+            Arbeitsstunden pro Monat:
+            <strong>
+                ${stundenMonat.toFixed(2)} Std.
+            </strong>
+
+            <br><br>
+
+            Stundensatz:
+            ${stundensatz.toFixed(2)} €
+
+            <br>
+
+            Arbeitskosten monatlich:
+            ${arbeitskosten.toFixed(2)} €
+
+            <br>
+
+            Anfahrt monatlich:
+            ${anfahrtMonat.toFixed(2)} €
+
+            <br>
+
+            Material:
+            ${materialMonat.toFixed(2)} €
+
+            <br>
+
+            Zuschlag:
+            ${zuschlagEuro.toFixed(2)} €
+
+            <br><br>
+
+            <strong>
+                Monatlich Netto:
+                ${netto.toFixed(2)} €
+            </strong>
+
+            <br>
+
+            MwSt.:
+            ${steuer.toFixed(2)} €
+
+            <div class="big">
+
+                ${brutto
+                    .toFixed(2)
+                    .replace('.', ',')}
+                € / Monat
+
+            </div>
+        `;
+
+
+        return;
     }
+
+
+
+    // ==========================================
+    // ANDERE REINIGUNGSARTEN
+    // ==========================================
+
+    const stunden =
+        parseFloat(
+            document.getElementById('stunden').value
+        ) || 0;
+
+
+    const arbeitskosten =
+        stunden *
+        stundensatz;
+
+
+    const flaechenkosten =
+        flaeche *
+        qmPreis;
+
+
+    let netto =
+        arbeitskosten +
+        flaechenkosten +
+        anfahrt +
+        material;
 
 
     const zuschlagEuro =
         netto *
-        zuschlag /
+        zuschlagProzent /
         100;
 
+
     netto += zuschlagEuro;
+
 
     const steuer =
         netto *
         mwst /
         100;
 
+
     const brutto =
         netto +
         steuer;
 
+
     const box =
-        document.getElementById(
-            'preisErgebnis'
-        );
+        document.getElementById('preisErgebnis');
+
 
     box.style.display = 'block';
 
 
-    if(service === 'unterhalt'){
+    box.innerHTML = `
 
-        box.innerHTML =
-            zusatzText +
-            'Reinigungsfläche: ' +
-            flaeche.toFixed(2) +
-            ' m²<br>' +
-            'Arbeitskosten monatlich: ' +
-            arbeitskosten.toFixed(2) +
-            ' €<br>' +
-            'Anfahrt: ' +
-            anfahrt.toFixed(2) +
-            ' €<br>' +
-            'Material: ' +
-            material.toFixed(2) +
-            ' €<br>' +
-            'Zuschlag: ' +
-            zuschlagEuro.toFixed(2) +
-            ' €<br><br>' +
-            'Monatlich Netto: <strong>' +
-            netto.toFixed(2) +
-            ' €</strong><br>' +
-            'MwSt.: ' +
-            steuer.toFixed(2) +
-            ' €<br>' +
-            '<div class="big">' +
-            brutto.toFixed(2).replace('.', ',') +
-            ' € / Monat</div>';
+        <strong>Berechnung</strong>
 
-    }else{
+        <br><br>
 
-        box.innerHTML =
-            '<strong>Berechnung</strong><br><br>' +
-            'Reinigungsfläche: ' +
-            flaeche.toFixed(2) +
-            ' m²<br>' +
-            'Arbeitsstunden: ' +
-            arbeitsstunden.toFixed(2) +
-            ' Std.<br>' +
-            'Arbeitskosten: ' +
-            arbeitskosten.toFixed(2) +
-            ' €<br>' +
-            'Flächenkosten: ' +
-            flaechenkosten.toFixed(2) +
-            ' €<br>' +
-            'Anfahrt: ' +
-            anfahrt.toFixed(2) +
-            ' €<br>' +
-            'Material: ' +
-            material.toFixed(2) +
-            ' €<br>' +
-            'Netto: ' +
-            netto.toFixed(2) +
-            ' €<br>' +
-            'MwSt.: ' +
-            steuer.toFixed(2) +
-            ' €<br>' +
-            '<div class="big">' +
-            brutto.toFixed(2).replace('.', ',') +
-            ' €</div>';
-    }
+        Reinigungsfläche:
+        ${flaeche.toFixed(2)} m²
+
+        <br>
+
+        Arbeitsstunden:
+        ${stunden.toFixed(2)} Std.
+
+        <br>
+
+        Arbeitskosten:
+        ${arbeitskosten.toFixed(2)} €
+
+        <br>
+
+        Flächenkosten:
+        ${flaechenkosten.toFixed(2)} €
+
+        <br>
+
+        Anfahrt:
+        ${anfahrt.toFixed(2)} €
+
+        <br>
+
+        Material:
+        ${material.toFixed(2)} €
+
+        <br>
+
+        Zuschlag:
+        ${zuschlagEuro.toFixed(2)} €
+
+        <br><br>
+
+        Netto:
+        ${netto.toFixed(2)} €
+
+        <br>
+
+        MwSt.:
+        ${steuer.toFixed(2)} €
+
+        <div class="big">
+
+            ${brutto
+                .toFixed(2)
+                .replace('.', ',')}
+            €
+
+        </div>
+    `;
 }
-
-function laden(key){
-    return JSON.parse(
-        localStorage.getItem(key) || '[]'
-    );
-}
-
-function speichern(key,daten){
-    localStorage.setItem(
-        key,
-        JSON.stringify(daten)
-    );
-}
-
-function kundeSpeichern(){
-
-    const name =
-        document.getElementById(
-            'kundeName'
-        ).value.trim();
-
-    if(!name){
-        alert('Bitte Namen eingeben.');
-        return;
-    }
-
-    const d = laden('kunden');
-
-    d.push({
-        name:name,
-        adresse:document.getElementById('kundeAdresse').value,
-        telefon:document.getElementById('kundeTelefon').value,
-        email:document.getElementById('kundeEmail').value,
-        notiz:document.getElementById('kundeNotiz').value
-    });
-
-    speichern('kunden',d);
-    kundenAnzeigen();
-}
-
-function kundenAnzeigen(){
-
-    const d = laden('kunden');
-    const box = document.getElementById('kundenListe');
-
-    box.innerHTML='';
-
-    d.forEach(function(x,i){
-
-        box.innerHTML +=
-            '<div class="item">' +
-            '<strong>' + esc(x.name) + '</strong><br>' +
-            esc(x.adresse) + '<br>' +
-            esc(x.telefon) + '<br>' +
-            esc(x.email) +
-            '<button class="danger" onclick="loeschen(\'kunden\','+i+')">Löschen</button>' +
-            '</div>';
-    });
-}
-
-function mitarbeiterSpeichern(){
-
-    const name =
-        document.getElementById(
-            'mitarbeiterName'
-        ).value.trim();
-
-    if(!name){
-        alert('Bitte Namen eingeben.');
-        return;
-    }
-
-    const d = laden('mitarbeiter');
-
-    d.push({
-        name:name,
-        telefon:document.getElementById('mitarbeiterTelefon').value,
-        art:document.getElementById('mitarbeiterArt').value,
-        lohn:document.getElementById('mitarbeiterLohn').value
-    });
-
-    speichern('mitarbeiter',d);
-    mitarbeiterAnzeigen();
-}
-
-function mitarbeiterAnzeigen(){
-
-    const d = laden('mitarbeiter');
-    const box = document.getElementById('mitarbeiterListe');
-
-    box.innerHTML='';
-
-    d.forEach(function(x,i){
-
-        box.innerHTML +=
-            '<div class="item">' +
-            '<strong>' + esc(x.name) + '</strong><br>' +
-            esc(x.art) + '<br>' +
-            esc(x.telefon) + '<br>' +
-            esc(x.lohn) + ' €/Std.' +
-            '<button class="danger" onclick="loeschen(\'mitarbeiter\','+i+')">Löschen</button>' +
-            '</div>';
-    });
-}
-
-function auftragSpeichern(){
-
-    const kunde =
-        document.getElementById(
-            'auftragKunde'
-        ).value.trim();
-
-    if(!kunde){
-        alert('Bitte Kunde eingeben.');
-        return;
-    }
-
-    const d = laden('auftraege');
-
-    d.push({
-        kunde:kunde,
-        ort:document.getElementById('auftragOrt').value,
-        art:document.getElementById('auftragArt').value,
-        datum:document.getElementById('auftragDatum').value,
-        preis:document.getElementById('auftragPreis').value,
-        notiz:document.getElementById('auftragNotiz').value
-    });
-
-    speichern('auftraege',d);
-    auftraegeAnzeigen();
-}
-
-function auftraegeAnzeigen(){
-
-    const d = laden('auftraege');
-    const box = document.getElementById('auftragListe');
-
-    box.innerHTML='';
-
-    d.forEach(function(x,i){
-
-        box.innerHTML +=
-            '<div class="item">' +
-            '<strong>' + esc(x.kunde) + '</strong><br>' +
-            esc(x.art) + '<br>' +
-            esc(x.ort) + '<br>' +
-            esc(x.datum) + '<br>' +
-            esc(x.preis) + ' €' +
-            '<button class="danger" onclick="loeschen(\'auftraege\','+i+')">Löschen</button>' +
-            '</div>';
-    });
-}
-
-function zeitSpeichern(){
-
-    const name =
-        document.getElementById(
-            'zeitMitarbeiter'
-        ).value.trim();
-
-    if(!name){
-        alert('Bitte Mitarbeiter eingeben.');
-        return;
-    }
-
-    const d = laden('zeiten');
-
-    d.push({
-        mitarbeiter:name,
-        datum:document.getElementById('zeitDatum').value,
-        start:document.getElementById('zeitStart').value,
-        ende:document.getElementById('zeitEnde').value,
-        objekt:document.getElementById('zeitObjekt').value
-    });
-
-    speichern('zeiten',d);
-    zeitenAnzeigen();
-}
-
-function zeitenAnzeigen(){
-
-    const d = laden('zeiten');
-    const box = document.getElementById('zeitListe');
-
-    box.innerHTML='';
-
-    d.forEach(function(x,i){
-
-        box.innerHTML +=
-            '<div class="item">' +
-            '<strong>' + esc(x.mitarbeiter) + '</strong><br>' +
-            esc(x.datum) + '<br>' +
-            esc(x.start) + ' - ' + esc(x.ende) + '<br>' +
-            esc(x.objekt) +
-            '<button class="danger" onclick="loeschen(\'zeiten\','+i+')">Löschen</button>' +
-            '</div>';
-    });
-}
-
-function rechnungSpeichern(){
-
-    const kunde =
-        document.getElementById(
-            'rechnungKunde'
-        ).value.trim();
-
-    if(!kunde){
-        alert('Bitte Kunde eingeben.');
-        return;
-    }
-
-    const d = laden('rechnungen');
-
-    d.push({
-        kunde:kunde,
-        nummer:document.getElementById('rechnungNummer').value,
-        betrag:document.getElementById('rechnungBetrag').value,
-        datum:document.getElementById('rechnungDatum').value,
-        status:document.getElementById('rechnungStatus').value
-    });
-
-    speichern('rechnungen',d);
-    rechnungenAnzeigen();
-}
-
-function rechnungenAnzeigen(){
-
-    const d = laden('rechnungen');
-    const box = document.getElementById('rechnungListe');
-
-    box.innerHTML='';
-
-    d.forEach(function(x,i){
-
-        box.innerHTML +=
-            '<div class="item">' +
-            '<strong>' + esc(x.kunde) + '</strong><br>' +
-            'Nr.: ' + esc(x.nummer) + '<br>' +
-            esc(x.betrag) + ' €<br>' +
-            esc(x.datum) + '<br>' +
-            esc(x.status) +
-            '<button class="danger" onclick="loeschen(\'rechnungen\','+i+')">Löschen</button>' +
-            '</div>';
-    });
-}
-
-function loeschen(key,index){
-
-    const d = laden(key);
-
-    d.splice(index,1);
-
-    speichern(key,d);
-
-    aktualisieren();
-}
-
-function esc(text){
-
-    return String(text || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
-}
-
-function aktualisieren(){
-
-    kundenAnzeigen();
-    mitarbeiterAnzeigen();
-    auftraegeAnzeigen();
-    zeitenAnzeigen();
-    rechnungenAnzeigen();
-}
-
-serviceChanged();
-aktualisieren();
-
-</script>
-
-</body>
-</html>
