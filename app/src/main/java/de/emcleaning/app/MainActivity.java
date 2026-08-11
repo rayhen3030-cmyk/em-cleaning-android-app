@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ public class MainActivity extends Activity {
     private String pendingPdfEmployee = "";
     private String pendingPdfMonth = "";
     private String pendingPdfJson = "[]";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +111,7 @@ public class MainActivity extends Activity {
         }
     }
 
+
     private class AndroidBridge {
 
         @JavascriptInterface
@@ -144,6 +147,7 @@ public class MainActivity extends Activity {
             });
         }
 
+
         @JavascriptInterface
         public void createTimesheetPdf(
                 String employee,
@@ -154,14 +158,14 @@ public class MainActivity extends Activity {
             runOnUiThread(() -> {
 
                 pendingPdfEmployee =
-                        employee == null
+                        employee == null || employee.trim().isEmpty()
                                 ? "Mitarbeiter"
-                                : employee;
+                                : employee.trim();
 
                 pendingPdfMonth =
                         month == null
                                 ? ""
-                                : month;
+                                : month.trim();
 
                 pendingPdfJson =
                         jsonData == null
@@ -207,6 +211,7 @@ public class MainActivity extends Activity {
         }
     }
 
+
     @Override
     protected void onActivityResult(
             int requestCode,
@@ -219,6 +224,7 @@ public class MainActivity extends Activity {
                 resultCode,
                 data
         );
+
 
         if (
                 requestCode
@@ -249,6 +255,7 @@ public class MainActivity extends Activity {
             return;
         }
 
+
         if (
                 requestCode
                         ==
@@ -278,6 +285,7 @@ public class MainActivity extends Activity {
 
             return;
         }
+
 
         if (
                 requestCode
@@ -362,9 +370,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void createPdfFile(
-            Uri uri
-    ) {
+
+    private void createPdfFile(Uri uri) {
 
         PdfDocument document =
                 new PdfDocument();
@@ -376,9 +383,18 @@ public class MainActivity extends Activity {
                             pendingPdfJson
                     );
 
-            int pageWidth = 595;
-            int pageHeight = 842;
-            int margin = 30;
+            final int pageWidth = 595;
+            final int pageHeight = 842;
+
+            final int marginLeft = 28;
+            final int marginRight = 28;
+            final int contentWidth =
+                    pageWidth -
+                            marginLeft -
+                            marginRight;
+
+            final int headerHeight = 92;
+            final int footerHeight = 35;
 
             Paint titlePaint =
                     new Paint();
@@ -399,6 +415,17 @@ public class MainActivity extends Activity {
                     true
             );
 
+            Paint subtitlePaint =
+                    new Paint();
+
+            subtitlePaint.setColor(
+                    Color.DKGRAY
+            );
+
+            subtitlePaint.setTextSize(
+                    10.5f
+            );
+
             Paint boldPaint =
                     new Paint();
 
@@ -407,7 +434,7 @@ public class MainActivity extends Activity {
             );
 
             boldPaint.setTextSize(
-                    11f
+                    9.5f
             );
 
             boldPaint.setFakeBoldText(
@@ -422,24 +449,81 @@ public class MainActivity extends Activity {
             );
 
             normalPaint.setTextSize(
-                    8.5f
+                    8.3f
+            );
+
+            Paint smallPaint =
+                    new Paint();
+
+            smallPaint.setColor(
+                    Color.DKGRAY
+            );
+
+            smallPaint.setTextSize(
+                    7.5f
             );
 
             Paint linePaint =
                     new Paint();
 
             linePaint.setColor(
-                    Color.LTGRAY
+                    Color.rgb(
+                            210,
+                            215,
+                            220
+                    )
             );
 
             linePaint.setStrokeWidth(
                     1f
             );
 
+            Paint headerBackgroundPaint =
+                    new Paint();
+
+            headerBackgroundPaint.setColor(
+                    Color.rgb(
+                            240,
+                            244,
+                            246
+                    )
+            );
+
+            Paint totalBackgroundPaint =
+                    new Paint();
+
+            totalBackgroundPaint.setColor(
+                    Color.rgb(
+                            236,
+                            253,
+                            243
+                    )
+            );
+
+            Paint totalBorderPaint =
+                    new Paint();
+
+            totalBorderPaint.setStyle(
+                    Paint.Style.STROKE
+            );
+
+            totalBorderPaint.setStrokeWidth(
+                    1f
+            );
+
+            totalBorderPaint.setColor(
+                    Color.rgb(
+                            171,
+                            239,
+                            198
+                    )
+            );
+
             int pageNumber = 1;
             int index = 0;
 
             double totalHours = 0;
+
 
             while (
                     index
@@ -462,114 +546,202 @@ public class MainActivity extends Activity {
                 Canvas canvas =
                         page.getCanvas();
 
-                float y = 45;
+                float y = 34;
+
+
+                /*
+                 * KOPF
+                 */
 
                 canvas.drawText(
                         "E-M Cleaning Service",
-                        margin,
+                        marginLeft,
                         y,
                         titlePaint
                 );
 
-                y += 28;
+                y += 22;
 
                 canvas.drawText(
                         "Stundennachweis",
-                        margin,
+                        marginLeft,
                         y,
                         boldPaint
                 );
 
-                y += 20;
+                y += 16;
 
                 canvas.drawText(
                         "Mitarbeiter: " +
                                 pendingPdfEmployee,
-                        margin,
+                        marginLeft,
                         y,
-                        normalPaint
+                        subtitlePaint
+                );
+
+                canvas.drawText(
+                        "Monat: " +
+                                formatPdfMonth(
+                                        pendingPdfMonth
+                                ),
+                        pageWidth - marginRight - 145,
+                        y,
+                        subtitlePaint
                 );
 
                 y += 15;
 
-                canvas.drawText(
-                        "Monat: " +
-                                pendingPdfMonth,
-                        margin,
+                canvas.drawLine(
+                        marginLeft,
                         y,
-                        normalPaint
+                        pageWidth - marginRight,
+                        y,
+                        linePaint
                 );
 
-                y += 25;
+                y += 20;
 
-                float xDate = margin;
-                float xStatus = 95;
-                float xStart = 155;
-                float xEnd = 205;
-                float xPause = 255;
-                float xHours = 310;
-                float xObject = 360;
+
+                /*
+                 * TABELLENSPALTEN
+                 */
+
+                float xDate = marginLeft;
+                float wDate = 67;
+
+                float xStatus = xDate + wDate;
+                float wStatus = 58;
+
+                float xStart = xStatus + wStatus;
+                float wStart = 47;
+
+                float xEnd = xStart + wStart;
+                float wEnd = 47;
+
+                float xPause = xEnd + wEnd;
+                float wPause = 49;
+
+                float xHours = xPause + wPause;
+                float wHours = 52;
+
+                float xObject = xHours + wHours;
+                float wObject =
+                        pageWidth -
+                                marginRight -
+                                xObject;
+
+
+                float tableHeaderTop =
+                        y - 13;
+
+                float tableHeaderBottom =
+                        y + 6;
+
+
+                canvas.drawRect(
+                        new RectF(
+                                marginLeft,
+                                tableHeaderTop,
+                                pageWidth - marginRight,
+                                tableHeaderBottom
+                        ),
+                        headerBackgroundPaint
+                );
+
 
                 canvas.drawText(
                         "Datum",
-                        xDate,
+                        xDate + 3,
                         y,
                         boldPaint
                 );
 
                 canvas.drawText(
                         "Status",
-                        xStatus,
+                        xStatus + 3,
                         y,
                         boldPaint
                 );
 
                 canvas.drawText(
                         "Start",
-                        xStart,
+                        xStart + 3,
                         y,
                         boldPaint
                 );
 
                 canvas.drawText(
                         "Ende",
-                        xEnd,
+                        xEnd + 3,
                         y,
                         boldPaint
                 );
 
                 canvas.drawText(
                         "Pause",
-                        xPause,
+                        xPause + 3,
                         y,
                         boldPaint
                 );
 
                 canvas.drawText(
                         "Std.",
-                        xHours,
+                        xHours + 3,
                         y,
                         boldPaint
                 );
 
                 canvas.drawText(
                         "Objekt",
-                        xObject,
+                        xObject + 3,
                         y,
                         boldPaint
                 );
 
-                y += 8;
+
+                y += 14;
+
+
+                /*
+                 * VERTIKALE TABELLENLINIEN
+                 */
+
+                float[] columnLines = {
+                        marginLeft,
+                        xStatus,
+                        xStart,
+                        xEnd,
+                        xPause,
+                        xHours,
+                        xObject,
+                        pageWidth - marginRight
+                };
+
+
+                for (float x : columnLines) {
+
+                    canvas.drawLine(
+                            x,
+                            tableHeaderTop,
+                            x,
+                            tableHeaderBottom,
+                            linePaint
+                    );
+                }
+
 
                 canvas.drawLine(
-                        margin,
-                        y,
-                        pageWidth - margin,
-                        y,
+                        marginLeft,
+                        tableHeaderBottom,
+                        pageWidth - marginRight,
+                        tableHeaderBottom,
                         linePaint
                 );
 
-                y += 15;
+
+                /*
+                 * ZEILEN
+                 */
 
                 while (
                         index
@@ -578,7 +750,9 @@ public class MainActivity extends Activity {
                                 &&
                         y
                                 <
-                        pageHeight - 100
+                        pageHeight -
+                                footerHeight -
+                                125
                 ) {
 
                     JSONObject row =
@@ -625,12 +799,20 @@ public class MainActivity extends Activity {
                     totalHours +=
                             hours;
 
+
+                    float rowTop =
+                            y - 9;
+
+                    float rowBottom =
+                            y + 7;
+
+
                     canvas.drawText(
                             shorten(
                                     date,
                                     10
                             ),
-                            xDate,
+                            xDate + 3,
                             y,
                             normalPaint
                     );
@@ -638,9 +820,9 @@ public class MainActivity extends Activity {
                     canvas.drawText(
                             shorten(
                                     status,
-                                    9
+                                    8
                             ),
-                            xStatus,
+                            xStatus + 3,
                             y,
                             normalPaint
                     );
@@ -650,7 +832,7 @@ public class MainActivity extends Activity {
                                     start,
                                     5
                             ),
-                            xStart,
+                            xStart + 3,
                             y,
                             normalPaint
                     );
@@ -660,7 +842,7 @@ public class MainActivity extends Activity {
                                     end,
                                     5
                             ),
-                            xEnd,
+                            xEnd + 3,
                             y,
                             normalPaint
                     );
@@ -670,7 +852,7 @@ public class MainActivity extends Activity {
                                     pause,
                                     5
                             ),
-                            xPause,
+                            xPause + 3,
                             y,
                             normalPaint
                     );
@@ -681,7 +863,7 @@ public class MainActivity extends Activity {
                                     "%.2f",
                                     hours
                             ),
-                            xHours,
+                            xHours + 3,
                             y,
                             normalPaint
                     );
@@ -689,25 +871,43 @@ public class MainActivity extends Activity {
                     canvas.drawText(
                             shorten(
                                     object,
-                                    30
+                                    28
                             ),
-                            xObject,
+                            xObject + 3,
                             y,
                             normalPaint
                     );
 
-                    y += 17;
+
+                    for (float x : columnLines) {
+
+                        canvas.drawLine(
+                                x,
+                                rowTop,
+                                x,
+                                rowBottom,
+                                linePaint
+                        );
+                    }
+
 
                     canvas.drawLine(
-                            margin,
-                            y - 7,
-                            pageWidth - margin,
-                            y - 7,
+                            marginLeft,
+                            rowBottom,
+                            pageWidth - marginRight,
+                            rowBottom,
                             linePaint
                     );
 
+
+                    y += 16;
                     index++;
                 }
+
+
+                /*
+                 * LETZTE SEITE
+                 */
 
                 if (
                         index
@@ -717,44 +917,147 @@ public class MainActivity extends Activity {
 
                     y += 18;
 
-                    boldPaint.setTextSize(
-                            14f
+
+                    RectF totalBox =
+                            new RectF(
+                                    marginLeft,
+                                    y,
+                                    pageWidth - marginRight,
+                                    y + 42
+                            );
+
+
+                    canvas.drawRoundRect(
+                            totalBox,
+                            8,
+                            8,
+                            totalBackgroundPaint
                     );
 
+
+                    canvas.drawRoundRect(
+                            totalBox,
+                            8,
+                            8,
+                            totalBorderPaint
+                    );
+
+
                     canvas.drawText(
-                            "Gesamtstunden: " +
-                                    String.format(
-                                            Locale.GERMANY,
-                                            "%.2f Std.",
-                                            totalHours
-                                    ),
-                            margin,
-                            y,
+                            "Gesamtstunden",
+                            marginLeft + 12,
+                            y + 17,
                             boldPaint
                     );
 
-                    boldPaint.setTextSize(
-                            11f
+
+                    Paint totalHoursPaint =
+                            new Paint(
+                                    boldPaint
+                            );
+
+                    totalHoursPaint.setTextSize(
+                            16f
                     );
 
-                    y += 45;
-
-                    canvas.drawText(
-                            "Unterschrift Mitarbeiter: __________________________",
-                            margin,
-                            y,
-                            normalPaint
+                    totalHoursPaint.setColor(
+                            Color.rgb(
+                                    6,
+                                    118,
+                                    71
+                            )
                     );
 
-                    y += 30;
 
                     canvas.drawText(
-                            "Unterschrift Arbeitgeber: __________________________",
-                            margin,
+                            String.format(
+                                    Locale.GERMANY,
+                                    "%.2f Std.",
+                                    totalHours
+                            ),
+                            marginLeft + 12,
+                            y + 34,
+                            totalHoursPaint
+                    );
+
+
+                    y += 78;
+
+
+                    canvas.drawText(
+                            "Unterschrift Mitarbeiter",
+                            marginLeft,
                             y,
-                            normalPaint
+                            smallPaint
+                    );
+
+
+                    canvas.drawLine(
+                            marginLeft,
+                            y + 18,
+                            marginLeft + 220,
+                            y + 18,
+                            linePaint
+                    );
+
+
+                    canvas.drawText(
+                            "Unterschrift Arbeitgeber",
+                            pageWidth - marginRight - 220,
+                            y,
+                            smallPaint
+                    );
+
+
+                    canvas.drawLine(
+                            pageWidth - marginRight - 220,
+                            y + 18,
+                            pageWidth - marginRight,
+                            y + 18,
+                            linePaint
                     );
                 }
+
+
+                /*
+                 * FUßZEILE
+                 */
+
+                canvas.drawLine(
+                        marginLeft,
+                        pageHeight - 30,
+                        pageWidth - marginRight,
+                        pageHeight - 30,
+                        linePaint
+                );
+
+
+                canvas.drawText(
+                        "E-M Cleaning Service",
+                        marginLeft,
+                        pageHeight - 16,
+                        smallPaint
+                );
+
+
+                String pageText =
+                        "Seite " +
+                                pageNumber;
+
+
+                float textWidth =
+                        smallPaint.measureText(
+                                pageText
+                        );
+
+
+                canvas.drawText(
+                        pageText,
+                        pageWidth - marginRight - textWidth,
+                        pageHeight - 16,
+                        smallPaint
+                );
+
 
                 document.finishPage(
                         page
@@ -763,31 +1066,41 @@ public class MainActivity extends Activity {
                 pageNumber++;
             }
 
+
             OutputStream outputStream =
                     getContentResolver()
                             .openOutputStream(
                                     uri
                             );
 
-            if (outputStream == null) {
+
+            if (
+                    outputStream
+                            ==
+                    null
+            ) {
 
                 throw new Exception(
                         "Datei konnte nicht geöffnet werden."
                 );
             }
 
+
             document.writeTo(
                     outputStream
             );
 
+
             outputStream.flush();
             outputStream.close();
+
 
             Toast.makeText(
                     this,
                     "PDF gespeichert ✅",
                     Toast.LENGTH_LONG
             ).show();
+
 
         } catch (Exception e) {
 
@@ -798,20 +1111,104 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_LONG
             ).show();
 
+
         } finally {
 
             document.close();
         }
     }
 
+
+    private String formatPdfMonth(
+            String month
+    ) {
+
+        if (
+                month
+                        ==
+                null
+                        ||
+                month.trim().isEmpty()
+        ) {
+
+            return "";
+        }
+
+
+        try {
+
+            String[] parts =
+                    month.split(
+                            "-"
+                    );
+
+
+            int year =
+                    Integer.parseInt(
+                            parts[0]
+                    );
+
+
+            int monthNumber =
+                    Integer.parseInt(
+                            parts[1]
+                    );
+
+
+            String[] monthNames = {
+                    "",
+                    "Januar",
+                    "Februar",
+                    "März",
+                    "April",
+                    "Mai",
+                    "Juni",
+                    "Juli",
+                    "August",
+                    "September",
+                    "Oktober",
+                    "November",
+                    "Dezember"
+            };
+
+
+            if (
+                    monthNumber >= 1
+                            &&
+                    monthNumber <= 12
+            ) {
+
+                return monthNames[
+                        monthNumber
+                        ] +
+                        " " +
+                        year;
+            }
+
+
+        } catch (Exception ignored) {
+
+        }
+
+
+        return month;
+    }
+
+
     private String shorten(
             String text,
             int max
     ) {
 
-        if (text == null) {
+        if (
+                text
+                        ==
+                null
+        ) {
+
             return "";
         }
+
 
         if (
                 text.length()
@@ -822,6 +1219,7 @@ public class MainActivity extends Activity {
             return text;
         }
 
+
         return text.substring(
                 0,
                 Math.max(
@@ -831,34 +1229,52 @@ public class MainActivity extends Activity {
         ) + "…";
     }
 
+
     @Override
     protected void onSaveInstanceState(
             Bundle outState
     ) {
 
-        if (webView != null) {
-            webView.saveState(outState);
+        if (
+                webView
+                        !=
+                null
+        ) {
+
+            webView.saveState(
+                    outState
+            );
         }
+
 
         super.onSaveInstanceState(
                 outState
         );
     }
 
+
     @Override
     public void onBackPressed() {
 
-        if (webView == null) {
+        if (
+                webView
+                        ==
+                null
+        ) {
 
             super.onBackPressed();
             return;
         }
 
-        if (arMeasurementRunning) {
+
+        if (
+                arMeasurementRunning
+        ) {
 
             super.onBackPressed();
             return;
         }
+
 
         webView.evaluateJavascript(
                 "if(typeof window.androidBack==='function'){" +
@@ -875,9 +1291,14 @@ public class MainActivity extends Activity {
                                     "true"
                             );
 
-                    if (handled) {
+
+                    if (
+                            handled
+                    ) {
+
                         return;
                     }
+
 
                     if (
                             webView.canGoBack()
@@ -887,15 +1308,21 @@ public class MainActivity extends Activity {
                         return;
                     }
 
+
                     MainActivity.super.onBackPressed();
                 }
         );
     }
 
+
     @Override
     protected void onDestroy() {
 
-        if (webView != null) {
+        if (
+                webView
+                        !=
+                null
+        ) {
 
             webView.removeJavascriptInterface(
                     "Android"
@@ -903,8 +1330,11 @@ public class MainActivity extends Activity {
 
             webView.stopLoading();
             webView.destroy();
-            webView = null;
+
+            webView =
+                    null;
         }
+
 
         super.onDestroy();
     }
