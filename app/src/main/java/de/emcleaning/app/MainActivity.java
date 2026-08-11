@@ -191,7 +191,30 @@ public class MainActivity extends Activity {
             );
         }
 
+@JavascriptInterface
+public void saveOrderToFirestore(
+        String customer,
+        String address,
+        String service,
+        String date,
+        String price,
+        String description
+) {
+    java.util.Map<String, Object> order = new java.util.HashMap<>();
 
+    order.put("customer", customer);
+    order.put("address", address);
+    order.put("service", service);
+    order.put("date", date);
+    order.put("price", price);
+    order.put("description", description);
+    order.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+    com.google.firebase.firestore.FirebaseFirestore
+            .getInstance()
+            .collection("orders")
+            .add(order);
+}
         /*
          * Stundenzettel PDF erstellen
          */
