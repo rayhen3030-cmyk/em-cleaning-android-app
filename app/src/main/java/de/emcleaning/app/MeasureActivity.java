@@ -66,7 +66,6 @@ public class MeasureActivity extends Activity
     private double heightMeters = 0;
     private double areaMeters = 0;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,19 +73,14 @@ public class MeasureActivity extends Activity
         buildUi();
     }
 
-
     private void buildUi() {
 
         root = new FrameLayout(this);
 
         surfaceView = new GLSurfaceView(this);
-
         surfaceView.setEGLContextClientVersion(2);
-
         surfaceView.setPreserveEGLContextOnPause(true);
-
         surfaceView.setRenderer(this);
-
         surfaceView.setRenderMode(
                 GLSurfaceView.RENDERMODE_CONTINUOUSLY
         );
@@ -99,33 +93,18 @@ public class MeasureActivity extends Activity
                 )
         );
 
-
         statusText = new TextView(this);
-
         statusText.setText(
                 "AR wird gestartet...\n" +
-                "Danach das Handy langsam bewegen."
+                "Bewege das Handy langsam."
         );
-
         statusText.setTextColor(Color.WHITE);
         statusText.setTextSize(17);
         statusText.setGravity(Gravity.CENTER);
-
         statusText.setBackgroundColor(
-                Color.argb(
-                        180,
-                        0,
-                        0,
-                        0
-                )
+                Color.argb(185, 0, 0, 0)
         );
-
-        statusText.setPadding(
-                20,
-                25,
-                20,
-                25
-        );
+        statusText.setPadding(20, 25, 20, 25);
 
         FrameLayout.LayoutParams statusParams =
                 new FrameLayout.LayoutParams(
@@ -140,51 +119,12 @@ public class MeasureActivity extends Activity
                 statusParams
         );
 
-
-        resultText = new TextView(this);
-
-        resultText.setTextColor(Color.WHITE);
-        resultText.setTextSize(20);
-        resultText.setGravity(Gravity.CENTER);
-
-        resultText.setBackgroundColor(
-                Color.argb(
-                        180,
-                        0,
-                        0,
-                        0
-                )
-        );
-
-        resultText.setPadding(
-                20,
-                20,
-                20,
-                20
-        );
-
-        FrameLayout.LayoutParams resultParams =
-                new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                );
-
-        resultParams.gravity = Gravity.BOTTOM;
-        resultParams.bottomMargin = 150;
-
-        root.addView(
-                resultText,
-                resultParams
-        );
-
-
         resetButton = new Button(this);
-
-        resetButton.setText("Neu messen");
+        resetButton.setText("NEU MESSEN");
 
         FrameLayout.LayoutParams resetParams =
                 new FrameLayout.LayoutParams(
-                        340,
+                        330,
                         110
                 );
 
@@ -200,13 +140,31 @@ public class MeasureActivity extends Activity
                 resetParams
         );
 
+        resultText = new TextView(this);
+        resultText.setTextColor(Color.WHITE);
+        resultText.setTextSize(20);
+        resultText.setGravity(Gravity.CENTER);
+        resultText.setBackgroundColor(
+                Color.argb(185, 0, 0, 0)
+        );
+        resultText.setPadding(20, 20, 20, 20);
 
-        useButton = new Button(this);
+        FrameLayout.LayoutParams resultParams =
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                );
 
-        useButton.setText(
-                "Messung übernehmen"
+        resultParams.gravity = Gravity.BOTTOM;
+        resultParams.bottomMargin = 155;
+
+        root.addView(
+                resultText,
+                resultParams
         );
 
+        useButton = new Button(this);
+        useButton.setText("MESSUNG ÜBERNEHMEN");
         useButton.setEnabled(false);
 
         FrameLayout.LayoutParams useParams =
@@ -216,7 +174,6 @@ public class MeasureActivity extends Activity
                 );
 
         useParams.gravity = Gravity.BOTTOM;
-
         useParams.leftMargin = 20;
         useParams.rightMargin = 20;
         useParams.bottomMargin = 15;
@@ -226,9 +183,7 @@ public class MeasureActivity extends Activity
                 useParams
         );
 
-
         setContentView(root);
-
 
         surfaceView.setOnTouchListener(
                 (view, event) -> {
@@ -249,17 +204,14 @@ public class MeasureActivity extends Activity
                 }
         );
 
-
         resetButton.setOnClickListener(
                 view -> resetMeasurement()
         );
 
-
         useButton.setOnClickListener(
                 view -> {
 
-                    Intent result =
-                            new Intent();
+                    Intent result = new Intent();
 
                     result.putExtra(
                             "width",
@@ -286,7 +238,6 @@ public class MeasureActivity extends Activity
         );
     }
 
-
     private void createArSession()
             throws UnavailableException {
 
@@ -294,7 +245,6 @@ public class MeasureActivity extends Activity
 
         Config config =
                 session.getConfig();
-
 
         if (
                 session.isDepthModeSupported(
@@ -308,19 +258,18 @@ public class MeasureActivity extends Activity
 
             statusText.setText(
                     "Depth aktiv ✅\n" +
-                    "Handy langsam bewegen.\n" +
-                    "Dann 4 Fensterecken antippen."
+                    "Bewege das Handy langsam.\n" +
+                    "Tippe danach die 4 Fensterecken an."
             );
 
         } else {
 
             statusText.setText(
                     "AR aktiv ✅\n" +
-                    "Depth ist nicht verfügbar.\n" +
-                    "Handy bewegen und 4 Ecken antippen."
+                    "Depth nicht verfügbar.\n" +
+                    "Tippe möglichst auf den Fensterrahmen."
             );
         }
-
 
         config.setPlaneFindingMode(
                 Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
@@ -331,11 +280,9 @@ public class MeasureActivity extends Activity
         cameraTextureSet = false;
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-
 
         if (
                 checkSelfPermission(
@@ -355,7 +302,6 @@ public class MeasureActivity extends Activity
             return;
         }
 
-
         try {
 
             if (session == null) {
@@ -368,7 +314,6 @@ public class MeasureActivity extends Activity
                                         userRequestedInstall
                                 );
 
-
                 if (
                         status
                                 ==
@@ -378,21 +323,18 @@ public class MeasureActivity extends Activity
                     userRequestedInstall = false;
 
                     statusText.setText(
-                            "Google Play Services für AR wird installiert..."
+                            "Google Play Services für AR wird vorbereitet..."
                     );
 
                     return;
                 }
 
-
                 createArSession();
             }
-
 
             session.resume();
 
             surfaceView.onResume();
-
 
         } catch (
                 UnavailableUserDeclinedInstallationException e
@@ -406,7 +348,6 @@ public class MeasureActivity extends Activity
 
             finish();
 
-
         } catch (
                 UnavailableDeviceNotCompatibleException e
         ) {
@@ -419,19 +360,19 @@ public class MeasureActivity extends Activity
 
             finish();
 
-
         } catch (
                 CameraNotAvailableException e
         ) {
 
             Toast.makeText(
                     this,
-                    "Die Kamera ist momentan nicht verfügbar.",
+                    "Kamera nicht verfügbar.",
                     Toast.LENGTH_LONG
             ).show();
 
-
-        } catch (UnavailableException e) {
+        } catch (
+                UnavailableException e
+        ) {
 
             Toast.makeText(
                     this,
@@ -441,8 +382,9 @@ public class MeasureActivity extends Activity
 
             finish();
 
-
-        } catch (Exception e) {
+        } catch (
+                Exception e
+        ) {
 
             Toast.makeText(
                     this,
@@ -451,7 +393,6 @@ public class MeasureActivity extends Activity
             ).show();
         }
     }
-
 
     @Override
     protected void onPause() {
@@ -466,7 +407,6 @@ public class MeasureActivity extends Activity
         }
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -478,12 +418,10 @@ public class MeasureActivity extends Activity
         anchors.clear();
 
         if (session != null) {
-
             session.close();
             session = null;
         }
     }
-
 
     @Override
     public void onSurfaceCreated(
@@ -504,7 +442,6 @@ public class MeasureActivity extends Activity
         cameraRenderer.createOnGlThread();
     }
 
-
     @Override
     public void onSurfaceChanged(
             GL10 gl,
@@ -519,7 +456,6 @@ public class MeasureActivity extends Activity
                 height
         );
 
-
         if (session != null) {
 
             session.setDisplayGeometry(
@@ -532,15 +468,13 @@ public class MeasureActivity extends Activity
         }
     }
 
-
     @Override
     public void onDrawFrame(GL10 gl) {
 
         GLES20.glClear(
                 GLES20.GL_COLOR_BUFFER_BIT |
-                        GLES20.GL_DEPTH_BUFFER_BIT
+                GLES20.GL_DEPTH_BUFFER_BIT
         );
-
 
         if (
                 session == null
@@ -550,7 +484,6 @@ public class MeasureActivity extends Activity
 
             return;
         }
-
 
         try {
 
@@ -563,18 +496,15 @@ public class MeasureActivity extends Activity
                 cameraTextureSet = true;
             }
 
-
             Frame frame =
                     session.update();
 
             latestFrame =
                     frame;
 
-
             cameraRenderer.draw(
                     frame
             );
-
 
         } catch (
                 CameraNotAvailableException e
@@ -588,12 +518,12 @@ public class MeasureActivity extends Activity
                     ).show()
             );
 
-
-        } catch (Exception ignored) {
+        } catch (
+                Exception ignored
+        ) {
 
         }
     }
-
 
     private void addMeasurementPoint(
             float x,
@@ -604,13 +534,12 @@ public class MeasureActivity extends Activity
 
             Toast.makeText(
                     this,
-                    "AR ist noch nicht bereit.",
+                    "AR ist noch nicht bereit. Bewege das Handy langsam.",
                     Toast.LENGTH_SHORT
             ).show();
 
             return;
         }
-
 
         if (anchors.size() >= 4) {
 
@@ -623,16 +552,130 @@ public class MeasureActivity extends Activity
             return;
         }
 
-
-        List<HitResult> results =
-                latestFrame.hitTest(
+        HitResult selected =
+                findBestHit(
                         x,
                         y
                 );
 
+        if (selected == null) {
 
-        HitResult selected = null;
+            float[] radii = {
+                    20f,
+                    40f,
+                    60f,
+                    80f,
+                    110f
+            };
 
+            outer:
+            for (float radius : radii) {
+
+                for (
+                        float angle = 0;
+                        angle < 360;
+                        angle += 30
+                ) {
+
+                    double rad =
+                            Math.toRadians(
+                                    angle
+                            );
+
+                    float searchX =
+                            x +
+                            (float) (
+                                    Math.cos(rad)
+                                    *
+                                    radius
+                            );
+
+                    float searchY =
+                            y +
+                            (float) (
+                                    Math.sin(rad)
+                                    *
+                                    radius
+                            );
+
+                    selected =
+                            findBestHit(
+                                    searchX,
+                                    searchY
+                            );
+
+                    if (selected != null) {
+                        break outer;
+                    }
+                }
+            }
+        }
+
+        if (selected == null) {
+
+            Toast.makeText(
+                    this,
+                    "Kein Messpunkt erkannt.\n" +
+                    "Halte etwa 1–3 m Abstand,\n" +
+                    "bewege das Handy langsam und\n" +
+                    "tippe auf den Fensterrahmen.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
+
+        Anchor anchor =
+                selected.createAnchor();
+
+        anchors.add(
+                anchor
+        );
+
+        addMarker(
+                x,
+                y,
+                anchors.size()
+        );
+
+        statusText.setText(
+                "Punkt "
+                        +
+                anchors.size()
+                        +
+                " von 4 gesetzt"
+        );
+
+        if (anchors.size() == 4) {
+            calculateMeasurement();
+        }
+    }
+
+    private HitResult findBestHit(
+            float x,
+            float y
+    ) {
+
+        if (latestFrame == null) {
+            return null;
+        }
+
+        List<HitResult> results;
+
+        try {
+
+            results =
+                    latestFrame.hitTest(
+                            x,
+                            y
+                    );
+
+        } catch (
+                Exception e
+        ) {
+
+            return null;
+        }
 
         for (
                 HitResult result :
@@ -644,80 +687,51 @@ public class MeasureActivity extends Activity
                             instanceof DepthPoint
             ) {
 
-                selected = result;
-
-                break;
+                return result;
             }
         }
 
+        for (
+                HitResult result :
+                results
+        ) {
 
-        if (selected == null) {
-
-            for (
-                    HitResult result :
-                    results
+            if (
+                    result.getTrackable()
+                            instanceof Plane
             ) {
 
+                Plane plane =
+                        (Plane)
+                                result.getTrackable();
+
                 if (
-                        result.getTrackable()
-                                instanceof Plane
-                                ||
-                        result.getTrackable()
-                                instanceof Point
+                        plane.isPoseInPolygon(
+                                result.getHitPose()
+                        )
                 ) {
 
-                    selected = result;
-
-                    break;
+                    return result;
                 }
             }
         }
 
+        for (
+                HitResult result :
+                results
+        ) {
 
-        if (selected == null) {
+            if (
+                    result.getTrackable()
+                            instanceof Point
+            ) {
 
-            Toast.makeText(
-                    this,
-                    "Kein Messpunkt erkannt.\n" +
-                    "Bewege das Handy etwas und tippe erneut.",
-                    Toast.LENGTH_SHORT
-            ).show();
-
-            return;
+                return result;
+            }
         }
 
-
-        Anchor anchor =
-                selected.createAnchor();
-
-
-        anchors.add(
-                anchor
-        );
-
-
-        addMarker(
-                x,
-                y,
-                anchors.size()
-        );
-
-
-        statusText.setText(
-                "Punkt "
-                        +
-                anchors.size()
-                        +
-                " von 4 gesetzt"
-        );
-
-
-        if (anchors.size() == 4) {
-
-            calculateMeasurement();
-        }
+        return null;
     }
-
 
     private void addMarker(
             float x,
@@ -728,7 +742,6 @@ public class MeasureActivity extends Activity
         TextView marker =
                 new TextView(this);
 
-
         marker.setText(
                 String.valueOf(number)
         );
@@ -737,12 +750,13 @@ public class MeasureActivity extends Activity
                 Color.WHITE
         );
 
-        marker.setTextSize(17);
+        marker.setTextSize(
+                17
+        );
 
         marker.setGravity(
                 Gravity.CENTER
         );
-
 
         marker.setBackgroundColor(
                 Color.rgb(
@@ -752,13 +766,11 @@ public class MeasureActivity extends Activity
                 )
         );
 
-
         FrameLayout.LayoutParams params =
                 new FrameLayout.LayoutParams(
                         70,
                         70
                 );
-
 
         params.leftMargin =
                 (int) x - 35;
@@ -766,18 +778,15 @@ public class MeasureActivity extends Activity
         params.topMargin =
                 (int) y - 35;
 
-
         root.addView(
                 marker,
                 params
         );
 
-
         markers.add(
                 marker
         );
     }
-
 
     private void calculateMeasurement() {
 
@@ -785,13 +794,11 @@ public class MeasureActivity extends Activity
             return;
         }
 
-
         float[] p0 =
                 anchors
                         .get(0)
                         .getPose()
                         .getTranslation();
-
 
         float[] p1 =
                 anchors
@@ -799,13 +806,11 @@ public class MeasureActivity extends Activity
                         .getPose()
                         .getTranslation();
 
-
         float[] p2 =
                 anchors
                         .get(2)
                         .getPose()
                         .getTranslation();
-
 
         float[] p3 =
                 anchors
@@ -813,13 +818,11 @@ public class MeasureActivity extends Activity
                         .getPose()
                         .getTranslation();
 
-
         double top =
                 distance(
                         p0,
                         p1
                 );
-
 
         double right =
                 distance(
@@ -827,13 +830,11 @@ public class MeasureActivity extends Activity
                         p2
                 );
 
-
         double bottom =
                 distance(
                         p3,
                         p2
                 );
-
 
         double left =
                 distance(
@@ -841,24 +842,42 @@ public class MeasureActivity extends Activity
                         p3
                 );
 
-
         widthMeters =
-                (top + bottom)
-                        /
+                (
+                        top +
+                        bottom
+                )
+                /
                 2.0;
-
 
         heightMeters =
-                (left + right)
-                        /
+                (
+                        left +
+                        right
+                )
+                /
                 2.0;
 
-
         areaMeters =
-                widthMeters
-                        *
+                widthMeters *
                 heightMeters;
 
+        if (
+                widthMeters <= 0
+                        ||
+                heightMeters <= 0
+                        ||
+                areaMeters <= 0
+        ) {
+
+            Toast.makeText(
+                    this,
+                    "Messung ungültig. Bitte neu messen.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            return;
+        }
 
         resultText.setText(
                 String.format(
@@ -874,16 +893,15 @@ public class MeasureActivity extends Activity
                 )
         );
 
-
         statusText.setText(
                 "Messung fertig ✅\n" +
                 "Jetzt Messung übernehmen."
         );
 
-
-        useButton.setEnabled(true);
+        useButton.setEnabled(
+                true
+        );
     }
-
 
     private double distance(
             float[] a,
@@ -899,7 +917,6 @@ public class MeasureActivity extends Activity
         double dz =
                 a[2] - b[2];
 
-
         return Math.sqrt(
                 dx * dx
                         +
@@ -908,7 +925,6 @@ public class MeasureActivity extends Activity
                 dz * dz
         );
     }
-
 
     private void resetMeasurement() {
 
@@ -920,9 +936,7 @@ public class MeasureActivity extends Activity
             anchor.detach();
         }
 
-
         anchors.clear();
-
 
         for (
                 View marker :
@@ -934,27 +948,23 @@ public class MeasureActivity extends Activity
             );
         }
 
-
         markers.clear();
-
 
         widthMeters = 0;
         heightMeters = 0;
         areaMeters = 0;
 
-
         resultText.setText("");
-
 
         statusText.setText(
                 "Neu messen ✅\n" +
                 "Handy bewegen und 4 Fensterecken antippen."
         );
 
-
-        useButton.setEnabled(false);
+        useButton.setEnabled(
+                false
+        );
     }
-
 
     @Override
     public void onRequestPermissionsResult(
@@ -968,7 +978,6 @@ public class MeasureActivity extends Activity
                 permissions,
                 grantResults
         );
-
 
         if (
                 requestCode
