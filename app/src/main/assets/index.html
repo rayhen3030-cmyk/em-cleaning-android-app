@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -21,7 +22,7 @@ body{
 header{
     background:#07845f;
     color:white;
-    padding:28px 20px;
+    padding:24px 18px;
 }
 
 header h1{
@@ -36,7 +37,7 @@ header p{
 .page{
     display:none;
     padding:18px;
-    max-width:750px;
+    max-width:760px;
     margin:auto;
 }
 
@@ -77,7 +78,6 @@ button{
     margin-top:12px;
     font-size:16px;
     font-weight:bold;
-    cursor:pointer;
 }
 
 button.secondary{
@@ -153,6 +153,15 @@ textarea{
     line-height:1.5;
 }
 
+.warning{
+    background:#fffaeb;
+    border:1px solid #fedf89;
+    padding:14px;
+    border-radius:12px;
+    margin-top:12px;
+    color:#b54708;
+}
+
 .grid2{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -187,8 +196,8 @@ textarea{
 }
 
 .table-wrap{
-    width:100%;
     overflow-x:auto;
+    width:100%;
     margin-top:15px;
 }
 
@@ -219,10 +228,25 @@ tr.frei{
     color:#667085;
 }
 
-.empty{
-    color:#667085;
-    text-align:center;
-    padding:15px;
+.price-class{
+    border:2px solid #abefc6;
+    background:#ecfdf3;
+    border-radius:14px;
+    padding:16px;
+    margin-top:15px;
+}
+
+.price-class .name{
+    font-size:22px;
+    font-weight:bold;
+    color:#067647;
+}
+
+.price-class .price{
+    font-size:30px;
+    font-weight:bold;
+    color:#067647;
+    margin-top:8px;
 }
 
 footer{
@@ -233,12 +257,11 @@ footer{
 }
 
 @media(max-width:500px){
-
-    .days{
+    .grid2{
         grid-template-columns:1fr;
     }
 
-    .grid2{
+    .days{
         grid-template-columns:1fr;
     }
 }
@@ -253,8 +276,7 @@ footer{
 </header>
 
 
-<!-- ==================== HOME ==================== -->
-
+<!-- HOME -->
 <div id="home" class="page active">
 
     <div class="card">
@@ -273,7 +295,7 @@ footer{
 
     <div class="card">
         <h2>📐 Fenster-Aufmaß</h2>
-        <p>Fenster mit der Kamera messen.</p>
+        <p>Fenster messen und automatisch Größenklasse + Pauschalpreis berechnen.</p>
         <button onclick="openPage('foto')">
             Fenster messen
         </button>
@@ -288,7 +310,6 @@ footer{
 
     <div class="card">
         <h2>👥 Mitarbeiter</h2>
-        <p>Mitarbeiter anlegen und Stundenzettel öffnen.</p>
         <button onclick="openPage('mitarbeiter')">
             Mitarbeiter öffnen
         </button>
@@ -296,7 +317,6 @@ footer{
 
     <div class="card">
         <h2>⏱ Stundenzettel</h2>
-        <p>Monatsstunden automatisch berechnen.</p>
         <button onclick="openPage('stundenzettel')">
             Stundenzettel öffnen
         </button>
@@ -319,15 +339,16 @@ footer{
 </div>
 
 
-<!-- ==================== PREISRECHNER ==================== -->
-
+<!-- PREISRECHNER -->
 <div id="preisrechner" class="page">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
     </button>
 
-    <h1 class="section-title">💰 Preisrechner</h1>
+    <h1 class="section-title">
+        💰 Preisrechner
+    </h1>
 
     <div class="card">
 
@@ -340,6 +361,7 @@ footer{
             <option value="treppe">Treppenhausreinigung</option>
             <option value="unterhalt">Unterhaltsreinigung</option>
         </select>
+
 
         <div id="flaechenBlock">
 
@@ -379,14 +401,25 @@ footer{
             >
 
             <div class="info">
-                Die benötigten Arbeitsstunden werden automatisch
-                aus Fläche und Reinigungsleistung berechnet.
+                Die App berechnet die benötigten Stunden automatisch.
             </div>
 
         </div>
 
 
         <div id="fensterBlock">
+
+            <label>Preisart Fenster</label>
+
+            <select id="fensterPreisArt">
+                <option value="pauschal" selected>
+                    Automatischer Pauschalpreis nach Fenstergröße
+                </option>
+                <option value="qm">
+                    Preis nach m²
+                </option>
+            </select>
+
 
             <label>Anzahl Fenster</label>
 
@@ -397,6 +430,7 @@ footer{
                 min="1"
             >
 
+
             <label>Breite</label>
 
             <input
@@ -405,6 +439,7 @@ footer{
                 step="0.01"
                 placeholder="Breite in Meter"
             >
+
 
             <label>Höhe</label>
 
@@ -415,12 +450,14 @@ footer{
                 placeholder="Höhe in Meter"
             >
 
+
             <label>Reinigungsseiten</label>
 
             <select id="fensterSeiten">
                 <option value="1">Eine Seite</option>
                 <option value="2" selected>Innen + Außen</option>
             </select>
+
 
             <button onclick="arMessungStarten()">
                 📐 Mit Kamera messen
@@ -489,8 +526,6 @@ footer{
         >
 
 
-        <label>MwSt.</label>
-
         <select id="mwst">
             <option value="19">19 % MwSt.</option>
             <option value="0">0 % MwSt.</option>
@@ -512,8 +547,7 @@ footer{
 </div>
 
 
-<!-- ==================== FENSTER ==================== -->
-
+<!-- FENSTER AUFMASS -->
 <div id="foto" class="page">
 
     <button class="secondary" onclick="openPage('home')">
@@ -526,22 +560,73 @@ footer{
 
     <div class="card">
 
-        <h2>Fenster messen</h2>
+        <h2>Fenster automatisch messen</h2>
 
         <div class="info">
-            Kamera starten und das Fenster mit der
-            AR-Messung ausmessen.
+            Fenster mit der Kamera messen. Danach erkennt die App
+            automatisch die Größenklasse und schlägt einen Pauschalpreis vor.
         </div>
 
         <button onclick="arMessungStarten()">
             📐 Kamera-Messung starten
         </button>
 
+
         <div
             id="arErgebnis"
             class="result"
             style="display:none;">
         </div>
+
+
+        <h2 style="margin-top:20px;">
+            Pauschalpreise
+        </h2>
+
+        <div class="warning">
+            Diese Preise sind nur deine Startwerte. Du kannst sie jederzeit ändern.
+        </div>
+
+
+        <label>Kleines Fenster – bis 1,00 m²</label>
+
+        <input
+            id="preisKlein"
+            type="number"
+            step="0.01"
+            value="8"
+        >
+
+
+        <label>Mittleres Fenster – bis 2,00 m²</label>
+
+        <input
+            id="preisMittel"
+            type="number"
+            step="0.01"
+            value="10"
+        >
+
+
+        <label>Großes Fenster – bis 3,50 m²</label>
+
+        <input
+            id="preisGross"
+            type="number"
+            step="0.01"
+            value="12"
+        >
+
+
+        <label>Sehr großes Fenster – über 3,50 m²</label>
+
+        <input
+            id="preisSehrGross"
+            type="number"
+            step="0.01"
+            value="15"
+        >
+
 
         <label>Anzahl gleicher Fenster</label>
 
@@ -552,25 +637,64 @@ footer{
             min="1"
         >
 
-        <label>Reinigungsseiten</label>
 
-        <select id="fotoSeiten">
-            <option value="1">Eine Seite</option>
-            <option value="2" selected>Innen + Außen</option>
+        <label>Preisberechnung</label>
+
+        <select id="fotoPreisArt" onchange="fensterPreisArtChanged()">
+
+            <option value="automatisch" selected>
+                Automatische Fensterklasse
+            </option>
+
+            <option value="manuell">
+                Pauschalpreis manuell eingeben
+            </option>
+
+            <option value="qm">
+                Preis nach m²
+            </option>
+
         </select>
 
-        <label>Preis pro m² €</label>
 
-        <input
-            id="fotoPreisQm"
-            type="number"
-            step="0.01"
-            value="4.50"
-        >
+        <div id="manuellerFensterPreisBlock" style="display:none;">
 
-        <button onclick="arPreisBerechnen()">
-            💰 Gesamtfläche & Preis berechnen
+            <label>Pauschalpreis pro Fenster €</label>
+
+            <input
+                id="manuellerFensterPreis"
+                type="number"
+                step="0.01"
+                value="10"
+            >
+
+        </div>
+
+
+        <div id="qmFensterPreisBlock" style="display:none;">
+
+            <label>Preis pro m² €</label>
+
+            <input
+                id="fotoPreisQm"
+                type="number"
+                step="0.01"
+                value="4.50"
+            >
+
+        </div>
+
+
+        <button onclick="fensterPreisBerechnen()">
+            💰 Fensterpreis berechnen
         </button>
+
+
+        <div
+            id="fensterKlasseErgebnis"
+            style="display:none;">
+        </div>
+
 
         <div
             id="fotoErgebnis"
@@ -583,8 +707,7 @@ footer{
 </div>
 
 
-<!-- ==================== MITARBEITER ==================== -->
-
+<!-- MITARBEITER -->
 <div id="mitarbeiter" class="page">
 
     <button class="secondary" onclick="openPage('home')">
@@ -597,21 +720,15 @@ footer{
 
     <div class="card">
 
-        <label>Name</label>
-
         <input
             id="mitarbeiterName"
             placeholder="Vorname Nachname"
         >
 
-        <label>Telefon</label>
-
         <input
             id="mitarbeiterTelefon"
             placeholder="Telefon"
         >
-
-        <label>Beschäftigung</label>
 
         <select id="mitarbeiterArt">
             <option>Vollzeit</option>
@@ -619,13 +736,11 @@ footer{
             <option>Minijob</option>
         </select>
 
-        <label>Stundenlohn €</label>
-
         <input
             id="mitarbeiterLohn"
             type="number"
             step="0.01"
-            placeholder="Stundenlohn"
+            placeholder="Stundenlohn €"
         >
 
         <button onclick="mitarbeiterSpeichern()">
@@ -645,8 +760,7 @@ footer{
 </div>
 
 
-<!-- ==================== STUNDENZETTEL ==================== -->
-
+<!-- STUNDENZETTEL -->
 <div id="stundenzettel" class="page">
 
     <button class="secondary" onclick="openPage('home')">
@@ -708,7 +822,7 @@ footer{
 
         <input
             id="zeitObjekt"
-            placeholder="z. B. Fitnessstudio"
+            placeholder="Objekt / Kunde"
         >
 
 
@@ -717,77 +831,37 @@ footer{
         <div class="days">
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagMo"
-                    value="1"
-                    checked
-                >
+                <input type="checkbox" class="tag" id="tagMo" value="1" checked>
                 <label for="tagMo">Montag</label>
             </div>
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagDi"
-                    value="2"
-                    checked
-                >
+                <input type="checkbox" class="tag" id="tagDi" value="2" checked>
                 <label for="tagDi">Dienstag</label>
             </div>
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagMi"
-                    value="3"
-                    checked
-                >
+                <input type="checkbox" class="tag" id="tagMi" value="3" checked>
                 <label for="tagMi">Mittwoch</label>
             </div>
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagDo"
-                    value="4"
-                    checked
-                >
+                <input type="checkbox" class="tag" id="tagDo" value="4" checked>
                 <label for="tagDo">Donnerstag</label>
             </div>
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagFr"
-                    value="5"
-                    checked
-                >
+                <input type="checkbox" class="tag" id="tagFr" value="5" checked>
                 <label for="tagFr">Freitag</label>
             </div>
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagSa"
-                    value="6"
-                >
+                <input type="checkbox" class="tag" id="tagSa" value="6">
                 <label for="tagSa">Samstag</label>
             </div>
 
             <div class="day">
-                <input
-                    type="checkbox"
-                    class="tag"
-                    id="tagSo"
-                    value="0"
-                >
+                <input type="checkbox" class="tag" id="tagSo" value="0">
                 <label for="tagSo">Sonntag</label>
             </div>
 
@@ -849,42 +923,24 @@ footer{
 </div>
 
 
-<!-- ==================== KUNDEN ==================== -->
-
+<!-- KUNDEN -->
 <div id="kunden" class="page">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
     </button>
 
-    <h1 class="section-title">📋 Kunden</h1>
+    <h1 class="section-title">
+        📋 Kunden
+    </h1>
 
     <div class="card">
 
-        <input
-            id="kundeName"
-            placeholder="Name / Firma"
-        >
-
-        <input
-            id="kundeAdresse"
-            placeholder="Adresse"
-        >
-
-        <input
-            id="kundeTelefon"
-            placeholder="Telefon"
-        >
-
-        <input
-            id="kundeEmail"
-            placeholder="E-Mail"
-        >
-
-        <textarea
-            id="kundeNotiz"
-            placeholder="Notizen">
-        </textarea>
+        <input id="kundeName" placeholder="Name / Firma">
+        <input id="kundeAdresse" placeholder="Adresse">
+        <input id="kundeTelefon" placeholder="Telefon">
+        <input id="kundeEmail" placeholder="E-Mail">
+        <textarea id="kundeNotiz" placeholder="Notizen"></textarea>
 
         <button onclick="kundeSpeichern()">
             Kunde speichern
@@ -903,27 +959,21 @@ footer{
 </div>
 
 
-<!-- ==================== AUFTRÄGE ==================== -->
-
+<!-- AUFTRÄGE -->
 <div id="auftraege" class="page">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
     </button>
 
-    <h1 class="section-title">🧹 Aufträge</h1>
+    <h1 class="section-title">
+        🧹 Aufträge
+    </h1>
 
     <div class="card">
 
-        <input
-            id="auftragKunde"
-            placeholder="Kunde"
-        >
-
-        <input
-            id="auftragOrt"
-            placeholder="Objekt / Adresse"
-        >
+        <input id="auftragKunde" placeholder="Kunde">
+        <input id="auftragOrt" placeholder="Objekt / Adresse">
 
         <select id="auftragArt">
             <option>Unterhaltsreinigung</option>
@@ -933,22 +983,9 @@ footer{
             <option>Treppenhausreinigung</option>
         </select>
 
-        <input
-            id="auftragDatum"
-            type="date"
-        >
-
-        <input
-            id="auftragPreis"
-            type="number"
-            step="0.01"
-            placeholder="Preis €"
-        >
-
-        <textarea
-            id="auftragNotiz"
-            placeholder="Beschreibung">
-        </textarea>
+        <input id="auftragDatum" type="date">
+        <input id="auftragPreis" type="number" step="0.01" placeholder="Preis €">
+        <textarea id="auftragNotiz" placeholder="Beschreibung"></textarea>
 
         <button onclick="auftragSpeichern()">
             Auftrag speichern
@@ -957,2073 +994,15 @@ footer{
     </div>
 
     <div class="card">
+
         <div id="auftragListe"></div>
+
     </div>
 
 </div>
 
 
-<!-- ==================== RECHNUNGEN ==================== -->
-
+<!-- RECHNUNGEN -->
 <div id="rechnungen" class="page">
 
-    <button class="secondary" onclick="openPage('home')">
-        ← Zurück
-    </button>
-
-    <h1 class="section-title">
-        📄 Rechnungen
-    </h1>
-
-    <div class="card">
-
-        <input
-            id="rechnungKunde"
-            placeholder="Kunde"
-        >
-
-        <input
-            id="rechnungNummer"
-            placeholder="Rechnungsnummer"
-        >
-
-        <input
-            id="rechnungBetrag"
-            type="number"
-            step="0.01"
-            placeholder="Betrag €"
-        >
-
-        <input
-            id="rechnungDatum"
-            type="date"
-        >
-
-        <select id="rechnungStatus">
-            <option>Offen</option>
-            <option>Bezahlt</option>
-        </select>
-
-        <button onclick="rechnungSpeichern()">
-            Rechnung speichern
-        </button>
-
-    </div>
-
-    <div class="card">
-        <div id="rechnungListe"></div>
-    </div>
-
-</div>
-
-
-<footer>
-    E-M Cleaning Service
-</footer>
-
-
-<script>
-
-/* =====================================================
-   GRUNDLAGEN
-===================================================== */
-
-let arBreite = 0;
-let arHoehe = 0;
-let arFlaeche = 0;
-
-let aktuellerZettel = [];
-
-
-function openPage(id){
-
-    document
-        .querySelectorAll('.page')
-        .forEach(function(page){
-
-            page.classList.remove('active');
-
-        });
-
-
-    const ziel =
-        document.getElementById(id);
-
-
-    if(ziel){
-
-        ziel.classList.add('active');
-
-    }
-
-
-    if(id === 'mitarbeiter'){
-
-        mitarbeiterAnzeigen();
-
-    }
-
-
-    if(id === 'stundenzettel'){
-
-        mitarbeiterAuswahl();
-
-    }
-
-
-    aktualisieren();
-
-    window.scrollTo(0,0);
-}
-
-
-function laden(key){
-
-    try{
-
-        return JSON.parse(
-            localStorage.getItem(key) || '[]'
-        );
-
-    }catch(e){
-
-        return [];
-
-    }
-}
-
-
-function speichern(key,daten){
-
-    localStorage.setItem(
-        key,
-        JSON.stringify(daten)
-    );
-}
-
-
-function esc(text){
-
-    return String(text || '')
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/'/g,'&#039;');
-}
-
-
-/* =====================================================
-   PREISRECHNER
-===================================================== */
-
-function serviceChanged(){
-
-    const service =
-        document.getElementById('service').value;
-
-
-    document.getElementById('fensterBlock').style.display =
-        service === 'fenster'
-            ? 'block'
-            : 'none';
-
-
-    document.getElementById('flaechenBlock').style.display =
-        service === 'fenster'
-            ? 'none'
-            : 'block';
-
-
-    document.getElementById('unterhaltBlock').style.display =
-        service === 'unterhalt'
-            ? 'block'
-            : 'none';
-
-
-    const stunden =
-        document.getElementById('stunden');
-
-
-    if(service === 'unterhalt'){
-
-        document.getElementById('stundensatz').value =
-            '30';
-
-        stunden.disabled =
-            true;
-
-        stunden.value =
-            '';
-
-        stunden.placeholder =
-            'Wird automatisch berechnet';
-
-    }else{
-
-        stunden.disabled =
-            false;
-
-        stunden.placeholder =
-            'Geschätzte Arbeitsstunden';
-
-    }
-}
-
-
-function preisBerechnen(){
-
-    const service =
-        document.getElementById('service').value;
-
-
-    const stundensatz =
-        parseFloat(
-            document.getElementById('stundensatz').value || 0
-        );
-
-
-    const qmPreis =
-        parseFloat(
-            document.getElementById('qmPreis').value || 0
-        );
-
-
-    const anfahrt =
-        parseFloat(
-            document.getElementById('anfahrt').value || 0
-        );
-
-
-    const material =
-        parseFloat(
-            document.getElementById('material').value || 0
-        );
-
-
-    const zuschlag =
-        parseFloat(
-            document.getElementById('zuschlag').value || 0
-        );
-
-
-    const mwst =
-        parseFloat(
-            document.getElementById('mwst').value || 0
-        );
-
-
-    let flaeche = 0;
-    let arbeitsstunden = 0;
-    let arbeitskosten = 0;
-    let flaechenkosten = 0;
-
-
-    if(service === 'unterhalt'){
-
-        flaeche =
-            parseFloat(
-                document.getElementById('qm').value || 0
-            );
-
-
-        if(flaeche <= 0){
-
-            alert(
-                'Bitte Fläche in m² eingeben.'
-            );
-
-            return;
-        }
-
-
-        const proWoche =
-            parseFloat(
-                document.getElementById('unterhaltHaeufigkeit').value || 1
-            );
-
-
-        const leistung =
-            parseFloat(
-                document.getElementById('leistungProStunde').value || 180
-            );
-
-
-        if(leistung <= 0){
-
-            alert(
-                'Bitte gültige Reinigungsleistung eingeben.'
-            );
-
-            return;
-        }
-
-
-        const stundenEinsatz =
-            flaeche / leistung;
-
-
-        const einsaetzeMonat =
-            proWoche * (52 / 12);
-
-
-        arbeitsstunden =
-            stundenEinsatz * einsaetzeMonat;
-
-
-        arbeitskosten =
-            arbeitsstunden * stundensatz;
-
-
-        const anfahrtMonat =
-            anfahrt * einsaetzeMonat;
-
-
-        let netto =
-            arbeitskosten +
-            anfahrtMonat +
-            material;
-
-
-        const zuschlagEuro =
-            netto * zuschlag / 100;
-
-
-        netto +=
-            zuschlagEuro;
-
-
-        const steuer =
-            netto * mwst / 100;
-
-
-        const brutto =
-            netto + steuer;
-
-
-        const box =
-            document.getElementById('preisErgebnis');
-
-
-        box.style.display =
-            'block';
-
-
-        box.innerHTML =
-
-            '<strong>Unterhaltsreinigung</strong><br><br>' +
-
-            'Fläche: <strong>' +
-            flaeche.toFixed(2) +
-            ' m²</strong><br>' +
-
-            'Leistung: <strong>' +
-            leistung.toFixed(0) +
-            ' m²/Std.</strong><br>' +
-
-            'Reinigung: <strong>' +
-            proWoche +
-            '× pro Woche</strong><br><br>' +
-
-            'Zeit pro Einsatz: <strong>' +
-            stundenEinsatz.toFixed(2) +
-            ' Std.</strong><br>' +
-
-            'Ø Einsätze pro Monat: <strong>' +
-            einsaetzeMonat.toFixed(1) +
-            '</strong><br>' +
-
-            'Arbeitsstunden monatlich: <strong>' +
-            arbeitsstunden.toFixed(2) +
-            ' Std.</strong><br><br>' +
-
-            'Arbeitskosten: ' +
-            arbeitskosten.toFixed(2) +
-            ' €<br>' +
-
-            'Anfahrt monatlich: ' +
-            anfahrtMonat.toFixed(2) +
-            ' €<br>' +
-
-            'Material: ' +
-            material.toFixed(2) +
-            ' €<br>' +
-
-            'Zuschlag: ' +
-            zuschlagEuro.toFixed(2) +
-            ' €<br><br>' +
-
-            'Netto: <strong>' +
-            netto.toFixed(2) +
-            ' €</strong><br>' +
-
-            'MwSt.: ' +
-            steuer.toFixed(2) +
-            ' €<br>' +
-
-            '<div class="big">' +
-            brutto.toFixed(2).replace('.',',') +
-            ' € / Monat</div>';
-
-
-        return;
-    }
-
-
-    if(service === 'fenster'){
-
-        const anzahl =
-            parseFloat(
-                document.getElementById('fensterAnzahl').value || 0
-            );
-
-
-        const breite =
-            parseFloat(
-                document.getElementById('fensterBreite').value || 0
-            );
-
-
-        const hoehe =
-            parseFloat(
-                document.getElementById('fensterHoehe').value || 0
-            );
-
-
-        const seiten =
-            parseFloat(
-                document.getElementById('fensterSeiten').value || 1
-            );
-
-
-        flaeche =
-            anzahl *
-            breite *
-            hoehe *
-            seiten;
-
-    }else{
-
-        flaeche =
-            parseFloat(
-                document.getElementById('qm').value || 0
-            );
-
-    }
-
-
-    arbeitsstunden =
-        parseFloat(
-            document.getElementById('stunden').value || 0
-        );
-
-
-    arbeitskosten =
-        arbeitsstunden * stundensatz;
-
-
-    flaechenkosten =
-        flaeche * qmPreis;
-
-
-    let netto =
-        arbeitskosten +
-        flaechenkosten +
-        anfahrt +
-        material;
-
-
-    const zuschlagEuro =
-        netto * zuschlag / 100;
-
-
-    netto +=
-        zuschlagEuro;
-
-
-    const steuer =
-        netto * mwst / 100;
-
-
-    const brutto =
-        netto + steuer;
-
-
-    const box =
-        document.getElementById('preisErgebnis');
-
-
-    box.style.display =
-        'block';
-
-
-    box.innerHTML =
-
-        '<strong>Berechnung</strong><br><br>' +
-
-        'Reinigungsfläche: ' +
-        flaeche.toFixed(2) +
-        ' m²<br>' +
-
-        'Arbeitsstunden: ' +
-        arbeitsstunden.toFixed(2) +
-        ' Std.<br>' +
-
-        'Arbeitskosten: ' +
-        arbeitskosten.toFixed(2) +
-        ' €<br>' +
-
-        'Flächenkosten: ' +
-        flaechenkosten.toFixed(2) +
-        ' €<br>' +
-
-        'Anfahrt: ' +
-        anfahrt.toFixed(2) +
-        ' €<br>' +
-
-        'Material: ' +
-        material.toFixed(2) +
-        ' €<br>' +
-
-        'Zuschlag: ' +
-        zuschlagEuro.toFixed(2) +
-        ' €<br><br>' +
-
-        'Netto: ' +
-        netto.toFixed(2) +
-        ' €<br>' +
-
-        'MwSt.: ' +
-        steuer.toFixed(2) +
-        ' €<br>' +
-
-        '<div class="big">' +
-        brutto.toFixed(2).replace('.',',') +
-        ' €</div>';
-}
-
-
-/* =====================================================
-   AR FENSTER
-===================================================== */
-
-function arMessungStarten(){
-
-    if(
-        window.Android &&
-        typeof Android.startArMeasurement === 'function'
-    ){
-
-        Android.startArMeasurement();
-
-    }else{
-
-        alert(
-            'Kamera-Messung ist nur in der Android-App verfügbar.'
-        );
-
-    }
-}
-
-
-window.receiveArMeasurement =
-function(breite,hoehe,flaeche){
-
-    arBreite =
-        parseFloat(breite) || 0;
-
-    arHoehe =
-        parseFloat(hoehe) || 0;
-
-    arFlaeche =
-        parseFloat(flaeche) || 0;
-
-
-    openPage('foto');
-
-
-    const box =
-        document.getElementById('arErgebnis');
-
-
-    box.style.display =
-        'block';
-
-
-    box.innerHTML =
-
-        '<strong>✅ Fenster gemessen</strong><br><br>' +
-
-        'Breite: ' +
-        arBreite.toFixed(2) +
-        ' m<br>' +
-
-        'Höhe: ' +
-        arHoehe.toFixed(2) +
-        ' m<br>' +
-
-        '<div class="big">' +
-        arFlaeche.toFixed(2) +
-        ' m²</div>';
-
-
-    document.getElementById('fensterBreite').value =
-        arBreite.toFixed(2);
-
-
-    document.getElementById('fensterHoehe').value =
-        arHoehe.toFixed(2);
-};
-
-
-function arPreisBerechnen(){
-
-    if(arFlaeche <= 0){
-
-        alert(
-            'Bitte zuerst das Fenster messen.'
-        );
-
-        return;
-    }
-
-
-    const anzahl =
-        parseFloat(
-            document.getElementById('fotoFensterAnzahl').value || 1
-        );
-
-
-    const seiten =
-        parseFloat(
-            document.getElementById('fotoSeiten').value || 1
-        );
-
-
-    const preis =
-        parseFloat(
-            document.getElementById('fotoPreisQm').value || 0
-        );
-
-
-    const gesamt =
-        arFlaeche *
-        anzahl *
-        seiten;
-
-
-    const kosten =
-        gesamt * preis;
-
-
-    const box =
-        document.getElementById('fotoErgebnis');
-
-
-    box.style.display =
-        'block';
-
-
-    box.innerHTML =
-
-        '<strong>Aufmaß & Kalkulation</strong><br><br>' +
-
-        'Fläche pro Fenster: ' +
-        arFlaeche.toFixed(2) +
-        ' m²<br>' +
-
-        'Anzahl: ' +
-        anzahl +
-        '<br>' +
-
-        'Seiten: ' +
-        seiten +
-        '<br><br>' +
-
-        'Gesamtfläche: <strong>' +
-        gesamt.toFixed(2) +
-        ' m²</strong><br>' +
-
-        '<div class="big">' +
-        kosten.toFixed(2).replace('.',',') +
-        ' €</div>';
-}
-
-
-/* =====================================================
-   MITARBEITER
-===================================================== */
-
-function mitarbeiterSpeichern(){
-
-    const name =
-        document.getElementById('mitarbeiterName').value.trim();
-
-
-    if(!name){
-
-        alert(
-            'Bitte Namen eingeben.'
-        );
-
-        return;
-    }
-
-
-    const daten =
-        laden('mitarbeiter');
-
-
-    daten.push({
-
-        id:
-            Date.now(),
-
-        name:
-            name,
-
-        telefon:
-            document.getElementById('mitarbeiterTelefon').value,
-
-        art:
-            document.getElementById('mitarbeiterArt').value,
-
-        lohn:
-            document.getElementById('mitarbeiterLohn').value
-
-    });
-
-
-    speichern(
-        'mitarbeiter',
-        daten
-    );
-
-
-    document.getElementById('mitarbeiterName').value =
-        '';
-
-    document.getElementById('mitarbeiterTelefon').value =
-        '';
-
-    document.getElementById('mitarbeiterLohn').value =
-        '';
-
-
-    mitarbeiterAnzeigen();
-
-    mitarbeiterAuswahl();
-
-
-    alert(
-        'Mitarbeiter gespeichert.'
-    );
-}
-
-
-function mitarbeiterAnzeigen(){
-
-    const daten =
-        laden('mitarbeiter');
-
-
-    const box =
-        document.getElementById('mitarbeiterListe');
-
-
-    if(!box){
-        return;
-    }
-
-
-    box.innerHTML =
-        '';
-
-
-    if(!daten.length){
-
-        box.innerHTML =
-            '<div class="empty">Noch keine Mitarbeiter gespeichert.</div>';
-
-        return;
-    }
-
-
-    daten.forEach(function(m,index){
-
-        box.innerHTML +=
-
-            '<div class="item">' +
-
-            '<strong style="font-size:18px;">' +
-            esc(m.name) +
-            '</strong><br>' +
-
-            esc(m.art) +
-            '<br>' +
-
-            (m.telefon
-                ? esc(m.telefon) + '<br>'
-                : '') +
-
-            (m.lohn
-                ? esc(m.lohn) + ' €/Std.<br>'
-                : '') +
-
-            '<button onclick="mitarbeiterOeffnen(' +
-            index +
-            ')">📋 Stundenzettel öffnen</button>' +
-
-            '<button class="danger" onclick="mitarbeiterLoeschen(' +
-            index +
-            ')">Löschen</button>' +
-
-            '</div>';
-    });
-}
-
-
-function mitarbeiterLoeschen(index){
-
-    if(
-        !confirm(
-            'Mitarbeiter wirklich löschen?'
-        )
-    ){
-
-        return;
-    }
-
-
-    const daten =
-        laden('mitarbeiter');
-
-
-    daten.splice(
-        index,
-        1
-    );
-
-
-    speichern(
-        'mitarbeiter',
-        daten
-    );
-
-
-    mitarbeiterAnzeigen();
-
-    mitarbeiterAuswahl();
-}
-
-
-function mitarbeiterOeffnen(index){
-
-    const daten =
-        laden('mitarbeiter');
-
-
-    const mitarbeiter =
-        daten[index];
-
-
-    if(!mitarbeiter){
-        return;
-    }
-
-
-    openPage(
-        'stundenzettel'
-    );
-
-
-    setTimeout(function(){
-
-        const select =
-            document.getElementById('zeitMitarbeiter');
-
-
-        select.value =
-            String(mitarbeiter.id);
-
-
-        gespeichertenZettelLaden();
-
-    },50);
-}
-
-
-function mitarbeiterAuswahl(){
-
-    const daten =
-        laden('mitarbeiter');
-
-
-    const select =
-        document.getElementById('zeitMitarbeiter');
-
-
-    if(!select){
-        return;
-    }
-
-
-    const vorher =
-        select.value;
-
-
-    select.innerHTML =
-        '';
-
-
-    if(!daten.length){
-
-        select.innerHTML =
-            '<option value="">Bitte zuerst Mitarbeiter anlegen</option>';
-
-        return;
-    }
-
-
-    daten.forEach(function(m){
-
-        const option =
-            document.createElement(
-                'option'
-            );
-
-
-        option.value =
-            String(m.id);
-
-
-        option.textContent =
-            m.name;
-
-
-        select.appendChild(
-            option
-        );
-    });
-
-
-    if(vorher){
-
-        select.value =
-            vorher;
-
-    }
-}
-
-
-function getMitarbeiterName(){
-
-    const select =
-        document.getElementById('zeitMitarbeiter');
-
-
-    if(
-        !select ||
-        select.selectedIndex < 0
-    ){
-
-        return '';
-
-    }
-
-
-    return select
-        .options[
-            select.selectedIndex
-        ]
-        .text;
-}
-
-
-/* =====================================================
-   STUNDENZETTEL
-===================================================== */
-
-function zeitInMinuten(zeit){
-
-    if(!zeit){
-        return 0;
-    }
-
-
-    const teile =
-        zeit.split(':');
-
-
-    return (
-        Number(teile[0]) * 60
-    ) +
-    Number(teile[1]);
-}
-
-
-function stundenBerechnen(
-    start,
-    ende,
-    pause
-){
-
-    let startMin =
-        zeitInMinuten(start);
-
-
-    let endeMin =
-        zeitInMinuten(ende);
-
-
-    /*
-     * Beispiel:
-     * 22:00 bis 01:00
-     */
-
-    if(
-        endeMin <
-        startMin
-    ){
-
-        endeMin +=
-            24 * 60;
-
-    }
-
-
-    let minuten =
-        endeMin -
-        startMin -
-        Number(pause || 0);
-
-
-    if(minuten < 0){
-
-        minuten = 0;
-
-    }
-
-
-    return (
-        minuten / 60
-    );
-}
-
-
-function formatDatum(date){
-
-    return (
-        String(
-            date.getDate()
-        ).padStart(2,'0')
-        +
-        '.'
-        +
-        String(
-            date.getMonth() + 1
-        ).padStart(2,'0')
-        +
-        '.'
-        +
-        date.getFullYear()
-    );
-}
-
-
-function monatErstellen(){
-
-    const mitarbeiterId =
-        document.getElementById('zeitMitarbeiter').value;
-
-
-    const monat =
-        document.getElementById('zeitMonat').value;
-
-
-    if(!mitarbeiterId){
-
-        alert(
-            'Bitte Mitarbeiter auswählen.'
-        );
-
-        return;
-    }
-
-
-    if(!monat){
-
-        alert(
-            'Bitte Monat auswählen.'
-        );
-
-        return;
-    }
-
-
-    const start =
-        document.getElementById('zeitStart').value;
-
-
-    const ende =
-        document.getElementById('zeitEnde').value;
-
-
-    const pause =
-        Number(
-            document.getElementById('zeitPause').value || 0
-        );
-
-
-    const objekt =
-        document.getElementById('zeitObjekt').value.trim();
-
-
-    if(
-        !start ||
-        !ende
-    ){
-
-        alert(
-            'Bitte Arbeitsbeginn und Arbeitsende eingeben.'
-        );
-
-        return;
-    }
-
-
-    const arbeitstage =
-        [];
-
-
-    document
-        .querySelectorAll('.tag:checked')
-        .forEach(function(box){
-
-            arbeitstage.push(
-                Number(box.value)
-            );
-
-        });
-
-
-    if(!arbeitstage.length){
-
-        alert(
-            'Bitte mindestens einen Arbeitstag auswählen.'
-        );
-
-        return;
-    }
-
-
-    const teile =
-        monat.split('-');
-
-
-    const jahr =
-        Number(teile[0]);
-
-
-    const mon =
-        Number(teile[1]);
-
-
-    const letzterTag =
-        new Date(
-            jahr,
-            mon,
-            0
-        ).getDate();
-
-
-    aktuellerZettel =
-        [];
-
-
-    for(
-        let tag = 1;
-        tag <= letzterTag;
-        tag++
-    ){
-
-        const datum =
-            new Date(
-                jahr,
-                mon - 1,
-                tag
-            );
-
-
-        const wochentag =
-            datum.getDay();
-
-
-        const arbeitet =
-            arbeitstage.includes(
-                wochentag
-            );
-
-
-        const stunden =
-            arbeitet
-                ? stundenBerechnen(
-                    start,
-                    ende,
-                    pause
-                )
-                : 0;
-
-
-        aktuellerZettel.push({
-
-            datum:
-                formatDatum(datum),
-
-            status:
-                arbeitet
-                    ? 'Arbeit'
-                    : 'Frei',
-
-            start:
-                arbeitet
-                    ? start
-                    : '',
-
-            ende:
-                arbeitet
-                    ? ende
-                    : '',
-
-            pause:
-                arbeitet
-                    ? pause
-                    : 0,
-
-            stunden:
-                stunden,
-
-            objekt:
-                arbeitet
-                    ? objekt
-                    : ''
-
-        });
-    }
-
-
-    zettelAnzeigen();
-}
-
-
-function zettelAnzeigen(){
-
-    const tbody =
-        document.getElementById('stundenTabelle');
-
-
-    tbody.innerHTML =
-        '';
-
-
-    let gesamt =
-        0;
-
-
-    aktuellerZettel.forEach(
-        function(z){
-
-            gesamt +=
-                Number(
-                    z.stunden || 0
-                );
-
-
-            const tr =
-                document.createElement(
-                    'tr'
-                );
-
-
-            tr.className =
-                z.status === 'Arbeit'
-                    ? 'arbeit'
-                    : 'frei';
-
-
-            tr.innerHTML =
-
-                '<td>' +
-                esc(z.datum) +
-                '</td>' +
-
-                '<td>' +
-                esc(z.status) +
-                '</td>' +
-
-                '<td>' +
-                esc(z.start) +
-                '</td>' +
-
-                '<td>' +
-                esc(z.ende) +
-                '</td>' +
-
-                '<td>' +
-                esc(z.pause) +
-                '</td>' +
-
-                '<td>' +
-                Number(
-                    z.stunden || 0
-                )
-                .toFixed(2)
-                .replace('.',',') +
-                '</td>' +
-
-                '<td>' +
-                esc(z.objekt) +
-                '</td>';
-
-
-            tbody.appendChild(
-                tr
-            );
-        }
-    );
-
-
-    const kopf =
-        document.getElementById('stundenKopf');
-
-
-    kopf.innerHTML =
-
-        '<strong>Mitarbeiter:</strong> ' +
-        esc(
-            getMitarbeiterName()
-        ) +
-        '<br>' +
-
-        '<strong>Monat:</strong> ' +
-        esc(
-            document.getElementById('zeitMonat').value
-        );
-
-
-    const gesamtBox =
-        document.getElementById('stundenGesamt');
-
-
-    gesamtBox.style.display =
-        'block';
-
-
-    gesamtBox.innerHTML =
-
-        '<strong>Arbeitsstunden insgesamt</strong>' +
-
-        '<div class="big">' +
-
-        gesamt
-            .toFixed(2)
-            .replace('.',',') +
-
-        ' Stunden</div>';
-}
-
-
-/* =====================================================
-   STUNDENZETTEL SPEICHERN
-===================================================== */
-
-function stundenzettelSpeichern(){
-
-    if(!aktuellerZettel.length){
-
-        alert(
-            'Bitte zuerst den Monat erstellen.'
-        );
-
-        return;
-    }
-
-
-    const mitarbeiterId =
-        document.getElementById('zeitMitarbeiter').value;
-
-
-    const monat =
-        document.getElementById('zeitMonat').value;
-
-
-    const alle =
-        laden('stundenzettel');
-
-
-    const key =
-        String(mitarbeiterId) +
-        '_' +
-        monat;
-
-
-    const zettel = {
-
-        key:
-            key,
-
-        mitarbeiterId:
-            String(mitarbeiterId),
-
-        mitarbeiter:
-            getMitarbeiterName(),
-
-        monat:
-            monat,
-
-        tage:
-            aktuellerZettel
-
-    };
-
-
-    const index =
-        alle.findIndex(
-            function(x){
-
-                return x.key === key;
-
-            }
-        );
-
-
-    if(index >= 0){
-
-        alle[index] =
-            zettel;
-
-    }else{
-
-        alle.push(
-            zettel
-        );
-
-    }
-
-
-    speichern(
-        'stundenzettel',
-        alle
-    );
-
-
-    alert(
-        'Stundenzettel gespeichert. ✅'
-    );
-}
-
-
-/* =====================================================
-   GESPEICHERTEN STUNDENZETTEL LADEN
-===================================================== */
-
-function gespeichertenZettelLaden(){
-
-    const mitarbeiterId =
-        document.getElementById('zeitMitarbeiter').value;
-
-
-    const monat =
-        document.getElementById('zeitMonat').value;
-
-
-    if(
-        !mitarbeiterId ||
-        !monat
-    ){
-
-        return;
-    }
-
-
-    const alle =
-        laden('stundenzettel');
-
-
-    const zettel =
-        alle.find(
-            function(x){
-
-                return (
-                    String(x.mitarbeiterId) ===
-                    String(mitarbeiterId)
-                    &&
-                    x.monat === monat
-                );
-
-            }
-        );
-
-
-    if(!zettel){
-
-        aktuellerZettel =
-            [];
-
-
-        document.getElementById('stundenTabelle').innerHTML =
-            '';
-
-
-        document.getElementById('stundenKopf').innerHTML =
-
-            '<strong>Mitarbeiter:</strong> ' +
-            esc(
-                getMitarbeiterName()
-            ) +
-            '<br>' +
-
-            '<strong>Monat:</strong> ' +
-            esc(monat) +
-            '<br><br>' +
-
-            'Für diesen Monat ist noch kein Stundenzettel gespeichert.';
-
-
-        document.getElementById('stundenGesamt').style.display =
-            'none';
-
-
-        return;
-    }
-
-
-    aktuellerZettel =
-        zettel.tage || [];
-
-
-    zettelAnzeigen();
-}
-
-
-/* =====================================================
-   PDF
-===================================================== */
-
-function pdfErstellen(){
-
-    if(!aktuellerZettel.length){
-
-        alert(
-            'Kein Stundenzettel vorhanden.'
-        );
-
-        return;
-    }
-
-
-    const mitarbeiter =
-        getMitarbeiterName();
-
-
-    const monat =
-        document.getElementById('zeitMonat').value;
-
-
-    /*
-     * Übergibt alle Daten an MainActivity.java.
-     *
-     * Dort wird die echte PDF-Datei erzeugt.
-     */
-
-    if(
-        window.Android &&
-        typeof Android.createTimesheetPdf === 'function'
-    ){
-
-        Android.createTimesheetPdf(
-
-            mitarbeiter,
-
-            monat,
-
-            JSON.stringify(
-                aktuellerZettel
-            )
-        );
-
-    }else{
-
-        alert(
-            'PDF-Erstellung ist in dieser Version der Android-App nicht verfügbar.'
-        );
-
-    }
-}
-
-
-/* =====================================================
-   KUNDEN
-===================================================== */
-
-function kundeSpeichern(){
-
-    const name =
-        document.getElementById('kundeName').value.trim();
-
-
-    if(!name){
-
-        alert(
-            'Bitte Namen eingeben.'
-        );
-
-        return;
-    }
-
-
-    const daten =
-        laden('kunden');
-
-
-    daten.push({
-
-        name:
-            name,
-
-        adresse:
-            document.getElementById('kundeAdresse').value,
-
-        telefon:
-            document.getElementById('kundeTelefon').value,
-
-        email:
-            document.getElementById('kundeEmail').value,
-
-        notiz:
-            document.getElementById('kundeNotiz').value
-
-    });
-
-
-    speichern(
-        'kunden',
-        daten
-    );
-
-
-    kundenAnzeigen();
-}
-
-
-function kundenAnzeigen(){
-
-    const box =
-        document.getElementById('kundenListe');
-
-
-    if(!box){
-        return;
-    }
-
-
-    const daten =
-        laden('kunden');
-
-
-    box.innerHTML =
-        '';
-
-
-    daten.forEach(
-        function(k,index){
-
-            box.innerHTML +=
-
-                '<div class="item">' +
-
-                '<strong>' +
-                esc(k.name) +
-                '</strong><br>' +
-
-                esc(k.adresse) +
-                '<br>' +
-
-                esc(k.telefon) +
-                '<br>' +
-
-                esc(k.email) +
-
-                '<button class="danger" onclick="loeschen(\'kunden\',' +
-                index +
-                ')">Löschen</button>' +
-
-                '</div>';
-        }
-    );
-}
-
-
-/* =====================================================
-   AUFTRÄGE
-===================================================== */
-
-function auftragSpeichern(){
-
-    const kunde =
-        document.getElementById('auftragKunde').value.trim();
-
-
-    if(!kunde){
-
-        alert(
-            'Bitte Kunde eingeben.'
-        );
-
-        return;
-    }
-
-
-    const daten =
-        laden('auftraege');
-
-
-    daten.push({
-
-        kunde:
-            kunde,
-
-        ort:
-            document.getElementById('auftragOrt').value,
-
-        art:
-            document.getElementById('auftragArt').value,
-
-        datum:
-            document.getElementById('auftragDatum').value,
-
-        preis:
-            document.getElementById('auftragPreis').value,
-
-        notiz:
-            document.getElementById('auftragNotiz').value
-
-    });
-
-
-    speichern(
-        'auftraege',
-        daten
-    );
-
-
-    auftraegeAnzeigen();
-}
-
-
-function auftraegeAnzeigen(){
-
-    const box =
-        document.getElementById('auftragListe');
-
-
-    if(!box){
-        return;
-    }
-
-
-    const daten =
-        laden('auftraege');
-
-
-    box.innerHTML =
-        '';
-
-
-    daten.forEach(
-        function(a,index){
-
-            box.innerHTML +=
-
-                '<div class="item">' +
-
-                '<strong>' +
-                esc(a.kunde) +
-                '</strong><br>' +
-
-                esc(a.art) +
-                '<br>' +
-
-                esc(a.ort) +
-                '<br>' +
-
-                esc(a.datum) +
-                '<br>' +
-
-                esc(a.preis) +
-                ' €' +
-
-                '<button class="danger" onclick="loeschen(\'auftraege\',' +
-                index +
-                ')">Löschen</button>' +
-
-                '</div>';
-        }
-    );
-}
-
-
-/* =====================================================
-   RECHNUNGEN
-===================================================== */
-
-function rechnungSpeichern(){
-
-    const kunde =
-        document.getElementById('rechnungKunde').value.trim();
-
-
-    if(!kunde){
-
-        alert(
-            'Bitte Kunde eingeben.'
-        );
-
-        return;
-    }
-
-
-    const daten =
-        laden('rechnungen');
-
-
-    daten.push({
-
-        kunde:
-            kunde,
-
-        nummer:
-            document.getElementById('rechnungNummer').value,
-
-        betrag:
-            document.getElementById('rechnungBetrag').value,
-
-        datum:
-            document.getElementById('rechnungDatum').value,
-
-        status:
-            document.getElementById('rechnungStatus').value
-
-    });
-
-
-    speichern(
-        'rechnungen',
-        daten
-    );
-
-
-    rechnungenAnzeigen();
-}
-
-
-function rechnungenAnzeigen(){
-
-    const box =
-        document.getElementById('rechnungListe');
-
-
-    if(!box){
-        return;
-    }
-
-
-    const daten =
-        laden('rechnungen');
-
-
-    box.innerHTML =
-        '';
-
-
-    daten.forEach(
-        function(r,index){
-
-            box.innerHTML +=
-
-                '<div class="item">' +
-
-                '<strong>' +
-                esc(r.kunde) +
-                '</strong><br>' +
-
-                'Nr.: ' +
-                esc(r.nummer) +
-                '<br>' +
-
-                esc(r.betrag) +
-                ' €<br>' +
-
-                esc(r.datum) +
-                '<br>' +
-
-                esc(r.status) +
-
-                '<button class="danger" onclick="loeschen(\'rechnungen\',' +
-                index +
-                ')">Löschen</button>' +
-
-                '</div>';
-        }
-    );
-}
-
-
-/* =====================================================
-   LÖSCHEN
-===================================================== */
-
-function loeschen(
-    key,
-    index
-){
-
-    if(
-        !confirm(
-            'Eintrag wirklich löschen?'
-        )
-    ){
-
-        return;
-    }
-
-
-    const daten =
-        laden(key);
-
-
-    daten.splice(
-        index,
-        1
-    );
-
-
-    speichern(
-        key,
-        daten
-    );
-
-
-    aktualisieren();
-}
-
-
-/* =====================================================
-   ANDROID ZURÜCK
-===================================================== */
-
-window.androidBack =
-function(){
-
-    const aktiveSeite =
-        document.querySelector(
-            '.page.active'
-        );
-
-
-    if(!aktiveSeite){
-
-        return false;
-
-    }
-
-
-    /*
-     * Befinden wir uns nicht auf Home,
-     * geht Android zuerst zum Hauptmenü.
-     */
-
-    if(
-        aktiveSeite.id !==
-        'home'
-    ){
-
-        openPage(
-            'home'
-        );
-
-        return true;
-
-    }
-
-
-    /*
-     * Auf Home darf Android die App schließen.
-     */
-
-    return false;
-};
-
-
-/* =====================================================
-   AKTUALISIEREN
-===================================================== */
-
-function aktualisieren(){
-
-    mitarbeiterAnzeigen();
-
-    kundenAnzeigen();
-
-    auftraegeAnzeigen();
-
-    rechnungenAnzeigen();
-}
-
-
-/* =====================================================
-   APP START
-===================================================== */
-
-(function(){
-
-    const heute =
-        new Date();
-
-
-    const aktuellerMonat =
-
-        heute.getFullYear()
-        +
-        '-'
-        +
-        String(
-            heute.getMonth() + 1
-        ).padStart(
-            2,
-            '0'
-        );
-
-
-    document.getElementById('zeitMonat').value =
-        aktuellerMonat;
-
-
-    serviceChanged();
-
-    mitarbeiterAnzeigen();
-
-    mitarbeiterAuswahl();
-
-    kundenAnzeigen();
-
-    auftraegeAnzeigen();
-
-    rechnungenAnzeigen();
-
-})();
-
-</script>
-
-</body>
-</html>
+    <
