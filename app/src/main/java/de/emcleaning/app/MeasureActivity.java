@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
-import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.DepthPoint;
 import com.google.ar.core.Frame;
@@ -26,9 +25,7 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
-import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableException;
-import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +46,7 @@ public class MeasureActivity extends Activity
     private Frame latestFrame;
 
     private CameraRenderer cameraRenderer;
-
     private boolean cameraTextureSet = false;
-    private boolean userRequestedInstall = true;
 
     private final List<Anchor> anchors = new ArrayList<>();
     private final List<View> markers = new ArrayList<>();
@@ -66,24 +61,37 @@ public class MeasureActivity extends Activity
     private double heightMeters = 0;
     private double areaMeters = 0;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         buildUi();
+
+        if (checkSelfPermission(Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION
+            );
+
+        } else {
+            createArSession();
+        }
     }
+
 
     private void buildUi() {
 
         root = new FrameLayout(this);
 
+        // Kamera
         surfaceView = new GLSurfaceView(this);
         surfaceView.setEGLContextClientVersion(2);
         surfaceView.setPreserveEGLContextOnPause(true);
         surfaceView.setRenderer(this);
-        surfaceView.setRenderMode(
-                GLSurfaceView.RENDERMODE_CONTINUOUSLY
-        );
+        surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
         root.addView(
                 surfaceView,
@@ -93,17 +101,23 @@ public class MeasureActivity extends Activity
                 )
         );
 
+
+        // Status oben
         statusText = new TextView(this);
+
         statusText.setText(
-                "AR wird gestartet...\n" +
-                "Bewege das Handy langsam."
+                "Handy langsam bewegen\n" +
+                "und 4 Ecken antippen."
         );
+
         statusText.setTextColor(Color.WHITE);
-        statusText.setTextSize(17);
+        statusText.setTextSize(18);
         statusText.setGravity(Gravity.CENTER);
+
         statusText.setBackgroundColor(
-                Color.argb(185, 0, 0, 0)
+                Color.argb(190, 0, 0, 0)
         );
+
         statusText.setPadding(20, 25, 20, 25);
 
         FrameLayout.LayoutParams statusParams =
@@ -114,40 +128,38 @@ public class MeasureActivity extends Activity
 
         statusParams.gravity = Gravity.TOP;
 
-        root.addView(
-                statusText,
-                statusParams
-        );
+        root.addView(statusText, statusParams);
 
+
+        // Neu messen
         resetButton = new Button(this);
         resetButton.setText("NEU MESSEN");
 
         FrameLayout.LayoutParams resetParams =
                 new FrameLayout.LayoutParams(
                         330,
-                        110
+                        120
                 );
 
-        resetParams.gravity =
-                Gravity.TOP |
-                Gravity.RIGHT;
-
+        resetParams.gravity = Gravity.TOP | Gravity.END;
         resetParams.topMargin = 120;
-        resetParams.rightMargin = 15;
+        resetParams.rightMargin = 18;
 
-        root.addView(
-                resetButton,
-                resetParams
-        );
+        root.addView(resetButton, resetParams);
 
+
+        // Messergebnis
         resultText = new TextView(this);
+
         resultText.setTextColor(Color.WHITE);
-        resultText.setTextSize(20);
+        resultText.setTextSize(21);
         resultText.setGravity(Gravity.CENTER);
+
         resultText.setBackgroundColor(
-                Color.argb(185, 0, 0, 0)
+                Color.argb(210, 0, 0, 0)
         );
-        resultText.setPadding(20, 20, 20, 20);
+
+        resultText.setPadding(20, 22, 20, 22);
 
         FrameLayout.LayoutParams resultParams =
                 new FrameLayout.LayoutParams(
@@ -156,243 +168,159 @@ public class MeasureActivity extends Activity
                 );
 
         resultParams.gravity = Gravity.BOTTOM;
-        resultParams.bottomMargin = 155;
 
-        root.addView(
-                resultText,
-                resultParams
-        );
+        // WICHTIG:
+        // Genug Abstand für Button + Android-Navigation
+        resultParams.bottomMargin = 270;
 
+        root.addView(resultText, resultParams);
+
+
+        // Messung übernehmen
         useButton = new Button(this);
+
         useButton.setText("MESSUNG ÜBERNEHMEN");
+        useButton.setTextSize(17);
         useButton.setEnabled(false);
 
         FrameLayout.LayoutParams useParams =
                 new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,
-                        120
+                        145
                 );
 
         useParams.gravity = Gravity.BOTTOM;
+
         useParams.leftMargin = 20;
         useParams.rightMargin = 20;
-        useParams.bottomMargin = 15;
 
-        root.addView(
-                useButton,
-                useParams
-        );
+        // Button deutlich über Android-Navigationsleiste
+        useParams.bottomMargin = 100;
+
+        root.addView(useButton, useParams);
+
 
         setContentView(root);
 
-        surfaceView.setOnTouchListener(
-                (view, event) -> {
 
-                    if (
-                            event.getAction()
-                                    ==
-                            MotionEvent.ACTION_UP
-                    ) {
+        // Kamera antippen
+        surfaceView.setOnTouchListener((view, event) -> {
 
-                        addMeasurementPoint(
-                                event.getX(),
-                                event.getY()
-                        );
-                    }
+            if (event.getAction() == MotionEvent.ACTION_UP) {
 
-                    return true;
-                }
-        );
+                addMeasurementPoint(
+                        event.getX(),
+                        event.getY()
+                );
+            }
+
+            return true;
+        });
+
 
         resetButton.setOnClickListener(
                 view -> resetMeasurement()
         );
 
-        useButton.setOnClickListener(
-                view -> {
 
-                    Intent result = new Intent();
+        useButton.setOnClickListener(view -> {
 
-                    result.putExtra(
-                            "width",
-                            widthMeters
-                    );
+            if (anchors.size() != 4) {
+                Toast.makeText(
+                        this,
+                        "Bitte zuerst 4 Messpunkte setzen.",
+                        Toast.LENGTH_SHORT
+                ).show();
 
-                    result.putExtra(
-                            "height",
-                            heightMeters
-                    );
+                return;
+            }
 
-                    result.putExtra(
-                            "area",
-                            areaMeters
-                    );
+            Intent result = new Intent();
 
-                    setResult(
-                            RESULT_OK,
-                            result
-                    );
+            result.putExtra("width", widthMeters);
+            result.putExtra("height", heightMeters);
+            result.putExtra("area", areaMeters);
 
-                    finish();
-                }
-        );
+            setResult(RESULT_OK, result);
+
+            finish();
+        });
     }
 
-    private void createArSession()
-            throws UnavailableException {
 
-        session = new Session(this);
+    private void createArSession() {
 
-        Config config =
-                session.getConfig();
+        try {
 
-        if (
-                session.isDepthModeSupported(
+            session = new Session(this);
+
+            Config config = session.getConfig();
+
+            config.setPlaneFindingMode(
+                    Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+            );
+
+
+            if (session.isDepthModeSupported(
+                    Config.DepthMode.AUTOMATIC)) {
+
+                config.setDepthMode(
                         Config.DepthMode.AUTOMATIC
-                )
-        ) {
+                );
 
-            config.setDepthMode(
-                    Config.DepthMode.AUTOMATIC
-            );
+                statusText.setText(
+                        "AR + Depth aktiv ✅\n" +
+                        "Handy langsam bewegen."
+                );
 
-            statusText.setText(
-                    "Depth aktiv ✅\n" +
-                    "Bewege das Handy langsam.\n" +
-                    "Tippe danach die 4 Fensterecken an."
-            );
+            } else {
 
-        } else {
+                statusText.setText(
+                        "AR aktiv ✅\n" +
+                        "Handy langsam bewegen."
+                );
+            }
 
-            statusText.setText(
-                    "AR aktiv ✅\n" +
-                    "Depth nicht verfügbar.\n" +
-                    "Tippe möglichst auf den Fensterrahmen."
-            );
+            session.configure(config);
+
+        } catch (UnavailableException e) {
+
+            Toast.makeText(
+                    this,
+                    "ARCore ist auf diesem Gerät nicht verfügbar.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
         }
-
-        config.setPlaneFindingMode(
-                Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-        );
-
-        session.configure(config);
-
-        cameraTextureSet = false;
     }
+
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (
-                checkSelfPermission(
-                        Manifest.permission.CAMERA
-                )
-                        !=
-                PackageManager.PERMISSION_GRANTED
-        ) {
+        if (session != null) {
 
-            requestPermissions(
-                    new String[]{
-                            Manifest.permission.CAMERA
-                    },
-                    CAMERA_PERMISSION
-            );
+            try {
 
-            return;
+                session.resume();
+
+            } catch (CameraNotAvailableException e) {
+
+                Toast.makeText(
+                        this,
+                        "Kamera nicht verfügbar.",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
         }
 
-        try {
-
-            if (session == null) {
-
-                ArCoreApk.InstallStatus status =
-                        ArCoreApk
-                                .getInstance()
-                                .requestInstall(
-                                        this,
-                                        userRequestedInstall
-                                );
-
-                if (
-                        status
-                                ==
-                        ArCoreApk.InstallStatus.INSTALL_REQUESTED
-                ) {
-
-                    userRequestedInstall = false;
-
-                    statusText.setText(
-                            "Google Play Services für AR wird vorbereitet..."
-                    );
-
-                    return;
-                }
-
-                createArSession();
-            }
-
-            session.resume();
-
+        if (surfaceView != null) {
             surfaceView.onResume();
-
-        } catch (
-                UnavailableUserDeclinedInstallationException e
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "Google Play Services für AR wurden nicht installiert.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            finish();
-
-        } catch (
-                UnavailableDeviceNotCompatibleException e
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "Dieses Gerät unterstützt ARCore nicht.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            finish();
-
-        } catch (
-                CameraNotAvailableException e
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "Kamera nicht verfügbar.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-        } catch (
-                UnavailableException e
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "ARCore konnte nicht gestartet werden.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            finish();
-
-        } catch (
-                Exception e
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "AR-Fehler: " + e.getMessage(),
-                    Toast.LENGTH_LONG
-            ).show();
         }
     }
+
 
     @Override
     protected void onPause() {
@@ -406,6 +334,7 @@ public class MeasureActivity extends Activity
             session.pause();
         }
     }
+
 
     @Override
     protected void onDestroy() {
@@ -423,11 +352,11 @@ public class MeasureActivity extends Activity
         }
     }
 
+
     @Override
     public void onSurfaceCreated(
             GL10 gl,
-            EGLConfig config
-    ) {
+            EGLConfig config) {
 
         GLES20.glClearColor(
                 0,
@@ -436,18 +365,16 @@ public class MeasureActivity extends Activity
                 1
         );
 
-        cameraRenderer =
-                new CameraRenderer();
-
+        cameraRenderer = new CameraRenderer();
         cameraRenderer.createOnGlThread();
     }
+
 
     @Override
     public void onSurfaceChanged(
             GL10 gl,
             int width,
-            int height
-    ) {
+            int height) {
 
         GLES20.glViewport(
                 0,
@@ -468,20 +395,16 @@ public class MeasureActivity extends Activity
         }
     }
 
+
     @Override
     public void onDrawFrame(GL10 gl) {
 
         GLES20.glClear(
                 GLES20.GL_COLOR_BUFFER_BIT |
-                GLES20.GL_DEPTH_BUFFER_BIT
+                        GLES20.GL_DEPTH_BUFFER_BIT
         );
 
-        if (
-                session == null
-                        ||
-                cameraRenderer == null
-        ) {
-
+        if (session == null || cameraRenderer == null) {
             return;
         }
 
@@ -496,141 +419,93 @@ public class MeasureActivity extends Activity
                 cameraTextureSet = true;
             }
 
-            Frame frame =
-                    session.update();
+            Frame frame = session.update();
 
-            latestFrame =
-                    frame;
+            latestFrame = frame;
 
-            cameraRenderer.draw(
-                    frame
-            );
+            cameraRenderer.draw(frame);
 
-        } catch (
-                CameraNotAvailableException e
-        ) {
-
-            runOnUiThread(
-                    () -> Toast.makeText(
-                            this,
-                            "Kamera wurde getrennt.",
-                            Toast.LENGTH_SHORT
-                    ).show()
-            );
-
-        } catch (
-                Exception ignored
-        ) {
-
+        } catch (Exception ignored) {
         }
     }
 
+
     private void addMeasurementPoint(
             float x,
-            float y
-    ) {
+            float y) {
 
         if (latestFrame == null) {
 
             Toast.makeText(
                     this,
-                    "AR ist noch nicht bereit. Bewege das Handy langsam.",
+                    "Kamera noch nicht bereit.",
                     Toast.LENGTH_SHORT
             ).show();
 
             return;
         }
+
 
         if (anchors.size() >= 4) {
 
             Toast.makeText(
                     this,
-                    "Drücke 'Neu messen'.",
+                    "Messung bereits fertig.",
                     Toast.LENGTH_SHORT
             ).show();
 
             return;
         }
 
-        HitResult selected =
-                findBestHit(
-                        x,
-                        y
-                );
 
+        List<HitResult> results =
+                latestFrame.hitTest(x, y);
+
+        HitResult selected = null;
+
+
+        // Depth zuerst
+        for (HitResult result : results) {
+
+            if (result.getTrackable()
+                    instanceof DepthPoint) {
+
+                selected = result;
+                break;
+            }
+        }
+
+
+        // Danach Plane / Feature Point
         if (selected == null) {
 
-            float[] radii = {
-                    20f,
-                    40f,
-                    60f,
-                    80f,
-                    110f
-            };
+            for (HitResult result : results) {
 
-            outer:
-            for (float radius : radii) {
+                if (result.getTrackable() instanceof Plane ||
+                        result.getTrackable() instanceof Point) {
 
-                for (
-                        float angle = 0;
-                        angle < 360;
-                        angle += 30
-                ) {
-
-                    double rad =
-                            Math.toRadians(
-                                    angle
-                            );
-
-                    float searchX =
-                            x +
-                            (float) (
-                                    Math.cos(rad)
-                                    *
-                                    radius
-                            );
-
-                    float searchY =
-                            y +
-                            (float) (
-                                    Math.sin(rad)
-                                    *
-                                    radius
-                            );
-
-                    selected =
-                            findBestHit(
-                                    searchX,
-                                    searchY
-                            );
-
-                    if (selected != null) {
-                        break outer;
-                    }
+                    selected = result;
+                    break;
                 }
             }
         }
+
 
         if (selected == null) {
 
             Toast.makeText(
                     this,
-                    "Kein Messpunkt erkannt.\n" +
-                    "Halte etwa 1–3 m Abstand,\n" +
-                    "bewege das Handy langsam und\n" +
-                    "tippe auf den Fensterrahmen.",
-                    Toast.LENGTH_LONG
+                    "Kein Messpunkt erkannt. Handy etwas bewegen.",
+                    Toast.LENGTH_SHORT
             ).show();
 
             return;
         }
 
-        Anchor anchor =
-                selected.createAnchor();
 
-        anchors.add(
-                anchor
-        );
+        Anchor anchor = selected.createAnchor();
+
+        anchors.add(anchor);
 
         addMarker(
                 x,
@@ -638,133 +513,41 @@ public class MeasureActivity extends Activity
                 anchors.size()
         );
 
-        statusText.setText(
-                "Punkt "
-                        +
-                anchors.size()
-                        +
-                " von 4 gesetzt"
-        );
 
-        if (anchors.size() == 4) {
+        if (anchors.size() < 4) {
+
+            statusText.setText(
+                    "Messpunkt " +
+                            anchors.size() +
+                            " von 4 gesetzt"
+            );
+
+        } else {
+
             calculateMeasurement();
         }
     }
 
-    private HitResult findBestHit(
-            float x,
-            float y
-    ) {
-
-        if (latestFrame == null) {
-            return null;
-        }
-
-        List<HitResult> results;
-
-        try {
-
-            results =
-                    latestFrame.hitTest(
-                            x,
-                            y
-                    );
-
-        } catch (
-                Exception e
-        ) {
-
-            return null;
-        }
-
-        for (
-                HitResult result :
-                results
-        ) {
-
-            if (
-                    result.getTrackable()
-                            instanceof DepthPoint
-            ) {
-
-                return result;
-            }
-        }
-
-        for (
-                HitResult result :
-                results
-        ) {
-
-            if (
-                    result.getTrackable()
-                            instanceof Plane
-            ) {
-
-                Plane plane =
-                        (Plane)
-                                result.getTrackable();
-
-                if (
-                        plane.isPoseInPolygon(
-                                result.getHitPose()
-                        )
-                ) {
-
-                    return result;
-                }
-            }
-        }
-
-        for (
-                HitResult result :
-                results
-        ) {
-
-            if (
-                    result.getTrackable()
-                            instanceof Point
-            ) {
-
-                return result;
-            }
-        }
-
-        return null;
-    }
 
     private void addMarker(
             float x,
             float y,
-            int number
-    ) {
+            int number) {
 
-        TextView marker =
-                new TextView(this);
+        TextView marker = new TextView(this);
 
         marker.setText(
                 String.valueOf(number)
         );
 
-        marker.setTextColor(
-                Color.WHITE
-        );
-
-        marker.setTextSize(
-                17
-        );
-
-        marker.setGravity(
-                Gravity.CENTER
-        );
+        marker.setTextColor(Color.WHITE);
+        marker.setTextSize(18);
+        marker.setGravity(Gravity.CENTER);
 
         marker.setBackgroundColor(
-                Color.rgb(
-                        7,
-                        132,
-                        95
-                )
+                Color.rgb(7, 132, 95)
         );
+
 
         FrameLayout.LayoutParams params =
                 new FrameLayout.LayoutParams(
@@ -772,21 +555,14 @@ public class MeasureActivity extends Activity
                         70
                 );
 
-        params.leftMargin =
-                (int) x - 35;
+        params.leftMargin = (int) x - 35;
+        params.topMargin = (int) y - 35;
 
-        params.topMargin =
-                (int) y - 35;
+        root.addView(marker, params);
 
-        root.addView(
-                marker,
-                params
-        );
-
-        markers.add(
-                marker
-        );
+        markers.add(marker);
     }
+
 
     private void calculateMeasurement() {
 
@@ -794,98 +570,52 @@ public class MeasureActivity extends Activity
             return;
         }
 
+
         float[] p0 =
-                anchors
-                        .get(0)
+                anchors.get(0)
                         .getPose()
                         .getTranslation();
 
         float[] p1 =
-                anchors
-                        .get(1)
+                anchors.get(1)
                         .getPose()
                         .getTranslation();
 
         float[] p2 =
-                anchors
-                        .get(2)
+                anchors.get(2)
                         .getPose()
                         .getTranslation();
 
         float[] p3 =
-                anchors
-                        .get(3)
+                anchors.get(3)
                         .getPose()
                         .getTranslation();
 
-        double top =
-                distance(
-                        p0,
-                        p1
-                );
 
-        double right =
-                distance(
-                        p1,
-                        p2
-                );
+        double top = distance(p0, p1);
+        double bottom = distance(p3, p2);
 
-        double bottom =
-                distance(
-                        p3,
-                        p2
-                );
+        double left = distance(p0, p3);
+        double right = distance(p1, p2);
 
-        double left =
-                distance(
-                        p0,
-                        p3
-                );
 
         widthMeters =
-                (
-                        top +
-                        bottom
-                )
-                /
-                2.0;
+                (top + bottom) / 2.0;
 
         heightMeters =
-                (
-                        left +
-                        right
-                )
-                /
-                2.0;
+                (left + right) / 2.0;
 
         areaMeters =
-                widthMeters *
-                heightMeters;
+                widthMeters * heightMeters;
 
-        if (
-                widthMeters <= 0
-                        ||
-                heightMeters <= 0
-                        ||
-                areaMeters <= 0
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "Messung ungültig. Bitte neu messen.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
 
         resultText.setText(
                 String.format(
                         Locale.GERMANY,
 
                         "Breite: %.2f m\n" +
-                        "Höhe: %.2f m\n" +
-                        "Fläche: %.2f m²",
+                                "Höhe: %.2f m\n" +
+                                "Fläche: %.2f m²",
 
                         widthMeters,
                         heightMeters,
@@ -893,85 +623,72 @@ public class MeasureActivity extends Activity
                 )
         );
 
+
         statusText.setText(
                 "Messung fertig ✅\n" +
                 "Jetzt Messung übernehmen."
         );
 
-        useButton.setEnabled(
-                true
-        );
+        useButton.setEnabled(true);
+
+        // Sicherstellen, dass Button anklickbar ist
+        useButton.bringToFront();
     }
+
 
     private double distance(
             float[] a,
-            float[] b
-    ) {
+            float[] b) {
 
-        double dx =
-                a[0] - b[0];
-
-        double dy =
-                a[1] - b[1];
-
-        double dz =
-                a[2] - b[2];
+        double dx = a[0] - b[0];
+        double dy = a[1] - b[1];
+        double dz = a[2] - b[2];
 
         return Math.sqrt(
-                dx * dx
-                        +
-                dy * dy
-                        +
-                dz * dz
+                dx * dx +
+                        dy * dy +
+                        dz * dz
         );
     }
 
+
     private void resetMeasurement() {
 
-        for (
-                Anchor anchor :
-                anchors
-        ) {
-
+        for (Anchor anchor : anchors) {
             anchor.detach();
         }
 
         anchors.clear();
 
-        for (
-                View marker :
-                markers
-        ) {
 
-            root.removeView(
-                    marker
-            );
+        for (View marker : markers) {
+            root.removeView(marker);
         }
 
         markers.clear();
+
 
         widthMeters = 0;
         heightMeters = 0;
         areaMeters = 0;
 
+
         resultText.setText("");
 
         statusText.setText(
                 "Neu messen ✅\n" +
-                "Handy bewegen und 4 Fensterecken antippen."
+                "Handy bewegen und 4 Ecken antippen."
         );
 
-        useButton.setEnabled(
-                false
-        );
+        useButton.setEnabled(false);
     }
+
 
     @Override
     public void onRequestPermissionsResult(
             int requestCode,
             String[] permissions,
-            int[] grantResults
-    ) {
+            int[] grantResults) {
 
         super.onRequestPermissionsResult(
                 requestCode,
@@ -979,27 +696,20 @@ public class MeasureActivity extends Activity
                 grantResults
         );
 
-        if (
-                requestCode
-                        ==
-                CAMERA_PERMISSION
-        ) {
 
-            if (
-                    grantResults.length > 0
-                            &&
+        if (requestCode == CAMERA_PERMISSION) {
+
+            if (grantResults.length > 0 &&
                     grantResults[0]
-                            ==
-                    PackageManager.PERMISSION_GRANTED
-            ) {
+                            == PackageManager.PERMISSION_GRANTED) {
 
-                onResume();
+                createArSession();
 
             } else {
 
                 Toast.makeText(
                         this,
-                        "Ohne Kamera kann die Fenster-Messung nicht funktionieren.",
+                        "Kamera-Berechtigung wird benötigt.",
                         Toast.LENGTH_LONG
                 ).show();
 
