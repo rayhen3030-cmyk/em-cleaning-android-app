@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
         webView = new WebView(this);
 
         setContentView(webView);
