@@ -39,7 +39,6 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(false);
 
@@ -106,7 +105,8 @@ public class MainActivity extends Activity {
                                 Exception e
                         ) {
 
-                            filePathCallback = null;
+                            filePathCallback =
+                                    null;
 
                             return false;
                         }
@@ -128,7 +128,7 @@ public class MainActivity extends Activity {
 
 
         /*
-         * Zustand wiederherstellen
+         * WebView Zustand wiederherstellen
          */
 
         if (savedInstanceState != null) {
@@ -164,19 +164,6 @@ public class MainActivity extends Activity {
                                     true;
 
 
-                            /*
-                             * Vor AR sicherstellen,
-                             * dass Fenster-Seite aktiv ist.
-                             */
-
-                            webView.evaluateJavascript(
-                                    "if(typeof openPage==='function'){" +
-                                            "openPage('foto');" +
-                                            "}",
-                                    null
-                            );
-
-
                             Intent intent =
                                     new Intent(
                                             MainActivity.this,
@@ -203,14 +190,6 @@ public class MainActivity extends Activity {
                                     "AR-Messung konnte nicht geöffnet werden.",
                                     Toast.LENGTH_LONG
                             ).show();
-
-
-                            webView.evaluateJavascript(
-                                    "if(typeof openPage==='function'){" +
-                                            "openPage('foto');" +
-                                            "}",
-                                    null
-                            );
                         }
                     }
             );
@@ -304,19 +283,8 @@ public class MainActivity extends Activity {
 
 
             /*
-             * Immer wieder Fenster-Seite anzeigen
+             * Erfolgreiche Messung
              */
-
-            webView.post(
-                    () ->
-                            webView.evaluateJavascript(
-                                    "if(typeof openPage==='function'){" +
-                                            "openPage('foto');" +
-                                            "}",
-                                    null
-                            )
-            );
-
 
             if (
                     resultCode
@@ -363,7 +331,7 @@ public class MainActivity extends Activity {
                                             "alert('Die Messung war ungültig. Bitte erneut messen.');",
                                             null
                                     ),
-                            300
+                            250
                     );
 
                     return;
@@ -394,11 +362,16 @@ public class MainActivity extends Activity {
                                         javascript,
                                         null
                                 ),
-                        300
+                        250
                 );
 
 
             } else {
+
+                /*
+                 * Wenn AR abgebrochen wurde:
+                 * zurück auf Fenster-Seite
+                 */
 
                 webView.postDelayed(
                         () ->
@@ -408,7 +381,7 @@ public class MainActivity extends Activity {
                                                 "}",
                                         null
                                 ),
-                        250
+                        200
                 );
             }
         }
@@ -416,7 +389,7 @@ public class MainActivity extends Activity {
 
 
     /*
-     * ZUSTAND SPEICHERN
+     * WEBVIEW ZUSTAND SPEICHERN
      */
 
     @Override
@@ -462,8 +435,8 @@ public class MainActivity extends Activity {
 
 
         /*
-         * Wenn AR gerade läuft,
-         * nicht gleichzeitig WebView ändern.
+         * Wenn gerade die AR-Kamera offen ist,
+         * Android normal zurückgehen lassen.
          */
 
         if (arMeasurementRunning) {
@@ -475,66 +448,42 @@ public class MainActivity extends Activity {
 
 
         /*
-         * Aktive App-Seite abfragen
+         * Zuerst unsere index.html fragen:
+         * Kann sie intern zurückgehen?
          */
 
         webView.evaluateJavascript(
 
-                "(function(){" +
-                        "var p=document.querySelector('.page.active');" +
-                        "return p ? p.id : 'home';" +
-                        "})()",
+                "if(typeof window.androidBack==='function'){" +
+                        "window.androidBack();" +
+                        "}else{" +
+                        "false;" +
+                        "}",
 
                 value -> {
 
-                    String currentPage =
-                            "home";
-
-
-                    if (
-                            value
-                                    !=
-                            null
-                    ) {
-
-                        currentPage =
-                                value
-                                        .replace("\"", "")
-                                        .trim();
-                    }
+                    boolean handled =
+                            value != null
+                            &&
+                            value.contains(
+                                    "true"
+                            );
 
 
                     /*
-                     * Wenn wir auf einer Unterseite
-                     * der index.html sind:
-                     *
-                     * -> zurück zum Hauptmenü
+                     * index.html hat den Zurück-Befehl
+                     * bereits verarbeitet.
                      */
 
-                    if (
-                            !currentPage.equals(
-                                    "home"
-                            )
-                    ) {
-
-                        webView.evaluateJavascript(
-
-                                "if(typeof openPage==='function'){" +
-                                        "openPage('home');" +
-                                        "}",
-
-                                null
-                        );
+                    if (handled) {
 
                         return;
                     }
 
 
                     /*
-                     * Auf Home:
-                     *
-                     * echte WebView-History nur dann nutzen,
-                     * wenn wirklich vorhanden.
+                     * Falls eine echte WebView-Seite
+                     * in der History liegt.
                      */
 
                     if (
@@ -543,21 +492,23 @@ public class MainActivity extends Activity {
 
                         webView.goBack();
 
-                    } else {
-
-                        /*
-                         * App verlassen
-                         */
-
-                        MainActivity.super.onBackPressed();
+                        return;
                     }
+
+
+                    /*
+                     * Erst wenn wir wirklich auf Home sind,
+                     * App schließen.
+                     */
+
+                    MainActivity.super.onBackPressed();
                 }
         );
     }
 
 
     /*
-     * WebView sauber beenden
+     * APP SAUBER SCHLIESSEN
      */
 
     @Override
@@ -577,8 +528,10 @@ public class MainActivity extends Activity {
 
             webView.destroy();
 
-            webView = null;
+            webView =
+                    null;
         }
+
 
         super.onDestroy();
     }
