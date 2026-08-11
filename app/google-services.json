@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "104882427892",
+    "project_id": "em-cleaning-app",
+    "storage_bucket": "em-cleaning-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:104882427892:android:2fb840d33b9e3dc1284ba1",
+        "android_client_info": {
+          "package_name": "de.emcleaning.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6R8AB6scuipLzgSGgfDplWsuiM1W6P9c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
