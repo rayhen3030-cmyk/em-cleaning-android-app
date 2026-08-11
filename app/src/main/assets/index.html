@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -143,16 +142,6 @@ textarea{
     gap:10px;
 }
 
-.photo-preview{
-    width:100%;
-    max-height:320px;
-    object-fit:contain;
-    margin-top:15px;
-    border-radius:12px;
-    display:none;
-    background:#eee;
-}
-
 .info{
     background:#eff8ff;
     border:1px solid #b2ddff;
@@ -194,9 +183,9 @@ footer{
     </div>
 
     <div class="card">
-        <h2>📸 Foto-Aufmaß</h2>
-        <p>Fenster fotografieren und mit Referenzmaß Fläche schätzen.</p>
-        <button onclick="openPage('foto')">Foto-Aufmaß öffnen</button>
+        <h2>📐 Fenster-Aufmaß</h2>
+        <p>Fenster direkt mit der Kamera messen.</p>
+        <button onclick="openPage('foto')">Fenster messen</button>
     </div>
 
     <div class="card">
@@ -249,14 +238,22 @@ footer{
         </div>
 
         <div id="fensterBlock">
-            <input id="fensterAnzahl" type="number" placeholder="Anzahl Fenster">
+
+            <input id="fensterAnzahl" type="number" value="1" placeholder="Anzahl Fenster">
+
             <input id="fensterBreite" type="number" step="0.01" placeholder="Breite pro Fenster in Meter">
+
             <input id="fensterHoehe" type="number" step="0.01" placeholder="Höhe pro Fenster in Meter">
 
             <select id="fensterSeiten">
                 <option value="1">Nur eine Seite</option>
                 <option value="2" selected>Innen + Außen</option>
             </select>
+
+            <button onclick="arMessungStarten()">
+                📐 Maße mit Kamera messen
+            </button>
+
         </div>
 
         <input id="stunden" type="number" step="0.25" placeholder="Geschätzte Arbeitsstunden">
@@ -287,49 +284,34 @@ footer{
 
     <button class="secondary" onclick="openPage('home')">← Zurück</button>
 
-    <h1 class="section-title">📸 Foto-Aufmaß</h1>
+    <h1 class="section-title">📐 Fenster-Aufmaß</h1>
 
     <div class="card">
 
-        <h2>Fenster fotografieren</h2>
+        <h2>Fenster automatisch messen</h2>
 
         <p>
-            Fotografiere das Fenster möglichst gerade von vorne.
+            Miss das Fenster direkt mit der Handykamera.
         </p>
 
-        <input
-            id="fotoInput"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onchange="fotoLaden(event)"
-        >
-
-        <img id="fotoPreview" class="photo-preview">
-
         <div class="info">
-            Für echte Meter braucht die App ein bekanntes Referenzmaß.
-            Beispiel: Du weißt, dass die Fensterbreite 1,20 m beträgt.
+            1. Kamera-Messung starten<br>
+            2. Handy langsam bewegen<br>
+            3. Die 4 Fensterecken antippen<br>
+            4. Breite, Höhe und m² werden automatisch berechnet
         </div>
 
-        <input
-            id="refBreite"
-            type="number"
-            step="0.01"
-            placeholder="Bekannte Breite in Meter, z. B. 1.20"
-        >
+        <button onclick="arMessungStarten()">
+            📐 Kamera-Messung starten
+        </button>
 
-        <input
-            id="verhaeltnis"
-            type="number"
-            step="0.01"
-            placeholder="Geschätztes Verhältnis Höhe ÷ Breite, z. B. 1.25"
-        >
+        <div id="arErgebnis" class="result" style="display:none"></div>
 
         <input
             id="fotoFensterAnzahl"
             type="number"
             value="1"
+            min="1"
             placeholder="Anzahl gleicher Fenster"
         >
 
@@ -346,11 +328,14 @@ footer{
             placeholder="Preis pro m²"
         >
 
-        <button onclick="fotoBerechnen()">Fläche & Preis berechnen</button>
+        <button onclick="arPreisBerechnen()">
+            💰 Gesamtfläche & Preis berechnen
+        </button>
 
         <div id="fotoErgebnis" class="result" style="display:none"></div>
 
     </div>
+
 </div>
 
 <div id="kunden" class="page">
@@ -502,163 +487,425 @@ E-M Cleaning Service
 
 <script>
 
+let arBreite = 0;
+let arHoehe = 0;
+let arFlaeche = 0;
+
 function openPage(id){
+
     document.querySelectorAll('.page').forEach(function(p){
         p.classList.remove('active');
     });
 
     document.getElementById(id).classList.add('active');
+
     window.scrollTo(0,0);
+
     aktualisieren();
 }
 
+function arMessungStarten(){
+
+    if(
+        window.Android &&
+        typeof Android.startArMeasurement === 'function'
+    ){
+
+        Android.startArMeasurement();
+
+    }else{
+
+        alert(
+            'Die Kamera-Messung funktioniert nur in der Android-App.'
+        );
+    }
+}
+
+window.receiveArMeasurement = function(
+    breite,
+    hoehe,
+    flaeche
+){
+
+    arBreite = parseFloat(breite) || 0;
+    arHoehe = parseFloat(hoehe) || 0;
+    arFlaeche = parseFloat(flaeche) || 0;
+
+    const box =
+        document.getElementById('arErgebnis');
+
+    if(box){
+
+        box.style.display = 'block';
+
+        box.innerHTML =
+            '<strong>✅ Fenster gemessen</strong><br><br>' +
+            'Breite: ' +
+            arBreite.toFixed(2) +
+            ' m<br>' +
+            'Höhe: ' +
+            arHoehe.toFixed(2) +
+            ' m<br>' +
+            '<div class="big">' +
+            arFlaeche.toFixed(2) +
+            ' m²</div>';
+    }
+
+    const breiteInput =
+        document.getElementById('fensterBreite');
+
+    const hoeheInput =
+        document.getElementById('fensterHoehe');
+
+    if(breiteInput){
+        breiteInput.value =
+            arBreite.toFixed(2);
+    }
+
+    if(hoeheInput){
+        hoeheInput.value =
+            arHoehe.toFixed(2);
+    }
+
+    openPage('foto');
+};
+
+function arPreisBerechnen(){
+
+    if(arFlaeche <= 0){
+
+        alert(
+            'Bitte zuerst das Fenster mit der Kamera messen.'
+        );
+
+        return;
+    }
+
+    const anzahl =
+        parseFloat(
+            document.getElementById(
+                'fotoFensterAnzahl'
+            ).value || 1
+        );
+
+    const seiten =
+        parseFloat(
+            document.getElementById(
+                'fotoSeiten'
+            ).value || 1
+        );
+
+    const preis =
+        parseFloat(
+            document.getElementById(
+                'fotoPreisQm'
+            ).value || 0
+        );
+
+    const gesamt =
+        arFlaeche *
+        anzahl *
+        seiten;
+
+    const kosten =
+        gesamt *
+        preis;
+
+    const box =
+        document.getElementById(
+            'fotoErgebnis'
+        );
+
+    box.style.display =
+        'block';
+
+    box.innerHTML =
+        '<strong>Aufmaß & Kalkulation</strong><br><br>' +
+
+        'Breite: ' +
+        arBreite.toFixed(2) +
+        ' m<br>' +
+
+        'Höhe: ' +
+        arHoehe.toFixed(2) +
+        ' m<br>' +
+
+        'Fläche pro Fenster: ' +
+        arFlaeche.toFixed(2) +
+        ' m²<br>' +
+
+        'Anzahl: ' +
+        anzahl +
+        '<br>' +
+
+        'Reinigungsseiten: ' +
+        seiten +
+        '<br><br>' +
+
+        '<strong>Gesamte Reinigungsfläche:</strong> ' +
+        gesamt.toFixed(2) +
+        ' m²<br>' +
+
+        '<div class="big">' +
+        kosten
+            .toFixed(2)
+            .replace('.', ',') +
+        ' €</div>';
+}
+
 function laden(key){
-    return JSON.parse(localStorage.getItem(key) || '[]');
+
+    return JSON.parse(
+        localStorage.getItem(key) || '[]'
+    );
 }
 
 function speichern(key,daten){
-    localStorage.setItem(key,JSON.stringify(daten));
+
+    localStorage.setItem(
+        key,
+        JSON.stringify(daten)
+    );
 }
 
 function serviceChanged(){
 
-    const service=document.getElementById('service').value;
+    const service =
+        document.getElementById(
+            'service'
+        ).value;
 
-    document.getElementById('fensterBlock').style.display=
-        service==='fenster' ? 'block' : 'none';
+    document.getElementById(
+        'fensterBlock'
+    ).style.display =
+        service === 'fenster'
+        ? 'block'
+        : 'none';
 
-    document.getElementById('flaechenBlock').style.display=
-        service==='fenster' ? 'none' : 'block';
+    document.getElementById(
+        'flaechenBlock'
+    ).style.display =
+        service === 'fenster'
+        ? 'none'
+        : 'block';
 
-    if(service==='unterhalt'){
-        document.getElementById('stundensatz').value='30';
+    if(service === 'unterhalt'){
+
+        document.getElementById(
+            'stundensatz'
+        ).value = '30';
     }
 
-    if(service==='bau' || service==='grund'){
-        document.getElementById('stundensatz').value='35';
+    if(
+        service === 'bau' ||
+        service === 'grund'
+    ){
+
+        document.getElementById(
+            'stundensatz'
+        ).value = '35';
     }
 }
 
 function preisBerechnen(){
 
-    const service=document.getElementById('service').value;
+    const service =
+        document.getElementById(
+            'service'
+        ).value;
 
-    const stunden=parseFloat(document.getElementById('stunden').value || 0);
-    const stundensatz=parseFloat(document.getElementById('stundensatz').value || 0);
-    const qmPreis=parseFloat(document.getElementById('qmPreis').value || 0);
-    const anfahrt=parseFloat(document.getElementById('anfahrt').value || 0);
-    const material=parseFloat(document.getElementById('material').value || 0);
-    const zuschlag=parseFloat(document.getElementById('zuschlag').value || 0);
-    const mwst=parseFloat(document.getElementById('mwst').value || 0);
+    const stunden =
+        parseFloat(
+            document.getElementById(
+                'stunden'
+            ).value || 0
+        );
 
-    let flaeche=0;
+    const stundensatz =
+        parseFloat(
+            document.getElementById(
+                'stundensatz'
+            ).value || 0
+        );
 
-    if(service==='fenster'){
+    const qmPreis =
+        parseFloat(
+            document.getElementById(
+                'qmPreis'
+            ).value || 0
+        );
 
-        const anzahl=parseFloat(document.getElementById('fensterAnzahl').value || 0);
-        const breite=parseFloat(document.getElementById('fensterBreite').value || 0);
-        const hoehe=parseFloat(document.getElementById('fensterHoehe').value || 0);
-        const seiten=parseFloat(document.getElementById('fensterSeiten').value || 1);
+    const anfahrt =
+        parseFloat(
+            document.getElementById(
+                'anfahrt'
+            ).value || 0
+        );
 
-        flaeche=anzahl*breite*hoehe*seiten;
+    const material =
+        parseFloat(
+            document.getElementById(
+                'material'
+            ).value || 0
+        );
+
+    const zuschlag =
+        parseFloat(
+            document.getElementById(
+                'zuschlag'
+            ).value || 0
+        );
+
+    const mwst =
+        parseFloat(
+            document.getElementById(
+                'mwst'
+            ).value || 0
+        );
+
+    let flaeche = 0;
+
+    if(service === 'fenster'){
+
+        const anzahl =
+            parseFloat(
+                document.getElementById(
+                    'fensterAnzahl'
+                ).value || 0
+            );
+
+        const breite =
+            parseFloat(
+                document.getElementById(
+                    'fensterBreite'
+                ).value || 0
+            );
+
+        const hoehe =
+            parseFloat(
+                document.getElementById(
+                    'fensterHoehe'
+                ).value || 0
+            );
+
+        const seiten =
+            parseFloat(
+                document.getElementById(
+                    'fensterSeiten'
+                ).value || 1
+            );
+
+        flaeche =
+            anzahl *
+            breite *
+            hoehe *
+            seiten;
 
     }else{
 
-        flaeche=parseFloat(document.getElementById('qm').value || 0);
-
+        flaeche =
+            parseFloat(
+                document.getElementById(
+                    'qm'
+                ).value || 0
+            );
     }
 
-    const arbeitskosten=stunden*stundensatz;
-    const flaechenkosten=flaeche*qmPreis;
+    const arbeitskosten =
+        stunden *
+        stundensatz;
 
-    let netto=arbeitskosten+flaechenkosten+anfahrt+material;
+    const flaechenkosten =
+        flaeche *
+        qmPreis;
 
-    netto=netto+(netto*zuschlag/100);
+    let netto =
+        arbeitskosten +
+        flaechenkosten +
+        anfahrt +
+        material;
 
-    const steuer=netto*mwst/100;
-    const brutto=netto+steuer;
+    netto =
+        netto +
+        (
+            netto *
+            zuschlag /
+            100
+        );
 
-    const box=document.getElementById('preisErgebnis');
+    const steuer =
+        netto *
+        mwst /
+        100;
 
-    box.style.display='block';
+    const brutto =
+        netto +
+        steuer;
 
-    box.innerHTML=
-        '<strong>Berechnung</strong><br><br>'+
-        'Reinigungsfläche: '+flaeche.toFixed(2)+' m²<br>'+
-        'Arbeitskosten: '+arbeitskosten.toFixed(2)+' €<br>'+
-        'Flächenkosten: '+flaechenkosten.toFixed(2)+' €<br>'+
-        'Anfahrt: '+anfahrt.toFixed(2)+' €<br>'+
-        'Material: '+material.toFixed(2)+' €<br>'+
-        'Netto: '+netto.toFixed(2)+' €<br>'+
-        'MwSt.: '+steuer.toFixed(2)+' €<br>'+
-        '<div class="big">'+brutto.toFixed(2).replace('.',',')+' €</div>';
-}
+    const box =
+        document.getElementById(
+            'preisErgebnis'
+        );
 
-function fotoLaden(event){
+    box.style.display =
+        'block';
 
-    const file=event.target.files[0];
+    box.innerHTML =
+        '<strong>Berechnung</strong><br><br>' +
 
-    if(!file) return;
+        'Reinigungsfläche: ' +
+        flaeche.toFixed(2) +
+        ' m²<br>' +
 
-    const reader=new FileReader();
+        'Arbeitskosten: ' +
+        arbeitskosten.toFixed(2) +
+        ' €<br>' +
 
-    reader.onload=function(e){
+        'Flächenkosten: ' +
+        flaechenkosten.toFixed(2) +
+        ' €<br>' +
 
-        const img=document.getElementById('fotoPreview');
+        'Anfahrt: ' +
+        anfahrt.toFixed(2) +
+        ' €<br>' +
 
-        img.src=e.target.result;
-        img.style.display='block';
+        'Material: ' +
+        material.toFixed(2) +
+        ' €<br>' +
 
-    };
+        'Netto: ' +
+        netto.toFixed(2) +
+        ' €<br>' +
 
-    reader.readAsDataURL(file);
-}
+        'MwSt.: ' +
+        steuer.toFixed(2) +
+        ' €<br>' +
 
-function fotoBerechnen(){
-
-    const breite=parseFloat(document.getElementById('refBreite').value || 0);
-    const verh=parseFloat(document.getElementById('verhaeltnis').value || 0);
-    const anzahl=parseFloat(document.getElementById('fotoFensterAnzahl').value || 1);
-    const seiten=parseFloat(document.getElementById('fotoSeiten').value || 1);
-    const preis=parseFloat(document.getElementById('fotoPreisQm').value || 0);
-
-    if(breite<=0 || verh<=0){
-
-        alert('Bitte bekannte Breite und Verhältnis eingeben.');
-        return;
-    }
-
-    const hoehe=breite*verh;
-
-    const eineFlaeche=breite*hoehe;
-
-    const gesamt=eineFlaeche*anzahl*seiten;
-
-    const kosten=gesamt*preis;
-
-    const box=document.getElementById('fotoErgebnis');
-
-    box.style.display='block';
-
-    box.innerHTML=
-        '<strong>Geschätztes Aufmaß</strong><br><br>'+
-        'Breite: '+breite.toFixed(2)+' m<br>'+
-        'Geschätzte Höhe: '+hoehe.toFixed(2)+' m<br>'+
-        'Fläche pro Fenster: '+eineFlaeche.toFixed(2)+' m²<br>'+
-        'Gesamte Reinigungsfläche: '+gesamt.toFixed(2)+' m²<br>'+
-        '<div class="big">'+kosten.toFixed(2).replace('.',',')+' €</div>';
+        '<div class="big">' +
+        brutto
+            .toFixed(2)
+            .replace('.', ',') +
+        ' €</div>';
 }
 
 function kundeSpeichern(){
 
-    const name=document.getElementById('kundeName').value.trim();
+    const name =
+        document.getElementById(
+            'kundeName'
+        ).value.trim();
 
     if(!name){
-        alert('Bitte Namen eingeben.');
+
+        alert(
+            'Bitte Namen eingeben.'
+        );
+
         return;
     }
 
-    const d=laden('kunden');
+    const d =
+        laden('kunden');
 
     d.push({
         name:name,
@@ -668,40 +915,65 @@ function kundeSpeichern(){
         notiz:document.getElementById('kundeNotiz').value
     });
 
-    speichern('kunden',d);
+    speichern(
+        'kunden',
+        d
+    );
+
     kundenAnzeigen();
 }
 
 function kundenAnzeigen(){
 
-    const d=laden('kunden');
-    const box=document.getElementById('kundenListe');
+    const d =
+        laden('kunden');
 
-    box.innerHTML='';
+    const box =
+        document.getElementById(
+            'kundenListe'
+        );
 
-    d.forEach(function(x,i){
+    box.innerHTML = '';
 
-        box.innerHTML+=
-        '<div class="item">'+
-        '<strong>'+esc(x.name)+'</strong><br>'+
-        esc(x.adresse)+'<br>'+
-        esc(x.telefon)+'<br>'+
-        esc(x.email)+
-        '<button class="danger" onclick="loeschen(\'kunden\','+i+')">Löschen</button>'+
-        '</div>';
-    });
+    d.forEach(
+        function(x,i){
+
+            box.innerHTML +=
+                '<div class="item">' +
+                '<strong>' +
+                esc(x.name) +
+                '</strong><br>' +
+                esc(x.adresse) +
+                '<br>' +
+                esc(x.telefon) +
+                '<br>' +
+                esc(x.email) +
+                '<button class="danger" onclick="loeschen(\'kunden\',' +
+                i +
+                ')">Löschen</button>' +
+                '</div>';
+        }
+    );
 }
 
 function mitarbeiterSpeichern(){
 
-    const name=document.getElementById('mitarbeiterName').value.trim();
+    const name =
+        document.getElementById(
+            'mitarbeiterName'
+        ).value.trim();
 
     if(!name){
-        alert('Bitte Namen eingeben.');
+
+        alert(
+            'Bitte Namen eingeben.'
+        );
+
         return;
     }
 
-    const d=laden('mitarbeiter');
+    const d =
+        laden('mitarbeiter');
 
     d.push({
         name:name,
@@ -710,40 +982,66 @@ function mitarbeiterSpeichern(){
         lohn:document.getElementById('mitarbeiterLohn').value
     });
 
-    speichern('mitarbeiter',d);
+    speichern(
+        'mitarbeiter',
+        d
+    );
+
     mitarbeiterAnzeigen();
 }
 
 function mitarbeiterAnzeigen(){
 
-    const d=laden('mitarbeiter');
-    const box=document.getElementById('mitarbeiterListe');
+    const d =
+        laden('mitarbeiter');
 
-    box.innerHTML='';
+    const box =
+        document.getElementById(
+            'mitarbeiterListe'
+        );
 
-    d.forEach(function(x,i){
+    box.innerHTML = '';
 
-        box.innerHTML+=
-        '<div class="item">'+
-        '<strong>'+esc(x.name)+'</strong><br>'+
-        esc(x.art)+'<br>'+
-        esc(x.telefon)+'<br>'+
-        esc(x.lohn)+' €/Std.'+
-        '<button class="danger" onclick="loeschen(\'mitarbeiter\','+i+')">Löschen</button>'+
-        '</div>';
-    });
+    d.forEach(
+        function(x,i){
+
+            box.innerHTML +=
+                '<div class="item">' +
+                '<strong>' +
+                esc(x.name) +
+                '</strong><br>' +
+                esc(x.art) +
+                '<br>' +
+                esc(x.telefon) +
+                '<br>' +
+                esc(x.lohn) +
+                ' €/Std.' +
+                '<button class="danger" onclick="loeschen(\'mitarbeiter\',' +
+                i +
+                ')">Löschen</button>' +
+                '</div>';
+        }
+    );
 }
 
 function auftragSpeichern(){
 
-    const kunde=document.getElementById('auftragKunde').value.trim();
+    const kunde =
+        document.getElementById(
+            'auftragKunde'
+        ).value.trim();
 
     if(!kunde){
-        alert('Bitte Kunde eingeben.');
+
+        alert(
+            'Bitte Kunde eingeben.'
+        );
+
         return;
     }
 
-    const d=laden('auftraege');
+    const d =
+        laden('auftraege');
 
     d.push({
         kunde:kunde,
@@ -754,41 +1052,68 @@ function auftragSpeichern(){
         notiz:document.getElementById('auftragNotiz').value
     });
 
-    speichern('auftraege',d);
+    speichern(
+        'auftraege',
+        d
+    );
+
     auftraegeAnzeigen();
 }
 
 function auftraegeAnzeigen(){
 
-    const d=laden('auftraege');
-    const box=document.getElementById('auftragListe');
+    const d =
+        laden('auftraege');
 
-    box.innerHTML='';
+    const box =
+        document.getElementById(
+            'auftragListe'
+        );
 
-    d.forEach(function(x,i){
+    box.innerHTML = '';
 
-        box.innerHTML+=
-        '<div class="item">'+
-        '<strong>'+esc(x.kunde)+'</strong><br>'+
-        esc(x.art)+'<br>'+
-        esc(x.ort)+'<br>'+
-        esc(x.datum)+'<br>'+
-        esc(x.preis)+' €'+
-        '<button class="danger" onclick="loeschen(\'auftraege\','+i+')">Löschen</button>'+
-        '</div>';
-    });
+    d.forEach(
+        function(x,i){
+
+            box.innerHTML +=
+                '<div class="item">' +
+                '<strong>' +
+                esc(x.kunde) +
+                '</strong><br>' +
+                esc(x.art) +
+                '<br>' +
+                esc(x.ort) +
+                '<br>' +
+                esc(x.datum) +
+                '<br>' +
+                esc(x.preis) +
+                ' €' +
+                '<button class="danger" onclick="loeschen(\'auftraege\',' +
+                i +
+                ')">Löschen</button>' +
+                '</div>';
+        }
+    );
 }
 
 function zeitSpeichern(){
 
-    const name=document.getElementById('zeitMitarbeiter').value.trim();
+    const name =
+        document.getElementById(
+            'zeitMitarbeiter'
+        ).value.trim();
 
     if(!name){
-        alert('Bitte Mitarbeiter eingeben.');
+
+        alert(
+            'Bitte Mitarbeiter eingeben.'
+        );
+
         return;
     }
 
-    const d=laden('zeiten');
+    const d =
+        laden('zeiten');
 
     d.push({
         mitarbeiter:name,
@@ -798,40 +1123,67 @@ function zeitSpeichern(){
         objekt:document.getElementById('zeitObjekt').value
     });
 
-    speichern('zeiten',d);
+    speichern(
+        'zeiten',
+        d
+    );
+
     zeitenAnzeigen();
 }
 
 function zeitenAnzeigen(){
 
-    const d=laden('zeiten');
-    const box=document.getElementById('zeitListe');
+    const d =
+        laden('zeiten');
 
-    box.innerHTML='';
+    const box =
+        document.getElementById(
+            'zeitListe'
+        );
 
-    d.forEach(function(x,i){
+    box.innerHTML = '';
 
-        box.innerHTML+=
-        '<div class="item">'+
-        '<strong>'+esc(x.mitarbeiter)+'</strong><br>'+
-        esc(x.datum)+'<br>'+
-        esc(x.start)+' - '+esc(x.ende)+'<br>'+
-        esc(x.objekt)+
-        '<button class="danger" onclick="loeschen(\'zeiten\','+i+')">Löschen</button>'+
-        '</div>';
-    });
+    d.forEach(
+        function(x,i){
+
+            box.innerHTML +=
+                '<div class="item">' +
+                '<strong>' +
+                esc(x.mitarbeiter) +
+                '</strong><br>' +
+                esc(x.datum) +
+                '<br>' +
+                esc(x.start) +
+                ' - ' +
+                esc(x.ende) +
+                '<br>' +
+                esc(x.objekt) +
+                '<button class="danger" onclick="loeschen(\'zeiten\',' +
+                i +
+                ')">Löschen</button>' +
+                '</div>';
+        }
+    );
 }
 
 function rechnungSpeichern(){
 
-    const kunde=document.getElementById('rechnungKunde').value.trim();
+    const kunde =
+        document.getElementById(
+            'rechnungKunde'
+        ).value.trim();
 
     if(!kunde){
-        alert('Bitte Kunde eingeben.');
+
+        alert(
+            'Bitte Kunde eingeben.'
+        );
+
         return;
     }
 
-    const d=laden('rechnungen');
+    const d =
+        laden('rechnungen');
 
     d.push({
         kunde:kunde,
@@ -841,45 +1193,76 @@ function rechnungSpeichern(){
         status:document.getElementById('rechnungStatus').value
     });
 
-    speichern('rechnungen',d);
+    speichern(
+        'rechnungen',
+        d
+    );
+
     rechnungenAnzeigen();
 }
 
 function rechnungenAnzeigen(){
 
-    const d=laden('rechnungen');
-    const box=document.getElementById('rechnungListe');
+    const d =
+        laden('rechnungen');
 
-    box.innerHTML='';
+    const box =
+        document.getElementById(
+            'rechnungListe'
+        );
 
-    d.forEach(function(x,i){
+    box.innerHTML = '';
 
-        box.innerHTML+=
-        '<div class="item">'+
-        '<strong>'+esc(x.kunde)+'</strong><br>'+
-        'Nr.: '+esc(x.nummer)+'<br>'+
-        esc(x.betrag)+' €<br>'+
-        esc(x.datum)+'<br>'+
-        esc(x.status)+
-        '<button class="danger" onclick="loeschen(\'rechnungen\','+i+')">Löschen</button>'+
-        '</div>';
-    });
+    d.forEach(
+        function(x,i){
+
+            box.innerHTML +=
+                '<div class="item">' +
+                '<strong>' +
+                esc(x.kunde) +
+                '</strong><br>' +
+                'Nr.: ' +
+                esc(x.nummer) +
+                '<br>' +
+                esc(x.betrag) +
+                ' €<br>' +
+                esc(x.datum) +
+                '<br>' +
+                esc(x.status) +
+                '<button class="danger" onclick="loeschen(\'rechnungen\',' +
+                i +
+                ')">Löschen</button>' +
+                '</div>';
+        }
+    );
 }
 
-function loeschen(key,index){
+function loeschen(
+    key,
+    index
+){
 
-    const d=laden(key);
+    const d =
+        laden(key);
 
-    d.splice(index,1);
+    d.splice(
+        index,
+        1
+    );
 
-    speichern(key,d);
+    speichern(
+        key,
+        d
+    );
 
     aktualisieren();
 }
 
 function esc(text){
 
-    return String(text || '')
+    return String(
+        text || ''
+    )
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
