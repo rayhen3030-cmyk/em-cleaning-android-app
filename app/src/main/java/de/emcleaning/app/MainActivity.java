@@ -39,20 +39,29 @@ public class MainActivity extends Activity {
     private String pendingPdfMonth = "";
     private String pendingPdfJson = "[]";
 
-    /*
-     * Zuletzt gespeicherte PDF.
-     * Damit können wir sie anschließend teilen.
-     */
     private Uri lastSavedPdfUri = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
-        webView = new WebView(this);
 
-        setContentView(webView);
+        /*
+         * Firebase-Anmeldung vorbereiten.
+         */
+        ensureFirebaseAuth(
+                () -> {
+                    // Nur Anmeldung vorbereiten.
+                }
+        );
+
+        webView =
+                new WebView(this);
+
+        setContentView(
+                webView
+        );
+
 
         WebSettings settings =
                 webView.getSettings();
@@ -64,9 +73,11 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(false);
 
+
         webView.setWebViewClient(
                 new WebViewClient()
         );
+
 
         webView.setWebChromeClient(
                 new WebChromeClient() {
@@ -78,15 +89,21 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
                             FileChooserParams params
                     ) {
 
-                        if (filePathCallback != null) {
+                        if (
+                                filePathCallback
+                                        !=
+                                null
+                        ) {
 
                             filePathCallback.onReceiveValue(
                                     null
                             );
                         }
 
+
                         filePathCallback =
                                 callback;
+
 
                         try {
 
@@ -97,12 +114,15 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
                                     "image/*"
                             );
 
+
                             startActivityForResult(
                                     intent,
                                     FILE_CHOOSER_REQUEST
                             );
 
+
                             return true;
+
 
                         } catch (Exception e) {
 
@@ -117,7 +137,9 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
 
 
         /*
-         * Verbindung HTML -> Android
+         * HTML / JavaScript
+         * ->
+         * Android Java
          */
 
         webView.addJavascriptInterface(
@@ -126,7 +148,11 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
         );
 
 
-        if (savedInstanceState != null) {
+        if (
+                savedInstanceState
+                        !=
+                null
+        ) {
 
             webView.restoreState(
                     savedInstanceState
@@ -143,6 +169,74 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
 
     /*
      * =====================================================
+     * FIREBASE AUTH
+     * =====================================================
+     */
+
+    private void ensureFirebaseAuth(
+            Runnable action
+    ) {
+
+        com.google.firebase.auth.FirebaseAuth auth =
+                com.google.firebase.auth.FirebaseAuth
+                        .getInstance();
+
+
+        if (
+                auth.getCurrentUser()
+                        !=
+                null
+        ) {
+
+            if (
+                    action
+                            !=
+                    null
+            ) {
+
+                action.run();
+            }
+
+            return;
+        }
+
+
+        auth.signInAnonymously()
+
+                .addOnSuccessListener(
+                        authResult -> {
+
+                            if (
+                                    action
+                                            !=
+                                    null
+                            ) {
+
+                                action.run();
+                            }
+                        }
+                )
+
+                .addOnFailureListener(
+                        e -> {
+
+                            runOnUiThread(
+                                    () ->
+                                            Toast.makeText(
+                                                    MainActivity.this,
+                                                    "Firebase-Anmeldung fehlgeschlagen: "
+                                                            +
+                                                            e.getMessage(),
+                                                    Toast.LENGTH_LONG
+                                            ).show()
+                            );
+                        }
+                );
+    }
+
+
+    /*
+     * =====================================================
      * JAVASCRIPT BRIDGE
      * =====================================================
      */
@@ -151,7 +245,9 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
 
 
         /*
-         * AR-Messung starten
+         * =================================================
+         * AR-MESSUNG
+         * =================================================
          */
 
         @JavascriptInterface
@@ -165,21 +261,25 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
                             arMeasurementRunning =
                                     true;
 
+
                             Intent intent =
                                     new Intent(
                                             MainActivity.this,
                                             MeasureActivity.class
                                     );
 
+
                             startActivityForResult(
                                     intent,
                                     AR_MEASURE_REQUEST
                             );
 
+
                         } catch (Exception e) {
 
                             arMeasurementRunning =
                                     false;
+
 
                             Toast.makeText(
                                     MainActivity.this,
@@ -191,74 +291,664 @@ com.google.firebase.auth.FirebaseAuth.getInstance().signInAnonymously();
             );
         }
 
-@JavascriptInterface
-public void saveOrderToFirestore(
-        String customer,
-        String address,
-        String service,
-        String date,
-        String price,
-        String description
-) {
-    java.util.Map<String, Object> order = new java.util.HashMap<>();
 
-    order.put("customer", customer);
-    order.put("address", address);
-    order.put("service", service);
-    order.put("date", date);
-    order.put("price", price);
-    order.put("description", description);
-    order.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
-
-    com.google.firebase.firestore.FirebaseFirestore
-            .getInstance()
-            .collection("orders")
-            .add(order);
-}
-        @JavascriptInterface
-public void loadOrdersFromFirestore() {
-
-    com.google.firebase.firestore.FirebaseFirestore
-        .getInstance()
-        .collection("orders")
-        .get()
-        .addOnSuccessListener(snapshots -> {
-
-            JSONArray array = new JSONArray();
-
-            for (
-                com.google.firebase.firestore.QueryDocumentSnapshot doc
-                : snapshots
-            ) {
-                try {
-                    JSONObject obj = new JSONObject();
-
-                    obj.put("kunde", doc.getString("customer"));
-                    obj.put("ort", doc.getString("address"));
-                    obj.put("art", doc.getString("service"));
-                    obj.put("datum", doc.getString("date"));
-                    obj.put("preis", doc.getString("price"));
-                    obj.put("notiz", doc.getString("description"));
-
-                    array.put(obj);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            webView.post(() ->
-                webView.evaluateJavascript(
-                    "window.receiveOrdersFromFirestore(" +
-                    array.toString() +
-                    ");",
-                    null
-                )
-            );
-        });
-}
         /*
-         * Stundenzettel PDF erstellen
+         * =================================================
+         * AUFTRAG IN FIRESTORE SPEICHERN
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public void saveOrderToFirestore(
+                String customer,
+                String address,
+                String service,
+                String date,
+                String price,
+                String description
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        java.util.Map<String, Object> order =
+                                new java.util.HashMap<>();
+
+
+                        order.put(
+                                "customer",
+                                safeString(customer)
+                        );
+
+                        order.put(
+                                "address",
+                                safeString(address)
+                        );
+
+                        order.put(
+                                "service",
+                                safeString(service)
+                        );
+
+                        order.put(
+                                "date",
+                                safeString(date)
+                        );
+
+                        order.put(
+                                "price",
+                                safeString(price)
+                        );
+
+                        order.put(
+                                "description",
+                                safeString(description)
+                        );
+
+                        order.put(
+                                "createdAt",
+                                com.google.firebase.firestore.FieldValue
+                                        .serverTimestamp()
+                        );
+
+
+                        com.google.firebase.firestore.FirebaseFirestore
+                                .getInstance()
+
+                                .collection(
+                                        "orders"
+                                )
+
+                                .add(
+                                        order
+                                )
+
+                                .addOnFailureListener(
+                                        e ->
+                                                runOnUiThread(
+                                                        () ->
+                                                                Toast.makeText(
+                                                                        MainActivity.this,
+                                                                        "Auftrag konnte nicht in Firebase gespeichert werden: "
+                                                                                +
+                                                                                e.getMessage(),
+                                                                        Toast.LENGTH_LONG
+                                                                ).show()
+                                                )
+                                );
+                    }
+            );
+        }
+
+
+        /*
+         * =================================================
+         * AUFTRÄGE AUS FIRESTORE LADEN
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public void loadOrdersFromFirestore() {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        com.google.firebase.firestore.FirebaseFirestore
+                                .getInstance()
+
+                                .collection(
+                                        "orders"
+                                )
+
+                                .get()
+
+                                .addOnSuccessListener(
+                                        snapshots -> {
+
+                                            JSONArray array =
+                                                    new JSONArray();
+
+
+                                            for (
+                                                    com.google.firebase.firestore.QueryDocumentSnapshot doc
+                                                    :
+                                                    snapshots
+                                            ) {
+
+                                                try {
+
+                                                    JSONObject obj =
+                                                            new JSONObject();
+
+
+                                                    obj.put(
+                                                            "kunde",
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "customer"
+                                                                    )
+                                                            )
+                                                    );
+
+
+                                                    obj.put(
+                                                            "ort",
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "address"
+                                                                    )
+                                                            )
+                                                    );
+
+
+                                                    obj.put(
+                                                            "art",
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "service"
+                                                                    )
+                                                            )
+                                                    );
+
+
+                                                    obj.put(
+                                                            "datum",
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "date"
+                                                                    )
+                                                            )
+                                                    );
+
+
+                                                    obj.put(
+                                                            "preis",
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "price"
+                                                                    )
+                                                            )
+                                                    );
+
+
+                                                    obj.put(
+                                                            "notiz",
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "description"
+                                                                    )
+                                                            )
+                                                    );
+
+
+                                                    array.put(
+                                                            obj
+                                                    );
+
+
+                                                } catch (Exception e) {
+
+                                                    e.printStackTrace();
+                                                }
+                                            }
+
+
+                                            String javascript =
+
+                                                    "if(typeof window.receiveOrdersFromFirestore==='function'){" +
+
+                                                    "window.receiveOrdersFromFirestore(" +
+
+                                                    array.toString() +
+
+                                                    ");" +
+
+                                                    "}";
+
+
+                                            if (
+                                                    webView
+                                                            !=
+                                                    null
+                                            ) {
+
+                                                webView.post(
+                                                        () ->
+                                                                webView.evaluateJavascript(
+                                                                        javascript,
+                                                                        null
+                                                                )
+                                                );
+                                            }
+                                        }
+                                )
+
+                                .addOnFailureListener(
+                                        e ->
+                                                runOnUiThread(
+                                                        () ->
+                                                                Toast.makeText(
+                                                                        MainActivity.this,
+                                                                        "Aufträge konnten nicht geladen werden: "
+                                                                                +
+                                                                                e.getMessage(),
+                                                                        Toast.LENGTH_LONG
+                                                                ).show()
+                                                )
+                                );
+                    }
+            );
+        }
+
+
+        /*
+         * =================================================
+         * STUNDENZETTEL IN FIRESTORE SPEICHERN
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public void saveTimesheetToFirestore(
+                String mitarbeiterId,
+                String mitarbeiterName,
+                String monat,
+                String jsonData
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        try {
+
+                            String employeeId =
+                                    safeString(
+                                            mitarbeiterId
+                                    );
+
+
+                            String employeeName =
+                                    safeString(
+                                            mitarbeiterName
+                                    );
+
+
+                            String month =
+                                    safeString(
+                                            monat
+                                    );
+
+
+                            String daysJson =
+                                    jsonData == null
+                                            ?
+                                            "[]"
+                                            :
+                                            jsonData;
+
+
+                            if (
+                                    employeeId.trim().isEmpty()
+                                    ||
+                                    month.trim().isEmpty()
+                            ) {
+
+                                runOnUiThread(
+                                        () ->
+                                                Toast.makeText(
+                                                        MainActivity.this,
+                                                        "Mitarbeiter oder Monat fehlt.",
+                                                        Toast.LENGTH_LONG
+                                                ).show()
+                                );
+
+                                return;
+                            }
+
+
+                            /*
+                             * Ein Mitarbeiter + ein Monat
+                             * = genau ein Dokument.
+                             */
+
+                            String documentId =
+
+                                    employeeId
+
+                                    +
+
+                                    "_"
+
+                                    +
+
+                                    month;
+
+
+                            java.util.Map<String, Object> timesheet =
+                                    new java.util.HashMap<>();
+
+
+                            timesheet.put(
+                                    "key",
+                                    documentId
+                            );
+
+
+                            timesheet.put(
+                                    "mitarbeiterId",
+                                    employeeId
+                            );
+
+
+                            timesheet.put(
+                                    "mitarbeiter",
+                                    employeeName
+                            );
+
+
+                            timesheet.put(
+                                    "monat",
+                                    month
+                            );
+
+
+                            timesheet.put(
+                                    "tageJson",
+                                    daysJson
+                            );
+
+
+                            timesheet.put(
+                                    "updatedAt",
+                                    com.google.firebase.firestore.FieldValue
+                                            .serverTimestamp()
+                            );
+
+
+                            com.google.firebase.firestore.FirebaseFirestore
+                                    .getInstance()
+
+                                    .collection(
+                                            "timesheets"
+                                    )
+
+                                    .document(
+                                            documentId
+                                    )
+
+                                    .set(
+                                            timesheet
+                                    )
+
+                                    .addOnSuccessListener(
+                                            unused ->
+                                                    runOnUiThread(
+                                                            () ->
+                                                                    Toast.makeText(
+                                                                            MainActivity.this,
+                                                                            "Stundenzettel in Firebase gespeichert ✅",
+                                                                            Toast.LENGTH_SHORT
+                                                                    ).show()
+                                                    )
+                                    )
+
+                                    .addOnFailureListener(
+                                            e ->
+                                                    runOnUiThread(
+                                                            () ->
+                                                                    Toast.makeText(
+                                                                            MainActivity.this,
+                                                                            "Stundenzettel konnte nicht gespeichert werden: "
+                                                                                    +
+                                                                                    e.getMessage(),
+                                                                            Toast.LENGTH_LONG
+                                                                    ).show()
+                                                    )
+                                    );
+
+
+                        } catch (Exception e) {
+
+                            runOnUiThread(
+                                    () ->
+                                            Toast.makeText(
+                                                    MainActivity.this,
+                                                    "Stundenzettel-Fehler: "
+                                                            +
+                                                            e.getMessage(),
+                                                    Toast.LENGTH_LONG
+                                            ).show()
+                            );
+                        }
+                    }
+            );
+        }
+
+
+        /*
+         * =================================================
+         * STUNDENZETTEL AUS FIRESTORE LADEN
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public void loadTimesheetsFromFirestore() {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        com.google.firebase.firestore.FirebaseFirestore
+                                .getInstance()
+
+                                .collection(
+                                        "timesheets"
+                                )
+
+                                .get()
+
+                                .addOnSuccessListener(
+                                        snapshots -> {
+
+                                            JSONArray result =
+                                                    new JSONArray();
+
+
+                                            for (
+                                                    com.google.firebase.firestore.QueryDocumentSnapshot doc
+                                                    :
+                                                    snapshots
+                                            ) {
+
+                                                try {
+
+                                                    JSONObject obj =
+                                                            new JSONObject();
+
+
+                                                    String mitarbeiterId =
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "mitarbeiterId"
+                                                                    )
+                                                            );
+
+
+                                                    String mitarbeiter =
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "mitarbeiter"
+                                                                    )
+                                                            );
+
+
+                                                    String monat =
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "monat"
+                                                                    )
+                                                            );
+
+
+                                                    String key =
+                                                            safeString(
+                                                                    doc.getString(
+                                                                            "key"
+                                                                    )
+                                                            );
+
+
+                                                    if (
+                                                            key.trim().isEmpty()
+                                                    ) {
+
+                                                        key =
+
+                                                                mitarbeiterId
+
+                                                                +
+
+                                                                "_"
+
+                                                                +
+
+                                                                monat;
+                                                    }
+
+
+                                                    String tageJson =
+                                                            doc.getString(
+                                                                    "tageJson"
+                                                            );
+
+
+                                                    obj.put(
+                                                            "key",
+                                                            key
+                                                    );
+
+
+                                                    obj.put(
+                                                            "mitarbeiterId",
+                                                            mitarbeiterId
+                                                    );
+
+
+                                                    obj.put(
+                                                            "mitarbeiter",
+                                                            mitarbeiter
+                                                    );
+
+
+                                                    obj.put(
+                                                            "monat",
+                                                            monat
+                                                    );
+
+
+                                                    if (
+                                                            tageJson
+                                                                    !=
+                                                            null
+                                                            &&
+                                                            !tageJson
+                                                                    .trim()
+                                                                    .isEmpty()
+                                                    ) {
+
+                                                        try {
+
+                                                            JSONArray tage =
+                                                                    new JSONArray(
+                                                                            tageJson
+                                                                    );
+
+
+                                                            obj.put(
+                                                                    "tage",
+                                                                    tage
+                                                            );
+
+
+                                                        } catch (Exception ignored) {
+
+                                                            obj.put(
+                                                                    "tage",
+                                                                    new JSONArray()
+                                                            );
+                                                        }
+
+                                                    } else {
+
+                                                        obj.put(
+                                                                "tage",
+                                                                new JSONArray()
+                                                        );
+                                                    }
+
+
+                                                    result.put(
+                                                            obj
+                                                    );
+
+
+                                                } catch (Exception e) {
+
+                                                    e.printStackTrace();
+                                                }
+                                            }
+
+
+                                            String javascript =
+
+                                                    "if(typeof window.receiveTimesheetsFromFirestore==='function'){" +
+
+                                                    "window.receiveTimesheetsFromFirestore(" +
+
+                                                    result.toString() +
+
+                                                    ");" +
+
+                                                    "}";
+
+
+                                            if (
+                                                    webView
+                                                            !=
+                                                    null
+                                            ) {
+
+                                                webView.post(
+                                                        () ->
+                                                                webView.evaluateJavascript(
+                                                                        javascript,
+                                                                        null
+                                                                )
+                                                );
+                                            }
+                                        }
+                                )
+
+                                .addOnFailureListener(
+                                        e ->
+                                                runOnUiThread(
+                                                        () ->
+                                                                Toast.makeText(
+                                                                        MainActivity.this,
+                                                                        "Stundenzettel konnten nicht geladen werden: "
+                                                                                +
+                                                                                e.getMessage(),
+                                                                        Toast.LENGTH_LONG
+                                                                ).show()
+                                                )
+                                );
+                    }
+            );
+        }
+
+
+        /*
+         * =================================================
+         * STUNDENZETTEL PDF ERSTELLEN
+         * =================================================
          */
 
         @JavascriptInterface
@@ -272,12 +962,14 @@ public void loadOrdersFromFirestore() {
                     () -> {
 
                         pendingPdfEmployee =
-                                employee == null ||
-                                employee.trim().isEmpty()
+                                employee == null
+                                        ||
+                                        employee.trim().isEmpty()
                                         ?
                                         "Mitarbeiter"
                                         :
                                         employee.trim();
+
 
                         pendingPdfMonth =
                                 month == null
@@ -285,6 +977,7 @@ public void loadOrdersFromFirestore() {
                                         ""
                                         :
                                         month.trim();
+
 
                         pendingPdfJson =
                                 jsonData == null
@@ -302,10 +995,23 @@ public void loadOrdersFromFirestore() {
 
 
                         String fileName =
-                                "Stundenzettel_" +
-                                safeEmployee +
-                                "_" +
-                                pendingPdfMonth +
+
+                                "Stundenzettel_"
+
+                                +
+
+                                safeEmployee
+
+                                +
+
+                                "_"
+
+                                +
+
+                                pendingPdfMonth
+
+                                +
+
                                 ".pdf";
 
 
@@ -314,18 +1020,22 @@ public void loadOrdersFromFirestore() {
                                         Intent.ACTION_CREATE_DOCUMENT
                                 );
 
+
                         intent.addCategory(
                                 Intent.CATEGORY_OPENABLE
                         );
+
 
                         intent.setType(
                                 "application/pdf"
                         );
 
+
                         intent.putExtra(
                                 Intent.EXTRA_TITLE,
                                 fileName
                         );
+
 
                         startActivityForResult(
                                 intent,
@@ -337,20 +1047,37 @@ public void loadOrdersFromFirestore() {
 
 
         /*
-         * Optional:
-         * Falls wir später in index.html einen
-         * separaten "PDF teilen"-Button einbauen.
+         * PDF später erneut teilen.
          */
 
         @JavascriptInterface
         public void shareLastPdf() {
 
             runOnUiThread(
-                    () -> sharePdf(
-                            lastSavedPdfUri
-                    )
+                    () ->
+                            sharePdf(
+                                    lastSavedPdfUri
+                            )
             );
         }
+    }
+
+
+    /*
+     * =====================================================
+     * SICHERER STRING
+     * =====================================================
+     */
+
+    private String safeString(
+            String value
+    ) {
+
+        return value == null
+                ?
+                ""
+                :
+                value;
     }
 
 
@@ -393,8 +1120,10 @@ public void loadOrdersFromFirestore() {
                 return;
             }
 
+
             Uri[] results =
                     null;
+
 
             if (
                     resultCode
@@ -411,12 +1140,15 @@ public void loadOrdersFromFirestore() {
                                 );
             }
 
+
             filePathCallback.onReceiveValue(
                     results
             );
 
+
             filePathCallback =
                     null;
+
 
             return;
         }
@@ -436,11 +1168,15 @@ public void loadOrdersFromFirestore() {
                     resultCode
                             ==
                     RESULT_OK
+
                     &&
+
                     data
                             !=
                     null
+
                     &&
+
                     data.getData()
                             !=
                     null
@@ -449,12 +1185,15 @@ public void loadOrdersFromFirestore() {
                 Uri uri =
                         data.getData();
 
+
                 lastSavedPdfUri =
                         uri;
+
 
                 createPdfFile(
                         uri
                 );
+
 
             } else {
 
@@ -464,6 +1203,7 @@ public void loadOrdersFromFirestore() {
                         Toast.LENGTH_SHORT
                 ).show();
             }
+
 
             return;
         }
@@ -482,11 +1222,14 @@ public void loadOrdersFromFirestore() {
             arMeasurementRunning =
                     false;
 
+
             if (
                     resultCode
                             ==
                     RESULT_OK
+
                     &&
+
                     data
                             !=
                     null
@@ -498,11 +1241,13 @@ public void loadOrdersFromFirestore() {
                                 0
                         );
 
+
                 double height =
                         data.getDoubleExtra(
                                 "height",
                                 0
                         );
+
 
                 double area =
                         data.getDoubleExtra(
@@ -519,28 +1264,39 @@ public void loadOrdersFromFirestore() {
                         area <= 0
                 ) {
 
-                    webView.postDelayed(
-                            () ->
-                                    webView.evaluateJavascript(
-                                            "alert('Die Messung war ungültig.');",
-                                            null
-                                    ),
-                            250
-                    );
+                    if (
+                            webView
+                                    !=
+                            null
+                    ) {
+
+                        webView.postDelayed(
+                                () ->
+                                        webView.evaluateJavascript(
+                                                "alert('Die Messung war ungültig.');",
+                                                null
+                                        ),
+                                250
+                        );
+                    }
+
 
                     return;
                 }
 
 
                 String javascript =
+
                         "if(typeof window.receiveArMeasurement==='function'){" +
 
                         "window.receiveArMeasurement(" +
 
                         width +
+
                         "," +
 
                         height +
+
                         "," +
 
                         area +
@@ -550,27 +1306,40 @@ public void loadOrdersFromFirestore() {
                         "}";
 
 
-                webView.postDelayed(
-                        () ->
-                                webView.evaluateJavascript(
-                                        javascript,
-                                        null
-                                ),
-                        250
-                );
+                if (
+                        webView
+                                !=
+                        null
+                ) {
+
+                    webView.postDelayed(
+                            () ->
+                                    webView.evaluateJavascript(
+                                            javascript,
+                                            null
+                                    ),
+                            250
+                    );
+                }
+
 
             } else {
 
-                webView.postDelayed(
-                        () ->
-                                webView.evaluateJavascript(
-                                        "if(typeof openPage==='function'){" +
-                                        "openPage('foto');" +
-                                        "}",
-                                        null
-                                ),
-                        200
-                );
+                if (
+                        webView
+                                !=
+                        null
+                ) {
+
+                    webView.postDelayed(
+                            () ->
+                                    webView.evaluateJavascript(
+                                            "if(typeof openPage==='function'){openPage('foto');}",
+                                            null
+                                    ),
+                            200
+                    );
+                }
             }
         }
     }
@@ -589,8 +1358,10 @@ public void loadOrdersFromFirestore() {
         PdfDocument document =
                 new PdfDocument();
 
+
         OutputStream outputStream =
                 null;
+
 
         try {
 
@@ -599,10 +1370,6 @@ public void loadOrdersFromFirestore() {
                             pendingPdfJson
                     );
 
-
-            /*
-             * A4 in Punkten
-             */
 
             final int pageWidth =
                     595;
@@ -621,13 +1388,14 @@ public void loadOrdersFromFirestore() {
 
 
             /*
-             * Farben / Schrift
+             * SCHRIFTEN
              */
 
             Paint titlePaint =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
+
 
             titlePaint.setColor(
                     Color.rgb(
@@ -637,9 +1405,11 @@ public void loadOrdersFromFirestore() {
                     )
             );
 
+
             titlePaint.setTextSize(
                     22f
             );
+
 
             titlePaint.setFakeBoldText(
                     true
@@ -651,9 +1421,11 @@ public void loadOrdersFromFirestore() {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
+
             subtitlePaint.setColor(
                     Color.DKGRAY
             );
+
 
             subtitlePaint.setTextSize(
                     10.5f
@@ -665,13 +1437,16 @@ public void loadOrdersFromFirestore() {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
+
             boldPaint.setColor(
                     Color.BLACK
             );
 
+
             boldPaint.setTextSize(
                     9.5f
             );
+
 
             boldPaint.setFakeBoldText(
                     true
@@ -683,9 +1458,11 @@ public void loadOrdersFromFirestore() {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
+
             normalPaint.setColor(
                     Color.BLACK
             );
+
 
             normalPaint.setTextSize(
                     8.3f
@@ -697,9 +1474,11 @@ public void loadOrdersFromFirestore() {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
+
             smallPaint.setColor(
                     Color.DKGRAY
             );
+
 
             smallPaint.setTextSize(
                     7.5f
@@ -711,6 +1490,7 @@ public void loadOrdersFromFirestore() {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
+
             linePaint.setColor(
                     Color.rgb(
                             210,
@@ -719,6 +1499,7 @@ public void loadOrdersFromFirestore() {
                     )
             );
 
+
             linePaint.setStrokeWidth(
                     1f
             );
@@ -726,6 +1507,7 @@ public void loadOrdersFromFirestore() {
 
             Paint headerBackgroundPaint =
                     new Paint();
+
 
             headerBackgroundPaint.setColor(
                     Color.rgb(
@@ -738,6 +1520,7 @@ public void loadOrdersFromFirestore() {
 
             Paint totalBackgroundPaint =
                     new Paint();
+
 
             totalBackgroundPaint.setColor(
                     Color.rgb(
@@ -753,13 +1536,16 @@ public void loadOrdersFromFirestore() {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
+
             totalBorderPaint.setStyle(
                     Paint.Style.STROKE
             );
 
+
             totalBorderPaint.setStrokeWidth(
                     1f
             );
+
 
             totalBorderPaint.setColor(
                     Color.rgb(
@@ -771,14 +1557,12 @@ public void loadOrdersFromFirestore() {
 
 
             /*
-             * Gesamtstunden vorher berechnen.
-             *
-             * Dadurch stimmt die Summe auch
-             * bei mehreren PDF-Seiten.
+             * GESAMTSTUNDEN
              */
 
             double totalHours =
                     0;
+
 
             for (
                     int i = 0;
@@ -791,6 +1575,7 @@ public void loadOrdersFromFirestore() {
                                 i
                         );
 
+
                 totalHours +=
                         row.optDouble(
                                 "stunden",
@@ -799,22 +1584,35 @@ public void loadOrdersFromFirestore() {
             }
 
 
-            /*
-             * Tabellenwerte
-             */
-
             int pageNumber =
                     1;
 
+
             int index =
                     0;
+
+
+            /*
+             * Auch bei leerer Tabelle eine Seite erzeugen.
+             */
+
+            boolean firstPage =
+                    true;
 
 
             while (
                     index
                             <
                     rows.length()
+
+                    ||
+
+                    firstPage
             ) {
+
+                firstPage =
+                        false;
+
 
                 PdfDocument.PageInfo pageInfo =
                         new PdfDocument.PageInfo.Builder(
@@ -839,9 +1637,7 @@ public void loadOrdersFromFirestore() {
 
 
                 /*
-                 * =================================================
-                 * KOPFBEREICH
-                 * =================================================
+                 * KOPF
                  */
 
                 canvas.drawText(
@@ -869,8 +1665,9 @@ public void loadOrdersFromFirestore() {
 
 
                 canvas.drawText(
-                        "Mitarbeiter: " +
-                        pendingPdfEmployee,
+                        "Mitarbeiter: "
+                                +
+                                pendingPdfEmployee,
                         marginLeft,
                         y,
                         subtitlePaint
@@ -878,7 +1675,11 @@ public void loadOrdersFromFirestore() {
 
 
                 String monthText =
-                        "Monat: " +
+
+                        "Monat: "
+
+                        +
+
                         formatPdfMonth(
                                 pendingPdfMonth
                         );
@@ -892,9 +1693,11 @@ public void loadOrdersFromFirestore() {
 
                 canvas.drawText(
                         monthText,
-                        pageWidth -
-                        marginRight -
-                        monthWidth,
+                        pageWidth
+                                -
+                                marginRight
+                                -
+                                monthWidth,
                         y,
                         subtitlePaint
                 );
@@ -918,61 +1721,29 @@ public void loadOrdersFromFirestore() {
 
 
                 /*
-                 * =================================================
                  * TABELLENSPALTEN
-                 * =================================================
                  */
 
                 float xDate =
                         marginLeft;
 
-                float wDate =
-                        67;
-
-
                 float xStatus =
-                        xDate +
-                        wDate;
-
-                float wStatus =
-                        58;
-
+                        xDate + 67;
 
                 float xStart =
-                        xStatus +
-                        wStatus;
-
-                float wStart =
-                        47;
-
+                        xStatus + 58;
 
                 float xEnd =
-                        xStart +
-                        wStart;
-
-                float wEnd =
-                        47;
-
+                        xStart + 47;
 
                 float xPause =
-                        xEnd +
-                        wEnd;
-
-                float wPause =
-                        49;
-
+                        xEnd + 47;
 
                 float xHours =
-                        xPause +
-                        wPause;
-
-                float wHours =
-                        52;
-
+                        xPause + 49;
 
                 float xObject =
-                        xHours +
-                        wHours;
+                        xHours + 52;
 
 
                 float tableHeaderTop =
@@ -1001,12 +1772,14 @@ public void loadOrdersFromFirestore() {
                         boldPaint
                 );
 
+
                 canvas.drawText(
                         "Status",
                         xStatus + 3,
                         y,
                         boldPaint
                 );
+
 
                 canvas.drawText(
                         "Start",
@@ -1015,12 +1788,14 @@ public void loadOrdersFromFirestore() {
                         boldPaint
                 );
 
+
                 canvas.drawText(
                         "Ende",
                         xEnd + 3,
                         y,
                         boldPaint
                 );
+
 
                 canvas.drawText(
                         "Pause",
@@ -1029,12 +1804,14 @@ public void loadOrdersFromFirestore() {
                         boldPaint
                 );
 
+
                 canvas.drawText(
                         "Std.",
                         xHours + 3,
                         y,
                         boldPaint
                 );
+
 
                 canvas.drawText(
                         "Objekt",
@@ -1064,13 +1841,13 @@ public void loadOrdersFromFirestore() {
 
                         xObject,
 
-                        pageWidth -
-                        marginRight
+                        pageWidth - marginRight
                 };
 
 
                 for (
-                        float x :
+                        float x
+                        :
                         columnLines
                 ) {
 
@@ -1094,21 +1871,23 @@ public void loadOrdersFromFirestore() {
 
 
                 /*
-                 * =================================================
-                 * TABELLENZEILEN
-                 * =================================================
+                 * ZEILEN
                  */
 
                 while (
                         index
                                 <
                         rows.length()
+
                         &&
+
                         y
                                 <
-                        pageHeight -
-                        footerHeight -
-                        125
+                        pageHeight
+                                -
+                                footerHeight
+                                -
+                                125
                 ) {
 
                     JSONObject row =
@@ -1247,7 +2026,8 @@ public void loadOrdersFromFirestore() {
 
 
                     for (
-                            float x :
+                            float x
+                            :
                             columnLines
                     ) {
 
@@ -1279,9 +2059,7 @@ public void loadOrdersFromFirestore() {
 
 
                 /*
-                 * =================================================
                  * LETZTE SEITE
-                 * =================================================
                  */
 
                 if (
@@ -1364,10 +2142,6 @@ public void loadOrdersFromFirestore() {
                     );
 
 
-                    /*
-                     * Unterschriften
-                     */
-
                     y +=
                             78;
 
@@ -1391,21 +2165,24 @@ public void loadOrdersFromFirestore() {
 
                     canvas.drawText(
                             "Unterschrift Arbeitgeber",
-                            pageWidth -
-                            marginRight -
-                            220,
+                            pageWidth
+                                    -
+                                    marginRight
+                                    -
+                                    220,
                             y,
                             smallPaint
                     );
 
 
                     canvas.drawLine(
-                            pageWidth -
-                            marginRight -
-                            220,
+                            pageWidth
+                                    -
+                                    marginRight
+                                    -
+                                    220,
                             y + 18,
-                            pageWidth -
-                            marginRight,
+                            pageWidth - marginRight,
                             y + 18,
                             linePaint
                     );
@@ -1413,9 +2190,7 @@ public void loadOrdersFromFirestore() {
 
 
                 /*
-                 * =================================================
                  * FUßZEILE
-                 * =================================================
                  */
 
                 canvas.drawLine(
@@ -1435,13 +2210,10 @@ public void loadOrdersFromFirestore() {
                 );
 
 
-                /*
-                 * Nur EIN Seitentext.
-                 */
-
                 String pageText =
-                        "Seite " +
-                        pageNumber;
+                        "Seite "
+                                +
+                                pageNumber;
 
 
                 float pageTextWidth =
@@ -1452,9 +2224,11 @@ public void loadOrdersFromFirestore() {
 
                 canvas.drawText(
                         pageText,
-                        pageWidth -
-                        marginRight -
-                        pageTextWidth,
+                        pageWidth
+                                -
+                                marginRight
+                                -
+                                pageTextWidth,
                         pageHeight - 16,
                         smallPaint
                 );
@@ -1468,10 +2242,6 @@ public void loadOrdersFromFirestore() {
                 pageNumber++;
             }
 
-
-            /*
-             * PDF schreiben
-             */
 
             outputStream =
                     getContentResolver()
@@ -1507,11 +2277,6 @@ public void loadOrdersFromFirestore() {
             ).show();
 
 
-            /*
-             * Nach erfolgreichem Speichern:
-             * Teilen anbieten.
-             */
-
             showShareDialog(
                     uri
             );
@@ -1521,8 +2286,9 @@ public void loadOrdersFromFirestore() {
 
             Toast.makeText(
                     this,
-                    "PDF-Fehler: " +
-                    e.getMessage(),
+                    "PDF-Fehler: "
+                            +
+                            e.getMessage(),
                     Toast.LENGTH_LONG
             ).show();
 
@@ -1540,9 +2306,7 @@ public void loadOrdersFromFirestore() {
                     outputStream.close();
                 }
 
-            } catch (
-                    Exception ignored
-            ) {
+            } catch (Exception ignored) {
 
             }
 
@@ -1554,7 +2318,7 @@ public void loadOrdersFromFirestore() {
 
     /*
      * =====================================================
-     * NACH DEM SPEICHERN: TEILEN?
+     * PDF TEILEN?
      * =====================================================
      */
 
@@ -1623,6 +2387,7 @@ public void loadOrdersFromFirestore() {
                     Toast.LENGTH_SHORT
             ).show();
 
+
             return;
         }
 
@@ -1648,9 +2413,19 @@ public void loadOrdersFromFirestore() {
 
             shareIntent.putExtra(
                     Intent.EXTRA_SUBJECT,
-                    "Stundenzettel " +
-                    pendingPdfEmployee +
-                    " " +
+
+                    "Stundenzettel "
+
+                    +
+
+                    pendingPdfEmployee
+
+                    +
+
+                    " "
+
+                    +
+
                     formatPdfMonth(
                             pendingPdfMonth
                     )
@@ -1659,20 +2434,28 @@ public void loadOrdersFromFirestore() {
 
             shareIntent.putExtra(
                     Intent.EXTRA_TEXT,
-                    "Stundenzettel von " +
-                    pendingPdfEmployee +
-                    " für " +
+
+                    "Stundenzettel von "
+
+                    +
+
+                    pendingPdfEmployee
+
+                    +
+
+                    " für "
+
+                    +
+
                     formatPdfMonth(
                             pendingPdfMonth
-                    ) +
+                    )
+
+                    +
+
                     "."
             );
 
-
-            /*
-             * Sehr wichtig:
-             * Andere Apps dürfen die PDF lesen.
-             */
 
             shareIntent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -1700,7 +2483,7 @@ public void loadOrdersFromFirestore() {
 
     /*
      * =====================================================
-     * MONAT SCHÖN FORMATIEREN
+     * MONAT FORMATIEREN
      * =====================================================
      */
 
@@ -1712,7 +2495,9 @@ public void loadOrdersFromFirestore() {
                 month
                         ==
                 null
+
                 ||
+
                 month.trim().isEmpty()
         ) {
 
@@ -1778,15 +2563,19 @@ public void loadOrdersFromFirestore() {
 
                 return monthNames[
                         monthNumber
-                        ] +
-                        " " +
+                        ]
+
+                        +
+
+                        " "
+
+                        +
+
                         year;
             }
 
 
-        } catch (
-                Exception ignored
-        ) {
+        } catch (Exception ignored) {
 
         }
 
@@ -1898,21 +2687,33 @@ public void loadOrdersFromFirestore() {
 
         webView.evaluateJavascript(
 
-                "if(typeof window.androidBack==='function'){" +
+                "if(typeof window.androidBack==='function'){"
 
-                "window.androidBack();" +
+                        +
 
-                "}else{" +
+                        "window.androidBack();"
 
-                "false;" +
+                        +
 
-                "}",
+                        "}else{"
+
+                        +
+
+                        "false;"
+
+                        +
+
+                        "}",
 
                 value -> {
 
                     boolean handled =
-                            value != null
+                            value
+                                    !=
+                            null
+
                             &&
+
                             value.contains(
                                     "true"
                             );
@@ -1961,9 +2762,12 @@ public void loadOrdersFromFirestore() {
                     "Android"
             );
 
+
             webView.stopLoading();
 
+
             webView.destroy();
+
 
             webView =
                     null;
