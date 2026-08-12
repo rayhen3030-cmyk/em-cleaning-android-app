@@ -36,6 +36,16 @@ public class MainActivity extends Activity {
     private static final int AR_MEASURE_REQUEST = 2001;
     private static final int PDF_CREATE_REQUEST = 3001;
 
+    /*
+     * SHA-256 von:
+     * admin:2012
+     *
+     * Dadurch steht die Admin-PIN nicht direkt
+     * als Klartext im Java-Code.
+     */
+    private static final String ADMIN_PIN_HASH =
+            "644b470df4dac0e41df0cd61c5d1e5c460961978683698055a42b2db77c501fd";
+
     private boolean arMeasurementRunning = false;
 
     private String pendingPdfEmployee = "";
@@ -43,6 +53,27 @@ public class MainActivity extends Activity {
     private String pendingPdfJson = "[]";
 
     private Uri lastSavedPdfUri = null;
+
+    /*
+     * =====================================================
+     * SITZUNG / LOGIN
+     * =====================================================
+     */
+
+    private boolean adminLoggedIn = false;
+
+    private String loggedInEmployeeId = "";
+    private String loggedInEmployeeName = "";
+
+    /*
+     * Kleine lokale Sperre gegen sehr schnelles
+     * PIN-Ausprobieren.
+     */
+    private int employeeFailedAttempts = 0;
+    private long employeeLockUntil = 0;
+
+    private int adminFailedAttempts = 0;
+    private long adminLockUntil = 0;
 
 
     @Override
@@ -63,8 +94,17 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+
+        /*
+         * Sicherheitsrelevante WebView-Einstellungen.
+         */
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
+
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
+
+        WebView.setWebContentsDebuggingEnabled(false);
 
         webView.setWebViewClient(
                 new WebViewClient()
@@ -117,12 +157,10 @@ public class MainActivity extends Activity {
                 }
         );
 
-
         webView.addJavascriptInterface(
                 new AndroidBridge(),
                 "Android"
         );
-
 
         if (savedInstanceState != null) {
 
@@ -153,7 +191,6 @@ public class MainActivity extends Activity {
                 com.google.firebase.auth.FirebaseAuth
                         .getInstance();
 
-
         if (
                 auth.getCurrentUser()
                         !=
@@ -167,7 +204,6 @@ public class MainActivity extends Activity {
 
             return;
         }
-
 
         auth.signInAnonymously()
 
@@ -189,7 +225,9 @@ public class MainActivity extends Activity {
                                                         MainActivity.this,
                                                         "Firebase-Anmeldung fehlgeschlagen: "
                                                                 +
-                                                                e.getMessage(),
+                                                                safeString(
+                                                                        e.getMessage()
+                                                                ),
                                                         Toast.LENGTH_LONG
                                                 ).show()
                                 )
@@ -215,51 +253,28 @@ public class MainActivity extends Activity {
     }
 
 
-    /*
-     * PIN nicht als Klartext speichern.
-     */
-
-    private String createPinHash(
-            String employeeId,
-            String pin
+    private String sha256(
+            String value
     ) {
 
         try {
-
-            String input =
-
-                    safeString(
-                            employeeId
-                    )
-
-                    +
-
-                    ":"
-
-                    +
-
-                    safeString(
-                            pin
-                    );
-
 
             MessageDigest digest =
                     MessageDigest.getInstance(
                             "SHA-256"
                     );
 
-
             byte[] bytes =
                     digest.digest(
-                            input.getBytes(
+                            safeString(
+                                    value
+                            ).getBytes(
                                     "UTF-8"
                             )
                     );
 
-
             StringBuilder builder =
                     new StringBuilder();
-
 
             for (byte b : bytes) {
 
@@ -272,14 +287,138 @@ public class MainActivity extends Activity {
                 );
             }
 
-
             return builder.toString();
-
 
         } catch (Exception e) {
 
             return "";
         }
+    }
+
+
+    private String createPinHash(
+            String employeeId,
+            String pin
+    ) {
+
+        return sha256(
+
+                safeString(
+                        employeeId
+                )
+
+                +
+
+                ":"
+
+                +
+
+                safeString(
+                        pin
+                )
+        );
+    }
+
+
+    private String createAdminPinHash(
+            String pin
+    ) {
+
+        return sha256(
+
+                "admin:"
+
+                +
+
+                safeString(
+                        pin
+                )
+        );
+    }
+
+
+    private void postJavascript(
+            String javascript
+    ) {
+
+        if (
+                webView
+                        ==
+                null
+        ) {
+
+            return;
+        }
+
+        webView.post(
+                () -> {
+
+                    if (
+                            webView
+                                    !=
+                            null
+                    ) {
+
+                        webView.evaluateJavascript(
+                                javascript,
+                                null
+                        );
+                    }
+                }
+        );
+    }
+
+
+    private boolean employeeSessionActive() {
+
+        return
+                loggedInEmployeeId != null
+                &&
+                !loggedInEmployeeId
+                        .trim()
+                        .isEmpty();
+    }
+
+
+    private void clearEmployeeSession() {
+
+        loggedInEmployeeId =
+                "";
+
+        loggedInEmployeeName =
+                "";
+
+        employeeFailedAttempts =
+                0;
+
+        employeeLockUntil =
+                0;
+    }
+
+
+    private void clearAdminSession() {
+
+        adminLoggedIn =
+                false;
+
+        adminFailedAttempts =
+                0;
+
+        adminLockUntil =
+                0;
+    }
+
+
+    private void showAdminRequired() {
+
+        runOnUiThread(
+                () ->
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Diese Funktion ist nur für die Verwaltung.",
+                                Toast.LENGTH_SHORT
+                        ).show()
+        );
     }
 
 
@@ -294,12 +433,252 @@ public class MainActivity extends Activity {
 
         /*
          * =================================================
+         * SITZUNGSSTATUS
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public boolean isAdminLoggedIn() {
+
+            return adminLoggedIn;
+        }
+
+
+        @JavascriptInterface
+        public boolean isEmployeeLoggedIn() {
+
+            return employeeSessionActive();
+        }
+
+
+        @JavascriptInterface
+        public String getLoggedInEmployeeId() {
+
+            return employeeSessionActive()
+                    ?
+                    loggedInEmployeeId
+                    :
+                    "";
+        }
+
+
+        /*
+         * =================================================
+         * ADMIN LOGIN
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public void loginAdmin(
+                String pin
+        ) {
+
+            String cleanPin =
+                    safeString(
+                            pin
+                    ).trim();
+
+            long now =
+                    System.currentTimeMillis();
+
+            if (
+                    now
+                            <
+                    adminLockUntil
+            ) {
+
+                long seconds =
+                        Math.max(
+                                1,
+                                (
+                                        adminLockUntil
+                                                -
+                                        now
+                                )
+                                        /
+                                        1000
+                        );
+
+                sendAdminLoginResult(
+                        false,
+                        "Zu viele falsche Versuche. Bitte "
+                                +
+                                seconds
+                                +
+                                " Sekunden warten."
+                );
+
+                return;
+            }
+
+            if (
+                    !cleanPin.matches(
+                            "\\d{4}"
+                    )
+            ) {
+
+                sendAdminLoginResult(
+                        false,
+                        "Die Admin-PIN muss aus 4 Ziffern bestehen."
+                );
+
+                return;
+            }
+
+            String enteredHash =
+                    createAdminPinHash(
+                            cleanPin
+                    );
+
+            if (
+                    !ADMIN_PIN_HASH.equals(
+                            enteredHash
+                    )
+            ) {
+
+                adminFailedAttempts++;
+
+                if (
+                        adminFailedAttempts
+                                >=
+                        5
+                ) {
+
+                    adminLockUntil =
+                            System.currentTimeMillis()
+                                    +
+                                    30000;
+
+                    adminFailedAttempts =
+                            0;
+
+                    sendAdminLoginResult(
+                            false,
+                            "Zu viele falsche Versuche. Bitte 30 Sekunden warten."
+                    );
+
+                    return;
+                }
+
+                sendAdminLoginResult(
+                        false,
+                        "Admin-PIN ist falsch."
+                );
+
+                return;
+            }
+
+            /*
+             * Admin-Modus aktivieren.
+             * Mitarbeitersitzung gleichzeitig beenden.
+             */
+
+            clearEmployeeSession();
+
+            adminLoggedIn =
+                    true;
+
+            adminFailedAttempts =
+                    0;
+
+            adminLockUntil =
+                    0;
+
+            sendAdminLoginResult(
+                    true,
+                    "Verwaltung geöffnet."
+            );
+        }
+
+
+        @JavascriptInterface
+        public void logoutAdmin() {
+
+            clearAdminSession();
+        }
+
+
+        private void sendAdminLoginResult(
+                boolean success,
+                String message
+        ) {
+
+            try {
+
+                JSONObject result =
+                        new JSONObject();
+
+                result.put(
+                        "success",
+                        success
+                );
+
+                result.put(
+                        "message",
+                        safeString(
+                                message
+                        )
+                );
+
+                postJavascript(
+
+                        "if(typeof window.receiveAdminLogin==='function'){"
+
+                                +
+
+                                "window.receiveAdminLogin("
+
+                                +
+
+                                result.toString()
+
+                                +
+
+                                ");"
+
+                                +
+
+                                "}"
+                );
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+        }
+
+
+        /*
+         * =================================================
+         * MITARBEITER AUSLOGGEN
+         * =================================================
+         */
+
+        @JavascriptInterface
+        public void logoutEmployee() {
+
+            clearEmployeeSession();
+        }
+
+
+        /*
+         * =================================================
          * AR
+         * Nur Verwaltung.
          * =================================================
          */
 
         @JavascriptInterface
         public void startArMeasurement() {
+
+            if (
+                    !adminLoggedIn
+            ) {
+
+                showAdminRequired();
+
+                return;
+            }
 
             runOnUiThread(
                     () -> {
@@ -339,8 +718,7 @@ public class MainActivity extends Activity {
         /*
          * =================================================
          * MITARBEITER SPEICHERN
-         *
-         * PIN ist jetzt zusätzlicher Parameter.
+         * Nur Verwaltung.
          * =================================================
          */
 
@@ -354,6 +732,15 @@ public class MainActivity extends Activity {
                 String pin
         ) {
 
+            if (
+                    !adminLoggedIn
+            ) {
+
+                showAdminRequired();
+
+                return;
+            }
+
             ensureFirebaseAuth(
                     () -> {
 
@@ -361,7 +748,6 @@ public class MainActivity extends Activity {
                                 safeString(
                                         id
                                 ).trim();
-
 
                         if (
                                 employeeId.isEmpty()
@@ -373,12 +759,10 @@ public class MainActivity extends Activity {
                                     );
                         }
 
-
                         String employeeName =
                                 safeString(
                                         name
                                 ).trim();
-
 
                         if (
                                 employeeName.isEmpty()
@@ -396,20 +780,10 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         String cleanPin =
                                 safeString(
                                         pin
                                 ).trim();
-
-
-                        /*
-                         * Wenn eine PIN mitgegeben wird,
-                         * muss sie genau vier Ziffern haben.
-                         *
-                         * Leere PIN ist erlaubt, damit alte
-                         * Mitarbeiter zunächst geladen werden können.
-                         */
 
                         if (
                                 !cleanPin.isEmpty()
@@ -431,10 +805,8 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         final String finalEmployeeId =
                                 employeeId;
-
 
                         com.google.firebase.firestore.DocumentReference ref =
 
@@ -449,13 +821,6 @@ public class MainActivity extends Activity {
                                                 finalEmployeeId
                                         );
 
-
-                        /*
-                         * Bestehenden Mitarbeiter zuerst laden,
-                         * damit eine bereits gesetzte PIN nicht
-                         * versehentlich gelöscht wird.
-                         */
-
                         ref.get()
 
                                 .addOnSuccessListener(
@@ -463,7 +828,6 @@ public class MainActivity extends Activity {
 
                                             Map<String, Object> employee =
                                                     new HashMap<>();
-
 
                                             employee.put(
                                                     "id",
@@ -496,12 +860,6 @@ public class MainActivity extends Activity {
                                                     )
                                             );
 
-
-                                            /*
-                                             * Nur wenn eine neue PIN eingegeben
-                                             * wurde, wird der Hash aktualisiert.
-                                             */
-
                                             if (
                                                     !cleanPin.isEmpty()
                                             ) {
@@ -519,14 +877,12 @@ public class MainActivity extends Activity {
                                                         true
                                                 );
 
-
                                             } else {
 
                                                 Object existingHash =
                                                         snapshot.get(
                                                                 "pinHash"
                                                         );
-
 
                                                 if (
                                                         existingHash
@@ -544,7 +900,6 @@ public class MainActivity extends Activity {
                                                             true
                                                     );
 
-
                                                 } else {
 
                                                     employee.put(
@@ -554,14 +909,12 @@ public class MainActivity extends Activity {
                                                 }
                                             }
 
-
                                             employee.put(
                                                     "updatedAt",
                                                     com.google.firebase.firestore
                                                             .FieldValue
                                                             .serverTimestamp()
                                             );
-
 
                                             ref.set(
                                                     employee
@@ -587,7 +940,9 @@ public class MainActivity extends Activity {
                                                                                             MainActivity.this,
                                                                                             "Mitarbeiter konnte nicht gespeichert werden: "
                                                                                                     +
-                                                                                                    e.getMessage(),
+                                                                                                    safeString(
+                                                                                                            e.getMessage()
+                                                                                                    ),
                                                                                             Toast.LENGTH_LONG
                                                                                     ).show()
                                                                     )
@@ -615,8 +970,13 @@ public class MainActivity extends Activity {
          * =================================================
          * MITARBEITER LADEN
          *
-         * Wichtig:
-         * pinHash wird NICHT an HTML weitergegeben.
+         * Vor Admin-Login:
+         * Nur ID, Name und pinSet für Login-Liste.
+         *
+         * Im Admin-Modus:
+         * Vollständige Mitarbeiterdaten.
+         *
+         * pinHash wird niemals an HTML geschickt.
          * =================================================
          */
 
@@ -641,7 +1001,6 @@ public class MainActivity extends Activity {
                                             JSONArray array =
                                                     new JSONArray();
 
-
                                             for (
                                                     com.google.firebase.firestore
                                                             .QueryDocumentSnapshot doc
@@ -654,14 +1013,12 @@ public class MainActivity extends Activity {
                                                     JSONObject obj =
                                                             new JSONObject();
 
-
                                                     String id =
                                                             safeString(
                                                                     doc.getString(
                                                                             "id"
                                                                     )
                                                             );
-
 
                                                     if (
                                                             id.isEmpty()
@@ -670,7 +1027,6 @@ public class MainActivity extends Activity {
                                                         id =
                                                                 doc.getId();
                                                     }
-
 
                                                     obj.put(
                                                             "id",
@@ -686,39 +1042,10 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
-                                                    obj.put(
-                                                            "telefon",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "telefon"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "art",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "art"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "lohn",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "lohn"
-                                                                    )
-                                                            )
-                                                    );
-
-
                                                     Boolean pinSet =
                                                             doc.getBoolean(
                                                                     "pinSet"
                                                             );
-
 
                                                     obj.put(
                                                             "pinSet",
@@ -727,11 +1054,47 @@ public class MainActivity extends Activity {
                                                                     pinSet
                                                     );
 
+                                                    /*
+                                                     * Nur Admin bekommt
+                                                     * Telefon, Beschäftigungsart
+                                                     * und Stundenlohn.
+                                                     */
+
+                                                    if (
+                                                            adminLoggedIn
+                                                    ) {
+
+                                                        obj.put(
+                                                                "telefon",
+                                                                safeString(
+                                                                        doc.getString(
+                                                                                "telefon"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        obj.put(
+                                                                "art",
+                                                                safeString(
+                                                                        doc.getString(
+                                                                                "art"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        obj.put(
+                                                                "lohn",
+                                                                safeString(
+                                                                        doc.getString(
+                                                                                "lohn"
+                                                                        )
+                                                                )
+                                                        );
+                                                    }
 
                                                     array.put(
                                                             obj
                                                     );
-
 
                                                 } catch (Exception e) {
 
@@ -739,32 +1102,26 @@ public class MainActivity extends Activity {
                                                 }
                                             }
 
+                                            postJavascript(
 
-                                            String javascript =
+                                                    "if(typeof window.receiveEmployeesFromFirestore==='function'){"
 
-                                                    "if(typeof window.receiveEmployeesFromFirestore==='function'){" +
+                                                            +
 
-                                                    "window.receiveEmployeesFromFirestore(" +
+                                                            "window.receiveEmployeesFromFirestore("
 
-                                                    array.toString() +
+                                                            +
 
-                                                    ");" +
+                                                            array.toString()
 
-                                                    "}";
+                                                            +
 
+                                                            ");"
 
-                                            if (
-                                                    webView != null
-                                            ) {
+                                                            +
 
-                                                webView.post(
-                                                        () ->
-                                                                webView.evaluateJavascript(
-                                                                        javascript,
-                                                                        null
-                                                                )
-                                                );
-                                            }
+                                                            "}"
+                                            );
                                         }
                                 )
 
@@ -776,7 +1133,9 @@ public class MainActivity extends Activity {
                                                                         MainActivity.this,
                                                                         "Mitarbeiter konnten nicht geladen werden: "
                                                                                 +
-                                                                                e.getMessage(),
+                                                                                safeString(
+                                                                                        e.getMessage()
+                                                                                ),
                                                                         Toast.LENGTH_LONG
                                                                 ).show()
                                                 )
@@ -788,12 +1147,7 @@ public class MainActivity extends Activity {
 
         /*
          * =================================================
-         * MITARBEITER-LOGIN
-         *
-         * HTML sendet:
-         * Mitarbeiter-ID + eingegebene PIN.
-         *
-         * Android prüft Firebase.
+         * MITARBEITER LOGIN
          * =================================================
          */
 
@@ -803,6 +1157,47 @@ public class MainActivity extends Activity {
                 String pin
         ) {
 
+            /*
+             * Admin-Sitzung beenden,
+             * wenn Mitarbeiter sich anmeldet.
+             */
+
+            clearAdminSession();
+
+            long now =
+                    System.currentTimeMillis();
+
+            if (
+                    now
+                            <
+                    employeeLockUntil
+            ) {
+
+                long seconds =
+                        Math.max(
+                                1,
+                                (
+                                        employeeLockUntil
+                                                -
+                                        now
+                                )
+                                        /
+                                        1000
+                        );
+
+                sendEmployeeLoginResult(
+                        false,
+                        null,
+                        "Zu viele falsche Versuche. Bitte "
+                                +
+                                seconds
+                                +
+                                " Sekunden warten."
+                );
+
+                return;
+            }
+
             ensureFirebaseAuth(
                     () -> {
 
@@ -811,12 +1206,10 @@ public class MainActivity extends Activity {
                                         employeeId
                                 ).trim();
 
-
                         String cleanPin =
                                 safeString(
                                         pin
                                 ).trim();
-
 
                         if (
                                 id.isEmpty()
@@ -833,7 +1226,6 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         if (
                                 !cleanPin.matches(
                                         "\\d{4}"
@@ -848,7 +1240,6 @@ public class MainActivity extends Activity {
 
                             return;
                         }
-
 
                         com.google.firebase.firestore.FirebaseFirestore
                                 .getInstance()
@@ -870,6 +1261,8 @@ public class MainActivity extends Activity {
                                                     !snapshot.exists()
                                             ) {
 
+                                                registerEmployeeFailedLogin();
+
                                                 sendEmployeeLoginResult(
                                                         false,
                                                         null,
@@ -879,17 +1272,17 @@ public class MainActivity extends Activity {
                                                 return;
                                             }
 
-
                                             String storedHash =
                                                     snapshot.getString(
                                                             "pinHash"
                                                     );
 
-
                                             if (
                                                     storedHash == null
                                                     ||
-                                                    storedHash.trim().isEmpty()
+                                                    storedHash
+                                                            .trim()
+                                                            .isEmpty()
                                             ) {
 
                                                 sendEmployeeLoginResult(
@@ -901,19 +1294,19 @@ public class MainActivity extends Activity {
                                                 return;
                                             }
 
-
                                             String enteredHash =
                                                     createPinHash(
                                                             id,
                                                             cleanPin
                                                     );
 
-
                                             if (
                                                     !storedHash.equals(
                                                             enteredHash
                                                     )
                                             ) {
+
+                                                registerEmployeeFailedLogin();
 
                                                 sendEmployeeLoginResult(
                                                         false,
@@ -924,12 +1317,17 @@ public class MainActivity extends Activity {
                                                 return;
                                             }
 
-
                                             try {
 
                                                 JSONObject employee =
                                                         new JSONObject();
 
+                                                String employeeName =
+                                                        safeString(
+                                                                snapshot.getString(
+                                                                        "name"
+                                                                )
+                                                        );
 
                                                 employee.put(
                                                         "id",
@@ -938,11 +1336,7 @@ public class MainActivity extends Activity {
 
                                                 employee.put(
                                                         "name",
-                                                        safeString(
-                                                                snapshot.getString(
-                                                                        "name"
-                                                                )
-                                                        )
+                                                        employeeName
                                                 );
 
                                                 employee.put(
@@ -963,13 +1357,22 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
-
                                                 /*
-                                                 * Stundenlohn geben wir im
-                                                 * Mitarbeiter-Login absichtlich
-                                                 * nicht an die Oberfläche weiter.
+                                                 * Stundenlohn wird nicht
+                                                 * an Mitarbeiter übergeben.
                                                  */
 
+                                                loggedInEmployeeId =
+                                                        id;
+
+                                                loggedInEmployeeName =
+                                                        employeeName;
+
+                                                employeeFailedAttempts =
+                                                        0;
+
+                                                employeeLockUntil =
+                                                        0;
 
                                                 sendEmployeeLoginResult(
                                                         true,
@@ -977,8 +1380,9 @@ public class MainActivity extends Activity {
                                                         "Anmeldung erfolgreich."
                                                 );
 
-
                                             } catch (Exception e) {
+
+                                                clearEmployeeSession();
 
                                                 sendEmployeeLoginResult(
                                                         false,
@@ -990,21 +1394,42 @@ public class MainActivity extends Activity {
                                 )
 
                                 .addOnFailureListener(
-                                        e ->
-                                                sendEmployeeLoginResult(
-                                                        false,
-                                                        null,
-                                                        "Firebase-Verbindung fehlgeschlagen."
-                                                )
+                                        e -> {
+
+                                            clearEmployeeSession();
+
+                                            sendEmployeeLoginResult(
+                                                    false,
+                                                    null,
+                                                    "Firebase-Verbindung fehlgeschlagen."
+                                            );
+                                        }
                                 );
                     }
             );
         }
 
 
-        /*
-         * Ergebnis zurück an index.html.
-         */
+        private void registerEmployeeFailedLogin() {
+
+            employeeFailedAttempts++;
+
+            if (
+                    employeeFailedAttempts
+                            >=
+                    5
+            ) {
+
+                employeeLockUntil =
+                        System.currentTimeMillis()
+                                +
+                                30000;
+
+                employeeFailedAttempts =
+                        0;
+            }
+        }
+
 
         private void sendEmployeeLoginResult(
                 boolean success,
@@ -1017,12 +1442,10 @@ public class MainActivity extends Activity {
                 JSONObject result =
                         new JSONObject();
 
-
                 result.put(
                         "success",
                         success
                 );
-
 
                 result.put(
                         "message",
@@ -1030,7 +1453,6 @@ public class MainActivity extends Activity {
                                 message
                         )
                 );
-
 
                 if (
                         employee != null
@@ -1042,33 +1464,26 @@ public class MainActivity extends Activity {
                     );
                 }
 
+                postJavascript(
 
-                String javascript =
+                        "if(typeof window.receiveEmployeeLogin==='function'){"
 
-                        "if(typeof window.receiveEmployeeLogin==='function'){" +
+                                +
 
-                        "window.receiveEmployeeLogin(" +
+                                "window.receiveEmployeeLogin("
 
-                        result.toString() +
+                                +
 
-                        ");" +
+                                result.toString()
 
-                        "}";
+                                +
 
+                                ");"
 
-                if (
-                        webView != null
-                ) {
+                                +
 
-                    webView.post(
-                            () ->
-                                    webView.evaluateJavascript(
-                                            javascript,
-                                            null
-                                    )
-                    );
-                }
-
+                                "}"
+                );
 
             } catch (Exception e) {
 
@@ -1080,6 +1495,7 @@ public class MainActivity extends Activity {
         /*
          * =================================================
          * AUFTRAG SPEICHERN
+         * Nur Verwaltung.
          * =================================================
          */
 
@@ -1093,12 +1509,20 @@ public class MainActivity extends Activity {
                 String description
         ) {
 
+            if (
+                    !adminLoggedIn
+            ) {
+
+                showAdminRequired();
+
+                return;
+            }
+
             ensureFirebaseAuth(
                     () -> {
 
                         Map<String, Object> order =
                                 new HashMap<>();
-
 
                         order.put(
                                 "customer",
@@ -1149,7 +1573,6 @@ public class MainActivity extends Activity {
                                         .serverTimestamp()
                         );
 
-
                         com.google.firebase.firestore.FirebaseFirestore
                                 .getInstance()
 
@@ -1169,7 +1592,9 @@ public class MainActivity extends Activity {
                                                                         MainActivity.this,
                                                                         "Auftrag konnte nicht gespeichert werden: "
                                                                                 +
-                                                                                e.getMessage(),
+                                                                                safeString(
+                                                                                        e.getMessage()
+                                                                                ),
                                                                         Toast.LENGTH_LONG
                                                                 ).show()
                                                 )
@@ -1182,11 +1607,21 @@ public class MainActivity extends Activity {
         /*
          * =================================================
          * AUFTRÄGE LADEN
+         * Nur Verwaltung.
          * =================================================
          */
 
         @JavascriptInterface
         public void loadOrdersFromFirestore() {
+
+            if (
+                    !adminLoggedIn
+            ) {
+
+                showAdminRequired();
+
+                return;
+            }
 
             ensureFirebaseAuth(
                     () -> {
@@ -1206,7 +1641,6 @@ public class MainActivity extends Activity {
                                             JSONArray array =
                                                     new JSONArray();
 
-
                                             for (
                                                     com.google.firebase.firestore
                                                             .QueryDocumentSnapshot doc
@@ -1218,7 +1652,6 @@ public class MainActivity extends Activity {
 
                                                     JSONObject obj =
                                                             new JSONObject();
-
 
                                                     obj.put(
                                                             "kunde",
@@ -1274,11 +1707,9 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
-
                                                     array.put(
                                                             obj
                                                     );
-
 
                                                 } catch (Exception e) {
 
@@ -1286,32 +1717,26 @@ public class MainActivity extends Activity {
                                                 }
                                             }
 
+                                            postJavascript(
 
-                                            String javascript =
+                                                    "if(typeof window.receiveOrdersFromFirestore==='function'){"
 
-                                                    "if(typeof window.receiveOrdersFromFirestore==='function'){" +
+                                                            +
 
-                                                    "window.receiveOrdersFromFirestore(" +
+                                                            "window.receiveOrdersFromFirestore("
 
-                                                    array.toString() +
+                                                            +
 
-                                                    ");" +
+                                                            array.toString()
 
-                                                    "}";
+                                                            +
 
+                                                            ");"
 
-                                            if (
-                                                    webView != null
-                                            ) {
+                                                            +
 
-                                                webView.post(
-                                                        () ->
-                                                                webView.evaluateJavascript(
-                                                                        javascript,
-                                                                        null
-                                                                )
-                                                );
-                                            }
+                                                            "}"
+                                            );
                                         }
                                 )
 
@@ -1323,7 +1748,9 @@ public class MainActivity extends Activity {
                                                                         MainActivity.this,
                                                                         "Aufträge konnten nicht geladen werden: "
                                                                                 +
-                                                                                e.getMessage(),
+                                                                                safeString(
+                                                                                        e.getMessage()
+                                                                                ),
                                                                         Toast.LENGTH_LONG
                                                                 ).show()
                                                 )
@@ -1336,6 +1763,12 @@ public class MainActivity extends Activity {
         /*
          * =================================================
          * STUNDENZETTEL SPEICHERN
+         *
+         * Mitarbeiter:
+         * Darf ausschließlich seine eigene ID speichern.
+         *
+         * Admin:
+         * Darf jeden Mitarbeiter speichern.
          * =================================================
          */
 
@@ -1352,23 +1785,20 @@ public class MainActivity extends Activity {
 
                         try {
 
-                            String employeeId =
+                            String requestedEmployeeId =
                                     safeString(
                                             mitarbeiterId
-                                    );
+                                    ).trim();
 
-
-                            String employeeName =
+                            String requestedEmployeeName =
                                     safeString(
                                             mitarbeiterName
-                                    );
-
+                                    ).trim();
 
                             String month =
                                     safeString(
                                             monat
-                                    );
-
+                                    ).trim();
 
                             String daysJson =
                                     jsonData == null
@@ -1377,11 +1807,80 @@ public class MainActivity extends Activity {
                                             :
                                             jsonData;
 
+                            /*
+                             * Sitzung prüfen.
+                             */
 
                             if (
-                                    employeeId.trim().isEmpty()
+                                    !adminLoggedIn
+                                    &&
+                                    !employeeSessionActive()
+                            ) {
+
+                                runOnUiThread(
+                                        () ->
+                                                Toast.makeText(
+                                                        MainActivity.this,
+                                                        "Bitte zuerst anmelden.",
+                                                        Toast.LENGTH_LONG
+                                                ).show()
+                                );
+
+                                return;
+                            }
+
+                            String employeeId;
+                            String employeeName;
+
+                            if (
+                                    adminLoggedIn
+                            ) {
+
+                                employeeId =
+                                        requestedEmployeeId;
+
+                                employeeName =
+                                        requestedEmployeeName;
+
+                            } else {
+
+                                /*
+                                 * Wichtig:
+                                 * Die aus HTML übergebene Mitarbeiter-ID
+                                 * wird bei Mitarbeiter-Login NICHT vertraut.
+                                 */
+
+                                employeeId =
+                                        loggedInEmployeeId;
+
+                                employeeName =
+                                        loggedInEmployeeName;
+
+                                if (
+                                        !requestedEmployeeId.isEmpty()
+                                        &&
+                                        !requestedEmployeeId.equals(
+                                                loggedInEmployeeId
+                                        )
+                                ) {
+
+                                    runOnUiThread(
+                                            () ->
+                                                    Toast.makeText(
+                                                            MainActivity.this,
+                                                            "Zugriff auf fremden Stundenzettel blockiert.",
+                                                            Toast.LENGTH_LONG
+                                                    ).show()
+                                    );
+
+                                    return;
+                                }
+                            }
+
+                            if (
+                                    employeeId.isEmpty()
                                     ||
-                                    month.trim().isEmpty()
+                                    month.isEmpty()
                             ) {
 
                                 runOnUiThread(
@@ -1396,6 +1895,32 @@ public class MainActivity extends Activity {
                                 return;
                             }
 
+                            /*
+                             * JSON prüfen.
+                             */
+
+                            JSONArray validatedDays =
+                                    new JSONArray(
+                                            daysJson
+                                    );
+
+                            if (
+                                    validatedDays.length()
+                                            >
+                                    31
+                            ) {
+
+                                runOnUiThread(
+                                        () ->
+                                                Toast.makeText(
+                                                        MainActivity.this,
+                                                        "Ungültiger Stundenzettel.",
+                                                        Toast.LENGTH_LONG
+                                                ).show()
+                                );
+
+                                return;
+                            }
 
                             String documentId =
 
@@ -1409,10 +1934,8 @@ public class MainActivity extends Activity {
 
                                     month;
 
-
                             Map<String, Object> timesheet =
                                     new HashMap<>();
-
 
                             timesheet.put(
                                     "key",
@@ -1436,7 +1959,7 @@ public class MainActivity extends Activity {
 
                             timesheet.put(
                                     "tageJson",
-                                    daysJson
+                                    validatedDays.toString()
                             );
 
                             timesheet.put(
@@ -1445,7 +1968,6 @@ public class MainActivity extends Activity {
                                             .FieldValue
                                             .serverTimestamp()
                             );
-
 
                             com.google.firebase.firestore.FirebaseFirestore
                                     .getInstance()
@@ -1482,12 +2004,13 @@ public class MainActivity extends Activity {
                                                                             MainActivity.this,
                                                                             "Stundenzettel konnte nicht gespeichert werden: "
                                                                                     +
-                                                                                    e.getMessage(),
+                                                                                    safeString(
+                                                                                            e.getMessage()
+                                                                                    ),
                                                                             Toast.LENGTH_LONG
                                                                     ).show()
                                                     )
                                     );
-
 
                         } catch (Exception e) {
 
@@ -1497,7 +2020,9 @@ public class MainActivity extends Activity {
                                                     MainActivity.this,
                                                     "Stundenzettel-Fehler: "
                                                             +
-                                                            e.getMessage(),
+                                                            safeString(
+                                                                    e.getMessage()
+                                                            ),
                                                     Toast.LENGTH_LONG
                                             ).show()
                             );
@@ -1510,11 +2035,47 @@ public class MainActivity extends Activity {
         /*
          * =================================================
          * STUNDENZETTEL LADEN
+         *
+         * Admin:
+         * alle.
+         *
+         * Mitarbeiter:
+         * nur eigene Mitarbeiter-ID.
          * =================================================
          */
 
         @JavascriptInterface
         public void loadTimesheetsFromFirestore() {
+
+            if (
+                    adminLoggedIn
+            ) {
+
+                loadAllTimesheetsForAdmin();
+
+                return;
+            }
+
+            if (
+                    employeeSessionActive()
+            ) {
+
+                loadOwnTimesheetsForEmployee();
+
+                return;
+            }
+
+            /*
+             * Vor Login keine Stundenzettel ausliefern.
+             */
+
+            sendTimesheetsToWeb(
+                    new JSONArray()
+            );
+        }
+
+
+        private void loadAllTimesheetsForAdmin() {
 
             ensureFirebaseAuth(
                     () -> {
@@ -1532,174 +2093,13 @@ public class MainActivity extends Activity {
                                         snapshots -> {
 
                                             JSONArray result =
-                                                    new JSONArray();
-
-
-                                            for (
-                                                    com.google.firebase.firestore
-                                                            .QueryDocumentSnapshot doc
-                                                    :
-                                                    snapshots
-                                            ) {
-
-                                                try {
-
-                                                    JSONObject obj =
-                                                            new JSONObject();
-
-
-                                                    String mitarbeiterId =
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "mitarbeiterId"
-                                                                    )
-                                                            );
-
-
-                                                    String mitarbeiter =
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "mitarbeiter"
-                                                                    )
-                                                            );
-
-
-                                                    String monat =
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "monat"
-                                                                    )
-                                                            );
-
-
-                                                    String key =
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "key"
-                                                                    )
-                                                            );
-
-
-                                                    if (
-                                                            key.trim().isEmpty()
-                                                    ) {
-
-                                                        key =
-
-                                                                mitarbeiterId
-
-                                                                +
-
-                                                                "_"
-
-                                                                +
-
-                                                                monat;
-                                                    }
-
-
-                                                    String tageJson =
-                                                            doc.getString(
-                                                                    "tageJson"
-                                                            );
-
-
-                                                    obj.put(
-                                                            "key",
-                                                            key
+                                                    createTimesheetsArray(
+                                                            snapshots
                                                     );
 
-                                                    obj.put(
-                                                            "mitarbeiterId",
-                                                            mitarbeiterId
-                                                    );
-
-                                                    obj.put(
-                                                            "mitarbeiter",
-                                                            mitarbeiter
-                                                    );
-
-                                                    obj.put(
-                                                            "monat",
-                                                            monat
-                                                    );
-
-
-                                                    if (
-                                                            tageJson != null
-                                                            &&
-                                                            !tageJson.trim().isEmpty()
-                                                    ) {
-
-                                                        try {
-
-                                                            JSONArray tage =
-                                                                    new JSONArray(
-                                                                            tageJson
-                                                                    );
-
-
-                                                            obj.put(
-                                                                    "tage",
-                                                                    tage
-                                                            );
-
-
-                                                        } catch (Exception ignored) {
-
-                                                            obj.put(
-                                                                    "tage",
-                                                                    new JSONArray()
-                                                            );
-                                                        }
-
-
-                                                    } else {
-
-                                                        obj.put(
-                                                                "tage",
-                                                                new JSONArray()
-                                                        );
-                                                    }
-
-
-                                                    result.put(
-                                                            obj
-                                                    );
-
-
-                                                } catch (Exception e) {
-
-                                                    e.printStackTrace();
-                                                }
-                                            }
-
-
-                                            String javascript =
-
-                                                    "if(typeof window.receiveTimesheetsFromFirestore==='function'){" +
-
-                                                    "window.receiveTimesheetsFromFirestore(" +
-
-                                                    result.toString() +
-
-                                                    ");" +
-
-                                                    "}";
-
-
-                                            if (
-                                                    webView != null
-                                            ) {
-
-                                                webView.post(
-                                                        () ->
-                                                                webView.evaluateJavascript(
-                                                                        javascript,
-                                                                        null
-                                                                )
-                                                );
-                                            }
+                                            sendTimesheetsToWeb(
+                                                    result
+                                            );
                                         }
                                 )
 
@@ -1711,7 +2111,9 @@ public class MainActivity extends Activity {
                                                                         MainActivity.this,
                                                                         "Stundenzettel konnten nicht geladen werden: "
                                                                                 +
-                                                                                e.getMessage(),
+                                                                                safeString(
+                                                                                        e.getMessage()
+                                                                                ),
                                                                         Toast.LENGTH_LONG
                                                                 ).show()
                                                 )
@@ -1721,9 +2123,232 @@ public class MainActivity extends Activity {
         }
 
 
+        private void loadOwnTimesheetsForEmployee() {
+
+            final String employeeId =
+                    loggedInEmployeeId;
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        com.google.firebase.firestore.FirebaseFirestore
+                                .getInstance()
+
+                                .collection(
+                                        "timesheets"
+                                )
+
+                                .whereEqualTo(
+                                        "mitarbeiterId",
+                                        employeeId
+                                )
+
+                                .get()
+
+                                .addOnSuccessListener(
+                                        snapshots -> {
+
+                                            JSONArray result =
+                                                    createTimesheetsArray(
+                                                            snapshots
+                                                    );
+
+                                            sendTimesheetsToWeb(
+                                                    result
+                                            );
+                                        }
+                                )
+
+                                .addOnFailureListener(
+                                        e ->
+                                                runOnUiThread(
+                                                        () ->
+                                                                Toast.makeText(
+                                                                        MainActivity.this,
+                                                                        "Eigene Stundenzettel konnten nicht geladen werden: "
+                                                                                +
+                                                                                safeString(
+                                                                                        e.getMessage()
+                                                                                ),
+                                                                        Toast.LENGTH_LONG
+                                                                ).show()
+                                                )
+                                );
+                    }
+            );
+        }
+
+
+        private JSONArray createTimesheetsArray(
+                com.google.firebase.firestore.QuerySnapshot snapshots
+        ) {
+
+            JSONArray result =
+                    new JSONArray();
+
+            for (
+                    com.google.firebase.firestore.QueryDocumentSnapshot doc
+                    :
+                    snapshots
+            ) {
+
+                try {
+
+                    JSONObject obj =
+                            new JSONObject();
+
+                    String mitarbeiterId =
+                            safeString(
+                                    doc.getString(
+                                            "mitarbeiterId"
+                                    )
+                            );
+
+                    String mitarbeiter =
+                            safeString(
+                                    doc.getString(
+                                            "mitarbeiter"
+                                    )
+                            );
+
+                    String monat =
+                            safeString(
+                                    doc.getString(
+                                            "monat"
+                                    )
+                            );
+
+                    String key =
+                            safeString(
+                                    doc.getString(
+                                            "key"
+                                    )
+                            );
+
+                    if (
+                            key.trim()
+                                    .isEmpty()
+                    ) {
+
+                        key =
+
+                                mitarbeiterId
+
+                                +
+
+                                "_"
+
+                                +
+
+                                monat;
+                    }
+
+                    String tageJson =
+                            doc.getString(
+                                    "tageJson"
+                            );
+
+                    obj.put(
+                            "key",
+                            key
+                    );
+
+                    obj.put(
+                            "mitarbeiterId",
+                            mitarbeiterId
+                    );
+
+                    obj.put(
+                            "mitarbeiter",
+                            mitarbeiter
+                    );
+
+                    obj.put(
+                            "monat",
+                            monat
+                    );
+
+                    if (
+                            tageJson != null
+                            &&
+                            !tageJson
+                                    .trim()
+                                    .isEmpty()
+                    ) {
+
+                        try {
+
+                            JSONArray tage =
+                                    new JSONArray(
+                                            tageJson
+                                    );
+
+                            obj.put(
+                                    "tage",
+                                    tage
+                            );
+
+                        } catch (Exception ignored) {
+
+                            obj.put(
+                                    "tage",
+                                    new JSONArray()
+                            );
+                        }
+
+                    } else {
+
+                        obj.put(
+                                "tage",
+                                new JSONArray()
+                        );
+                    }
+
+                    result.put(
+                            obj
+                    );
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+            return result;
+        }
+
+
+        private void sendTimesheetsToWeb(
+                JSONArray result
+        ) {
+
+            postJavascript(
+
+                    "if(typeof window.receiveTimesheetsFromFirestore==='function'){"
+
+                            +
+
+                            "window.receiveTimesheetsFromFirestore("
+
+                            +
+
+                            result.toString()
+
+                            +
+
+                            ");"
+
+                            +
+
+                            "}"
+            );
+        }
+
+
         /*
          * =================================================
          * PDF
+         * Nur Verwaltung.
          * =================================================
          */
 
@@ -1734,6 +2359,15 @@ public class MainActivity extends Activity {
                 String jsonData
         ) {
 
+            if (
+                    !adminLoggedIn
+            ) {
+
+                showAdminRequired();
+
+                return;
+            }
+
             runOnUiThread(
                     () -> {
 
@@ -1741,7 +2375,9 @@ public class MainActivity extends Activity {
 
                                 employee == null
                                         ||
-                                        employee.trim().isEmpty()
+                                        employee
+                                                .trim()
+                                                .isEmpty()
 
                                         ?
 
@@ -1751,7 +2387,6 @@ public class MainActivity extends Activity {
 
                                         employee.trim();
 
-
                         pendingPdfMonth =
 
                                 month == null
@@ -1759,7 +2394,6 @@ public class MainActivity extends Activity {
                                         ""
                                         :
                                         month.trim();
-
 
                         pendingPdfJson =
 
@@ -1769,13 +2403,11 @@ public class MainActivity extends Activity {
                                         :
                                         jsonData;
 
-
                         String safeEmployee =
                                 pendingPdfEmployee.replaceAll(
                                         "[^a-zA-Z0-9ÄÖÜäöüß_-]",
                                         "_"
                                 );
-
 
                         String fileName =
 
@@ -1797,28 +2429,23 @@ public class MainActivity extends Activity {
 
                                 ".pdf";
 
-
                         Intent intent =
                                 new Intent(
                                         Intent.ACTION_CREATE_DOCUMENT
                                 );
 
-
                         intent.addCategory(
                                 Intent.CATEGORY_OPENABLE
                         );
-
 
                         intent.setType(
                                 "application/pdf"
                         );
 
-
                         intent.putExtra(
                                 Intent.EXTRA_TITLE,
                                 fileName
                         );
-
 
                         startActivityForResult(
                                 intent,
@@ -1831,6 +2458,15 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void shareLastPdf() {
+
+            if (
+                    !adminLoggedIn
+            ) {
+
+                showAdminRequired();
+
+                return;
+            }
 
             runOnUiThread(
                     () ->
@@ -1881,10 +2517,8 @@ public class MainActivity extends Activity {
                 return;
             }
 
-
             Uri[] results =
                     null;
-
 
             if (
                     resultCode
@@ -1901,15 +2535,12 @@ public class MainActivity extends Activity {
                                 );
             }
 
-
             filePathCallback.onReceiveValue(
                     results
             );
 
-
             filePathCallback =
                     null;
-
 
             return;
         }
@@ -1938,15 +2569,12 @@ public class MainActivity extends Activity {
                 Uri uri =
                         data.getData();
 
-
                 lastSavedPdfUri =
                         uri;
-
 
                 createPdfFile(
                         uri
                 );
-
 
             } else {
 
@@ -1956,7 +2584,6 @@ public class MainActivity extends Activity {
                         Toast.LENGTH_SHORT
                 ).show();
             }
-
 
             return;
         }
@@ -1975,7 +2602,6 @@ public class MainActivity extends Activity {
             arMeasurementRunning =
                     false;
 
-
             if (
                     resultCode
                             ==
@@ -1990,20 +2616,17 @@ public class MainActivity extends Activity {
                                 0
                         );
 
-
                 double height =
                         data.getDoubleExtra(
                                 "height",
                                 0
                         );
 
-
                 double area =
                         data.getDoubleExtra(
                                 "area",
                                 0
                         );
-
 
                 if (
                         width <= 0
@@ -2014,7 +2637,9 @@ public class MainActivity extends Activity {
                 ) {
 
                     if (
-                            webView != null
+                            webView
+                                    !=
+                            null
                     ) {
 
                         webView.postDelayed(
@@ -2027,34 +2652,49 @@ public class MainActivity extends Activity {
                         );
                     }
 
-
                     return;
                 }
 
-
                 String javascript =
 
-                        "if(typeof window.receiveArMeasurement==='function'){" +
+                        "if(typeof window.receiveArMeasurement==='function'){"
 
-                        "window.receiveArMeasurement(" +
+                                +
 
-                        width +
+                                "window.receiveArMeasurement("
 
-                        "," +
+                                +
 
-                        height +
+                                width
 
-                        "," +
+                                +
 
-                        area +
+                                ","
 
-                        ");" +
+                                +
 
-                        "}";
+                                height
 
+                                +
+
+                                ","
+
+                                +
+
+                                area
+
+                                +
+
+                                ");"
+
+                                +
+
+                                "}";
 
                 if (
-                        webView != null
+                        webView
+                                !=
+                        null
                 ) {
 
                     webView.postDelayed(
@@ -2067,11 +2707,12 @@ public class MainActivity extends Activity {
                     );
                 }
 
-
             } else {
 
                 if (
-                        webView != null
+                        webView
+                                !=
+                        null
                 ) {
 
                     webView.postDelayed(
@@ -2101,10 +2742,8 @@ public class MainActivity extends Activity {
         PdfDocument document =
                 new PdfDocument();
 
-
         OutputStream outputStream =
                 null;
-
 
         try {
 
@@ -2112,7 +2751,6 @@ public class MainActivity extends Activity {
                     new JSONArray(
                             pendingPdfJson
                     );
-
 
             final int pageWidth =
                     595;
@@ -2135,7 +2773,6 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             titlePaint.setColor(
                     Color.rgb(
                             7,
@@ -2144,11 +2781,9 @@ public class MainActivity extends Activity {
                     )
             );
 
-
             titlePaint.setTextSize(
                     22f
             );
-
 
             titlePaint.setFakeBoldText(
                     true
@@ -2160,11 +2795,9 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             subtitlePaint.setColor(
                     Color.DKGRAY
             );
-
 
             subtitlePaint.setTextSize(
                     10.5f
@@ -2176,16 +2809,13 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             boldPaint.setColor(
                     Color.BLACK
             );
 
-
             boldPaint.setTextSize(
                     9.5f
             );
-
 
             boldPaint.setFakeBoldText(
                     true
@@ -2197,11 +2827,9 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             normalPaint.setColor(
                     Color.BLACK
             );
-
 
             normalPaint.setTextSize(
                     8.3f
@@ -2213,11 +2841,9 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             smallPaint.setColor(
                     Color.DKGRAY
             );
-
 
             smallPaint.setTextSize(
                     7.5f
@@ -2229,7 +2855,6 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             linePaint.setColor(
                     Color.rgb(
                             210,
@@ -2238,7 +2863,6 @@ public class MainActivity extends Activity {
                     )
             );
 
-
             linePaint.setStrokeWidth(
                     1f
             );
@@ -2246,7 +2870,6 @@ public class MainActivity extends Activity {
 
             Paint headerBackgroundPaint =
                     new Paint();
-
 
             headerBackgroundPaint.setColor(
                     Color.rgb(
@@ -2259,7 +2882,6 @@ public class MainActivity extends Activity {
 
             Paint totalBackgroundPaint =
                     new Paint();
-
 
             totalBackgroundPaint.setColor(
                     Color.rgb(
@@ -2275,16 +2897,13 @@ public class MainActivity extends Activity {
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             totalBorderPaint.setStyle(
                     Paint.Style.STROKE
             );
 
-
             totalBorderPaint.setStrokeWidth(
                     1f
             );
-
 
             totalBorderPaint.setColor(
                     Color.rgb(
@@ -2298,7 +2917,6 @@ public class MainActivity extends Activity {
             double totalHours =
                     0;
 
-
             for (
                     int i = 0;
                     i < rows.length();
@@ -2309,7 +2927,6 @@ public class MainActivity extends Activity {
                         rows.getJSONObject(
                                 i
                         );
-
 
                 totalHours +=
                         row.optDouble(
@@ -2322,10 +2939,8 @@ public class MainActivity extends Activity {
             int pageNumber =
                     1;
 
-
             int index =
                     0;
-
 
             boolean firstPage =
                     true;
@@ -2340,7 +2955,6 @@ public class MainActivity extends Activity {
                 firstPage =
                         false;
 
-
                 PdfDocument.PageInfo pageInfo =
                         new PdfDocument.PageInfo.Builder(
                                 pageWidth,
@@ -2348,16 +2962,13 @@ public class MainActivity extends Activity {
                                 pageNumber
                         ).create();
 
-
                 PdfDocument.Page page =
                         document.startPage(
                                 pageInfo
                         );
 
-
                 Canvas canvas =
                         page.getCanvas();
-
 
                 float y =
                         34;
@@ -2370,7 +2981,6 @@ public class MainActivity extends Activity {
                         titlePaint
                 );
 
-
                 y +=
                         22;
 
@@ -2381,7 +2991,6 @@ public class MainActivity extends Activity {
                         y,
                         boldPaint
                 );
-
 
                 y +=
                         16;
@@ -2401,11 +3010,11 @@ public class MainActivity extends Activity {
 
                         "Monat: "
 
-                        +
+                                +
 
-                        formatPdfMonth(
-                                pendingPdfMonth
-                        );
+                                formatPdfMonth(
+                                        pendingPdfMonth
+                                );
 
 
                 float monthWidth =
@@ -2468,7 +3077,6 @@ public class MainActivity extends Activity {
                 float tableHeaderTop =
                         y - 13;
 
-
                 float tableHeaderBottom =
                         y + 6;
 
@@ -2491,14 +3099,12 @@ public class MainActivity extends Activity {
                         boldPaint
                 );
 
-
                 canvas.drawText(
                         "Status",
                         xStatus + 3,
                         y,
                         boldPaint
                 );
-
 
                 canvas.drawText(
                         "Start",
@@ -2507,14 +3113,12 @@ public class MainActivity extends Activity {
                         boldPaint
                 );
 
-
                 canvas.drawText(
                         "Ende",
                         xEnd + 3,
                         y,
                         boldPaint
                 );
-
 
                 canvas.drawText(
                         "Pause",
@@ -2523,14 +3127,12 @@ public class MainActivity extends Activity {
                         boldPaint
                 );
 
-
                 canvas.drawText(
                         "Std.",
                         xHours + 3,
                         y,
                         boldPaint
                 );
-
 
                 canvas.drawText(
                         "Objekt",
@@ -2547,19 +3149,12 @@ public class MainActivity extends Activity {
                 float[] columnLines = {
 
                         marginLeft,
-
                         xStatus,
-
                         xStart,
-
                         xEnd,
-
                         xPause,
-
                         xHours,
-
                         xObject,
-
                         pageWidth - marginRight
                 };
 
@@ -2612,37 +3207,31 @@ public class MainActivity extends Activity {
                                     "datum"
                             );
 
-
                     String status =
                             row.optString(
                                     "status"
                             );
-
 
                     String start =
                             row.optString(
                                     "start"
                             );
 
-
                     String end =
                             row.optString(
                                     "ende"
                             );
-
 
                     String pause =
                             row.optString(
                                     "pause"
                             );
 
-
                     double hours =
                             row.optDouble(
                                     "stunden",
                                     0
                             );
-
 
                     String object =
                             row.optString(
@@ -2652,7 +3241,6 @@ public class MainActivity extends Activity {
 
                     float rowTop =
                             y - 9;
-
 
                     float rowBottom =
                             y + 7;
@@ -2668,7 +3256,6 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
-
                     canvas.drawText(
                             shorten(
                                     status,
@@ -2678,7 +3265,6 @@ public class MainActivity extends Activity {
                             y,
                             normalPaint
                     );
-
 
                     canvas.drawText(
                             shorten(
@@ -2690,7 +3276,6 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
-
                     canvas.drawText(
                             shorten(
                                     end,
@@ -2700,7 +3285,6 @@ public class MainActivity extends Activity {
                             y,
                             normalPaint
                     );
-
 
                     canvas.drawText(
                             shorten(
@@ -2712,7 +3296,6 @@ public class MainActivity extends Activity {
                             normalPaint
                     );
 
-
                     canvas.drawText(
                             String.format(
                                     Locale.GERMANY,
@@ -2723,7 +3306,6 @@ public class MainActivity extends Activity {
                             y,
                             normalPaint
                     );
-
 
                     canvas.drawText(
                             shorten(
@@ -2764,13 +3346,14 @@ public class MainActivity extends Activity {
                     y +=
                             16;
 
-
                     index++;
                 }
 
 
                 if (
-                        index >= rows.length()
+                        index
+                                >=
+                        rows.length()
                 ) {
 
                     y +=
@@ -2815,7 +3398,6 @@ public class MainActivity extends Activity {
                                     Paint.ANTI_ALIAS_FLAG
                             );
 
-
                     totalHoursPaint.setColor(
                             Color.rgb(
                                     6,
@@ -2824,11 +3406,9 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     totalHoursPaint.setTextSize(
                             16f
                     );
-
 
                     totalHoursPaint.setFakeBoldText(
                             true
@@ -2915,9 +3495,9 @@ public class MainActivity extends Activity {
 
                         "Seite "
 
-                        +
+                                +
 
-                        pageNumber;
+                                pageNumber;
 
 
                 float pageTextWidth =
@@ -2992,7 +3572,9 @@ public class MainActivity extends Activity {
                     this,
                     "PDF-Fehler: "
                             +
-                            e.getMessage(),
+                            safeString(
+                                    e.getMessage()
+                            ),
                     Toast.LENGTH_LONG
             ).show();
 
@@ -3010,11 +3592,9 @@ public class MainActivity extends Activity {
                     outputStream.close();
                 }
 
-
             } catch (Exception ignored) {
 
             }
-
 
             document.close();
         }
@@ -3086,7 +3666,6 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_SHORT
             ).show();
 
-
             return;
         }
 
@@ -3115,19 +3694,19 @@ public class MainActivity extends Activity {
 
                     "Stundenzettel "
 
-                    +
+                            +
 
-                    pendingPdfEmployee
+                            pendingPdfEmployee
 
-                    +
+                            +
 
-                    " "
+                            " "
 
-                    +
+                            +
 
-                    formatPdfMonth(
-                            pendingPdfMonth
-                    )
+                            formatPdfMonth(
+                                    pendingPdfMonth
+                            )
             );
 
 
@@ -3136,23 +3715,23 @@ public class MainActivity extends Activity {
 
                     "Stundenzettel von "
 
-                    +
+                            +
 
-                    pendingPdfEmployee
+                            pendingPdfEmployee
 
-                    +
+                            +
 
-                    " für "
+                            " für "
 
-                    +
+                            +
 
-                    formatPdfMonth(
-                            pendingPdfMonth
-                    )
+                            formatPdfMonth(
+                                    pendingPdfMonth
+                            )
 
-                    +
+                            +
 
-                    "."
+                            "."
             );
 
 
@@ -3195,7 +3774,9 @@ public class MainActivity extends Activity {
                         ==
                 null
                 ||
-                month.trim().isEmpty()
+                month
+                        .trim()
+                        .isEmpty()
         ) {
 
             return "";
@@ -3225,29 +3806,17 @@ public class MainActivity extends Activity {
             String[] monthNames = {
 
                     "",
-
                     "Januar",
-
                     "Februar",
-
                     "März",
-
                     "April",
-
                     "Mai",
-
                     "Juni",
-
                     "Juli",
-
                     "August",
-
                     "September",
-
                     "Oktober",
-
                     "November",
-
                     "Dezember"
             };
 
@@ -3320,9 +3889,9 @@ public class MainActivity extends Activity {
                 )
         )
 
-        +
+                +
 
-        "…";
+                "…";
     }
 
 
@@ -3388,15 +3957,23 @@ public class MainActivity extends Activity {
 
         webView.evaluateJavascript(
 
-                "if(typeof window.androidBack==='function'){" +
+                "if(typeof window.androidBack==='function'){"
 
-                "window.androidBack();" +
+                        +
 
-                "}else{" +
+                        "window.androidBack();"
 
-                "false;" +
+                        +
 
-                "}",
+                        "}else{"
+
+                        +
+
+                        "false;"
+
+                        +
+
+                        "}",
 
 
                 value -> {
@@ -3444,6 +4021,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+
+        clearEmployeeSession();
+
+        clearAdminSession();
+
 
         if (
                 webView
