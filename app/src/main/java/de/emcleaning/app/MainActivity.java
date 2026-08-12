@@ -215,6 +215,48 @@ public void saveOrderToFirestore(
             .collection("orders")
             .add(order);
 }
+        @JavascriptInterface
+public void loadOrdersFromFirestore() {
+
+    com.google.firebase.firestore.FirebaseFirestore
+        .getInstance()
+        .collection("orders")
+        .get()
+        .addOnSuccessListener(snapshots -> {
+
+            JSONArray array = new JSONArray();
+
+            for (
+                com.google.firebase.firestore.QueryDocumentSnapshot doc
+                : snapshots
+            ) {
+                try {
+                    JSONObject obj = new JSONObject();
+
+                    obj.put("kunde", doc.getString("customer"));
+                    obj.put("ort", doc.getString("address"));
+                    obj.put("art", doc.getString("service"));
+                    obj.put("datum", doc.getString("date"));
+                    obj.put("preis", doc.getString("price"));
+                    obj.put("notiz", doc.getString("description"));
+
+                    array.put(obj);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            webView.post(() ->
+                webView.evaluateJavascript(
+                    "window.receiveOrdersFromFirestore(" +
+                    array.toString() +
+                    ");",
+                    null
+                )
+            );
+        });
+}
         /*
          * Stundenzettel PDF erstellen
          */
