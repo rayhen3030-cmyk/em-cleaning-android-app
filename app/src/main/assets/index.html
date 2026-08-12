@@ -547,6 +547,8 @@ footer{
 
     <div class="card">
 
+        <div id="mitarbeiterCloudStatus"></div>
+
         <input id="mitarbeiterName" placeholder="Vorname Nachname">
         <input id="mitarbeiterTelefon" placeholder="Telefon">
 
@@ -556,7 +558,12 @@ footer{
             <option>Minijob</option>
         </select>
 
-        <input id="mitarbeiterLohn" type="number" placeholder="Stundenlohn €">
+        <input
+            id="mitarbeiterLohn"
+            type="number"
+            step="0.01"
+            placeholder="Stundenlohn €"
+        >
 
         <button onclick="mitarbeiterSpeichern()">
             Mitarbeiter speichern
@@ -607,9 +614,8 @@ footer{
         >
 
         <div class="info">
-            Die Werte hier unten werden verwendet, wenn du einen neuen Monat
-            automatisch erstellst. Danach kann jeder einzelne Tag direkt in
-            der Tabelle geändert werden.
+            Die Standardwerte werden verwendet, wenn ein neuer Monat erstellt
+            wird. Danach kann jeder Arbeitstag einzeln geändert werden.
         </div>
 
         <label>Standard-Arbeitsbeginn</label>
@@ -671,14 +677,13 @@ footer{
 
     </div>
 
-
     <div class="card">
 
         <h2>Arbeitszeiten</h2>
 
         <div class="info">
-            ✏️ Du kannst jeden Tag direkt bearbeiten. Änderungen werden beim
-            Drücken auf „Stundenzettel speichern“ in Firebase gespeichert.
+            ✏️ Arbeit/Frei, Beginn, Ende, Pause und Objekt können direkt
+            geändert werden. Danach bitte speichern.
         </div>
 
         <div id="stundenKopf"></div>
@@ -783,6 +788,7 @@ footer{
         <input
             id="auftragPreis"
             type="number"
+            step="0.01"
             placeholder="Preis €"
         >
 
@@ -828,6 +834,7 @@ footer{
         <input
             id="rechnungBetrag"
             type="number"
+            step="0.01"
             placeholder="Betrag €"
         >
 
@@ -928,16 +935,21 @@ function openPage(id){
         });
 
 
-    const page = el(id);
+    const page =
+        el(id);
 
 
     if(page){
+
         page.classList.add('active');
     }
 
 
     if(id === 'mitarbeiter'){
+
         mitarbeiterAnzeigen();
+
+        mitarbeiterAusFirestoreLaden();
     }
 
 
@@ -946,6 +958,8 @@ function openPage(id){
         mitarbeiterAuswahl();
 
         mitarbeiterStundenzettelAnzeigen();
+
+        mitarbeiterAusFirestoreLaden();
 
         stundenzettelAusFirestoreLaden();
     }
@@ -961,7 +975,294 @@ function openPage(id){
 
     aktualisieren();
 
-    window.scrollTo(0,0);
+    window.scrollTo(
+        0,
+        0
+    );
+}
+
+
+/* =====================================================
+   FIRESTORE MITARBEITER
+   ===================================================== */
+
+function mitarbeiterAusFirestoreLaden(){
+
+    if(
+        window.Android &&
+        typeof Android.loadEmployeesFromFirestore === 'function'
+    ){
+
+        const status =
+            el('mitarbeiterCloudStatus');
+
+
+        if(status){
+
+            status.className =
+                'info';
+
+            status.innerHTML =
+                '☁️ Mitarbeiter werden geladen...';
+        }
+
+
+        try{
+
+            Android.loadEmployeesFromFirestore();
+
+        }catch(e){
+
+            console.error(
+                'Mitarbeiter laden fehlgeschlagen',
+                e
+            );
+        }
+    }
+}
+
+
+window.receiveEmployeesFromFirestore =
+function(daten){
+
+    try{
+
+        if(
+            typeof daten ===
+            'string'
+        ){
+
+            daten =
+                JSON.parse(daten);
+        }
+
+
+        if(
+            !Array.isArray(daten)
+        ){
+
+            return;
+        }
+
+
+        const sauber =
+            daten.filter(
+                function(m){
+
+                    return (
+                        m &&
+                        String(
+                            m.name || ''
+                        ).trim() !== ''
+                    );
+                }
+            );
+
+
+        /*
+         * Wenn Firebase schon Mitarbeiter enthält,
+         * ist Firebase die Quelle.
+         *
+         * Wenn die Sammlung noch leer ist, behalten
+         * wir vorhandene lokale Mitarbeiter.
+         */
+
+        if(
+            sauber.length > 0
+        ){
+
+            speichern(
+                'mitarbeiter',
+                sauber
+            );
+        }
+
+
+        /*
+         * Falls employees noch leer ist, können ältere
+         * Stundenzettel den Mitarbeiter wiederherstellen.
+         */
+
+        mitarbeiterAusStundenzettelnWiederherstellen();
+
+
+        mitarbeiterAnzeigen();
+
+        mitarbeiterAuswahl();
+
+
+        const status =
+            el('mitarbeiterCloudStatus');
+
+
+        if(status){
+
+            status.className =
+                'info';
+
+            status.innerHTML =
+
+                '☁️ ' +
+
+                laden('mitarbeiter').length +
+
+                ' Mitarbeiter aus Firebase / Cloud verfügbar.';
+        }
+
+
+        /*
+         * Falls wir gerade auf der Stundenzettel-Seite sind,
+         * Monatsanzeige ebenfalls aktualisieren.
+         */
+
+        mitarbeiterStundenzettelAnzeigen();
+
+        gespeichertenZettelLaden();
+
+
+    }catch(e){
+
+        console.error(
+            'Mitarbeiter konnten nicht verarbeitet werden',
+            e
+        );
+    }
+};
+
+
+/*
+ * Migration alter Daten:
+ * Wenn bereits ein Stundenzettel in Firebase liegt,
+ * aber der Mitarbeiter noch nicht in "employees" liegt,
+ * wird er automatisch aus dem Stundenzettel erstellt.
+ */
+
+function mitarbeiterAusStundenzettelnWiederherstellen(){
+
+    const mitarbeiter =
+        laden('mitarbeiter');
+
+
+    const zettel =
+        laden('stundenzettel');
+
+
+    let geaendert =
+        false;
+
+
+    zettel.forEach(
+        function(x){
+
+            const id =
+                String(
+                    x.mitarbeiterId || ''
+                ).trim();
+
+
+            const name =
+                String(
+                    x.mitarbeiter || ''
+                ).trim();
+
+
+            if(
+                !id ||
+                !name
+            ){
+
+                return;
+            }
+
+
+            const vorhanden =
+                mitarbeiter.some(
+                    function(m){
+
+                        return (
+                            String(
+                                m.id
+                            ) ===
+                            id
+                        );
+                    }
+                );
+
+
+            if(!vorhanden){
+
+                const neu = {
+
+                    id:
+                        id,
+
+                    name:
+                        name,
+
+                    telefon:
+                        '',
+
+                    art:
+                        'Teilzeit',
+
+                    lohn:
+                        ''
+                };
+
+
+                mitarbeiter.push(
+                    neu
+                );
+
+
+                geaendert =
+                    true;
+
+
+                /*
+                 * Gleichzeitig dauerhaft in Firebase nachtragen.
+                 */
+
+                if(
+                    window.Android &&
+                    typeof Android.saveEmployeeToFirestore === 'function'
+                ){
+
+                    try{
+
+                        Android.saveEmployeeToFirestore(
+
+                            neu.id,
+
+                            neu.name,
+
+                            neu.telefon,
+
+                            neu.art,
+
+                            neu.lohn
+                        );
+
+                    }catch(e){
+
+                        console.error(
+                            'Mitarbeiter-Migration fehlgeschlagen',
+                            e
+                        );
+                    }
+                }
+            }
+        }
+    );
+
+
+    if(geaendert){
+
+        speichern(
+            'mitarbeiter',
+            mitarbeiter
+        );
+    }
 }
 
 
@@ -976,12 +1277,14 @@ function auftraegeAusFirestoreLaden(){
         typeof Android.loadOrdersFromFirestore === 'function'
     ){
 
-        const status = el('auftragStatus');
+        const status =
+            el('auftragStatus');
 
 
         if(status){
 
-            status.style.display = 'block';
+            status.style.display =
+                'block';
 
             status.innerHTML =
                 '☁️ Aufträge werden geladen...';
@@ -1005,35 +1308,46 @@ function(daten){
 
     try{
 
-        if(typeof daten === 'string'){
-            daten = JSON.parse(daten);
+        if(
+            typeof daten ===
+            'string'
+        ){
+
+            daten =
+                JSON.parse(daten);
         }
 
 
-        if(!Array.isArray(daten)){
+        if(
+            !Array.isArray(daten)
+        ){
+
             return;
         }
 
 
         const sauber =
-            daten.filter(function(auftrag){
+            daten.filter(
+                function(auftrag){
 
-                if(!auftrag){
-                    return false;
+                    if(!auftrag){
+
+                        return false;
+                    }
+
+
+                    const kunde =
+                        String(
+                            auftrag.kunde || ''
+                        ).trim();
+
+
+                    return (
+                        kunde !== '' &&
+                        kunde !== 'undefined'
+                    );
                 }
-
-
-                const kunde =
-                    String(
-                        auftrag.kunde || ''
-                    ).trim();
-
-
-                return (
-                    kunde !== '' &&
-                    kunde !== 'undefined'
-                );
-            });
+            );
 
 
         speichern(
@@ -1045,18 +1359,24 @@ function(daten){
         auftraegeAnzeigen();
 
 
-        const status = el('auftragStatus');
+        const status =
+            el('auftragStatus');
 
 
         if(status){
 
-            status.style.display = 'block';
+            status.style.display =
+                'block';
 
             status.innerHTML =
+
                 '☁️ ' +
+
                 sauber.length +
+
                 ' Auftrag/Aufträge aus Firebase geladen.';
         }
+
 
     }catch(e){
 
@@ -1110,12 +1430,20 @@ function(daten){
 
     try{
 
-        if(typeof daten === 'string'){
-            daten = JSON.parse(daten);
+        if(
+            typeof daten ===
+            'string'
+        ){
+
+            daten =
+                JSON.parse(daten);
         }
 
 
-        if(!Array.isArray(daten)){
+        if(
+            !Array.isArray(daten)
+        ){
+
             return;
         }
 
@@ -1126,13 +1454,19 @@ function(daten){
         );
 
 
-        mitarbeiterStundenzettelAnzeigen();
-
-
         /*
-         * Falls gerade ein Monat ausgewählt ist,
-         * laden wir ihn direkt neu.
+         * Jetzt können wir eventuell alte Mitarbeiter
+         * automatisch aus dem Stundenzettel rekonstruieren.
          */
+
+        mitarbeiterAusStundenzettelnWiederherstellen();
+
+
+        mitarbeiterAnzeigen();
+
+        mitarbeiterAuswahl();
+
+        mitarbeiterStundenzettelAnzeigen();
 
         gespeichertenZettelLaden();
 
@@ -1147,10 +1481,14 @@ function(daten){
                 'info';
 
             status.innerHTML =
+
                 '☁️ ' +
+
                 daten.length +
+
                 ' Stundenzettel aus Firebase geladen.';
         }
+
 
     }catch(e){
 
@@ -1215,7 +1553,9 @@ function(
     }
 
 
-    openPage('foto');
+    openPage(
+        'foto'
+    );
 
 
     const box =
@@ -1231,15 +1571,21 @@ function(
         '<strong>✅ Fenster gemessen</strong><br><br>' +
 
         'Breite: ' +
+
         arBreite.toFixed(2) +
+
         ' m<br>' +
 
         'Höhe: ' +
+
         arHoehe.toFixed(2) +
+
         ' m<br>' +
 
         '<div class="big">' +
+
         arFlaeche.toFixed(2) +
+
         ' m²</div>';
 
 
@@ -1251,46 +1597,70 @@ function(
    FENSTER
    ===================================================== */
 
-function getFensterKlasse(flaeche){
+function getFensterKlasse(
+    flaeche
+){
 
-    if(flaeche <= 1){
+    if(
+        flaeche <= 1
+    ){
 
         return {
-            name:'Kleines Fenster',
-            preis:parseFloat(
-                el('preisKlein').value || 0
-            )
+
+            name:
+                'Kleines Fenster',
+
+            preis:
+                parseFloat(
+                    el('preisKlein').value || 0
+                )
         };
     }
 
 
-    if(flaeche <= 2){
+    if(
+        flaeche <= 2
+    ){
 
         return {
-            name:'Mittleres Fenster',
-            preis:parseFloat(
-                el('preisMittel').value || 0
-            )
+
+            name:
+                'Mittleres Fenster',
+
+            preis:
+                parseFloat(
+                    el('preisMittel').value || 0
+                )
         };
     }
 
 
-    if(flaeche <= 3.5){
+    if(
+        flaeche <= 3.5
+    ){
 
         return {
-            name:'Großes Fenster',
-            preis:parseFloat(
-                el('preisGross').value || 0
-            )
+
+            name:
+                'Großes Fenster',
+
+            preis:
+                parseFloat(
+                    el('preisGross').value || 0
+                )
         };
     }
 
 
     return {
-        name:'Sehr großes Fenster',
-        preis:parseFloat(
-            el('preisSehrGross').value || 0
-        )
+
+        name:
+            'Sehr großes Fenster',
+
+        preis:
+            parseFloat(
+                el('preisSehrGross').value || 0
+            )
     };
 }
 
@@ -1301,6 +1671,7 @@ function fensterKlasseVorschau(){
         arFlaeche <= 0 ||
         !el('fensterKlasseErgebnis')
     ){
+
         return;
     }
 
@@ -1324,15 +1695,21 @@ function fensterKlasseVorschau(){
         '<div class="price-class">' +
 
         '<div class="name">' +
+
         klasse.name +
+
         '</div>' +
 
         '<div>' +
+
         arFlaeche.toFixed(2) +
+
         ' m²</div>' +
 
         '<div class="price">' +
+
         klasse.preis.toFixed(2) +
+
         ' € pro Fenster</div>' +
 
         '</div>';
@@ -1346,21 +1723,29 @@ function fensterPreisArtChanged(){
 
 
     el('manuellerFensterPreisBlock').style.display =
+
         art === 'manuell'
-            ? 'block'
-            : 'none';
+        ?
+        'block'
+        :
+        'none';
 
 
     el('qmFensterPreisBlock').style.display =
+
         art === 'qm'
-            ? 'block'
-            : 'none';
+        ?
+        'block'
+        :
+        'none';
 }
 
 
 function fensterPreisBerechnen(){
 
-    if(arFlaeche <= 0){
+    if(
+        arFlaeche <= 0
+    ){
 
         alert(
             'Bitte zuerst das Fenster messen.'
@@ -1383,30 +1768,44 @@ function fensterPreisBerechnen(){
         el('fotoPreisArt').value;
 
 
-    let preis = 0;
+    let preis =
+        0;
 
 
-    if(art === 'automatisch'){
+    if(
+        art ===
+        'automatisch'
+    ){
 
         preis =
             getFensterKlasse(
                 arFlaeche
             ).preis;
 
-    }else if(art === 'manuell'){
+
+    }else if(
+        art ===
+        'manuell'
+    ){
 
         preis =
             Number(
                 el('manuellerFensterPreis').value || 0
             );
 
+
     }else{
 
         preis =
+
             arFlaeche *
+
             Number(
                 el('fotoPreisQm').value || 0
-            ) *
+            )
+
+            *
+
             Number(
                 el('fotoSeiten').value || 1
             );
@@ -1431,7 +1830,9 @@ function fensterPreisBerechnen(){
         '<strong>Fensterpreis</strong>' +
 
         '<div class="big">' +
+
         gesamt.toFixed(2) +
+
         ' €</div>';
 }
 
@@ -1447,21 +1848,45 @@ function serviceChanged(){
 
 
     el('fensterBlock').style.display =
-        service === 'fenster'
-            ? 'block'
-            : 'none';
+
+        service ===
+        'fenster'
+
+        ?
+
+        'block'
+
+        :
+
+        'none';
 
 
     el('flaechenBlock').style.display =
-        service === 'fenster'
-            ? 'none'
-            : 'block';
+
+        service ===
+        'fenster'
+
+        ?
+
+        'none'
+
+        :
+
+        'block';
 
 
     el('unterhaltBlock').style.display =
-        service === 'unterhalt'
-            ? 'block'
-            : 'none';
+
+        service ===
+        'unterhalt'
+
+        ?
+
+        'block'
+
+        :
+
+        'none';
 }
 
 
@@ -1472,35 +1897,42 @@ function preisBerechnen(){
             el('stunden').value || 0
         );
 
+
     const stundensatz =
         Number(
             el('stundensatz').value || 0
         );
+
 
     const qm =
         Number(
             el('qm').value || 0
         );
 
+
     const qmPreis =
         Number(
             el('qmPreis').value || 0
         );
+
 
     const anfahrt =
         Number(
             el('anfahrt').value || 0
         );
 
+
     const material =
         Number(
             el('material').value || 0
         );
 
+
     const zuschlag =
         Number(
             el('zuschlag').value || 0
         );
+
 
     const mwst =
         Number(
@@ -1509,26 +1941,46 @@ function preisBerechnen(){
 
 
     let netto =
-        stunden * stundensatz +
-        qm * qmPreis +
-        anfahrt +
+
+        stunden *
+        stundensatz
+
+        +
+
+        qm *
+        qmPreis
+
+        +
+
+        anfahrt
+
+        +
+
         material;
 
 
     netto +=
+
         netto *
+
         zuschlag /
+
         100;
 
 
     const steuer =
+
         netto *
+
         mwst /
+
         100;
 
 
     const brutto =
+
         netto +
+
         steuer;
 
 
@@ -1545,15 +1997,21 @@ function preisBerechnen(){
         '<strong>Berechnung</strong><br><br>' +
 
         'Netto: ' +
+
         netto.toFixed(2) +
+
         ' €<br>' +
 
         'MwSt.: ' +
+
         steuer.toFixed(2) +
+
         ' €<br>' +
 
         '<div class="big">' +
+
         brutto.toFixed(2) +
+
         ' €</div>';
 }
 
@@ -1578,15 +2036,19 @@ function mitarbeiterSpeichern(){
     }
 
 
-    const daten =
-        laden('mitarbeiter');
+    const id =
+        String(
+            Date.now()
+        );
 
 
-    daten.push({
+    const mitarbeiter = {
 
-        id:Date.now(),
+        id:
+            id,
 
-        name:name,
+        name:
+            name,
 
         telefon:
             el('mitarbeiterTelefon').value,
@@ -1596,7 +2058,16 @@ function mitarbeiterSpeichern(){
 
         lohn:
             el('mitarbeiterLohn').value
-    });
+    };
+
+
+    const daten =
+        laden('mitarbeiter');
+
+
+    daten.push(
+        mitarbeiter
+    );
 
 
     speichern(
@@ -1605,9 +2076,48 @@ function mitarbeiterSpeichern(){
     );
 
 
-    el('mitarbeiterName').value = '';
-    el('mitarbeiterTelefon').value = '';
-    el('mitarbeiterLohn').value = '';
+    /*
+     * Zusätzlich Firebase.
+     */
+
+    if(
+        window.Android &&
+        typeof Android.saveEmployeeToFirestore === 'function'
+    ){
+
+        try{
+
+            Android.saveEmployeeToFirestore(
+
+                mitarbeiter.id,
+
+                mitarbeiter.name,
+
+                mitarbeiter.telefon,
+
+                mitarbeiter.art,
+
+                mitarbeiter.lohn
+            );
+
+        }catch(e){
+
+            console.error(
+                'Firebase Mitarbeiter speichern fehlgeschlagen',
+                e
+            );
+        }
+    }
+
+
+    el('mitarbeiterName').value =
+        '';
+
+    el('mitarbeiterTelefon').value =
+        '';
+
+    el('mitarbeiterLohn').value =
+        '';
 
 
     mitarbeiterAnzeigen();
@@ -1628,6 +2138,7 @@ function mitarbeiterAnzeigen(){
 
 
     if(!box){
+
         return;
     }
 
@@ -1636,7 +2147,25 @@ function mitarbeiterAnzeigen(){
         laden('mitarbeiter');
 
 
-    box.innerHTML = '';
+    if(
+        daten.length ===
+        0
+    ){
+
+        box.innerHTML =
+
+            '<div class="info">' +
+
+            'Noch keine Mitarbeiter gespeichert.' +
+
+            '</div>';
+
+        return;
+    }
+
+
+    box.innerHTML =
+        '';
 
 
     daten.forEach(
@@ -1650,20 +2179,40 @@ function mitarbeiterAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-                esc(m.name) +
+
+                esc(
+                    m.name
+                ) +
+
                 '</strong><br>' +
 
-                esc(m.art) +
+                esc(
+                    m.art
+                ) +
+
                 '<br>' +
 
-                esc(m.telefon) +
+                esc(
+                    m.telefon
+                ) +
+
                 '<br>' +
 
-                esc(m.lohn) +
-                ' €/Std.' +
+                (
+                    m.lohn
+                    ?
+                    esc(
+                        m.lohn
+                    ) +
+                    ' €/Std.'
+                    :
+                    ''
+                ) +
 
                 '<button onclick="mitarbeiterOeffnen(' +
+
                 index +
+
                 ')">' +
 
                 '📋 Stundenzettel öffnen' +
@@ -1676,13 +2225,16 @@ function mitarbeiterAnzeigen(){
 }
 
 
-function mitarbeiterOeffnen(index){
+function mitarbeiterOeffnen(
+    index
+){
 
     const m =
         laden('mitarbeiter')[index];
 
 
     if(!m){
+
         return;
     }
 
@@ -1704,7 +2256,7 @@ function mitarbeiterOeffnen(index){
             mitarbeiterWechsel();
 
         },
-        50
+        100
     );
 }
 
@@ -1716,6 +2268,7 @@ function mitarbeiterAuswahl(){
 
 
     if(!select){
+
         return;
     }
 
@@ -1728,13 +2281,22 @@ function mitarbeiterAuswahl(){
         laden('mitarbeiter');
 
 
-    select.innerHTML = '';
+    select.innerHTML =
+        '';
 
 
-    if(daten.length === 0){
+    if(
+        daten.length ===
+        0
+    ){
 
         select.innerHTML =
-            '<option value="">Bitte zuerst Mitarbeiter anlegen</option>';
+
+            '<option value="">' +
+
+            'Mitarbeiter werden geladen...' +
+
+            '</option>';
 
         return;
     }
@@ -1768,23 +2330,53 @@ function mitarbeiterAuswahl(){
 
     if(vorher){
 
-        select.value =
-            vorher;
+        const vorhanden =
+            daten.some(
+                function(m){
+
+                    return (
+                        String(
+                            m.id
+                        ) ===
+                        String(
+                            vorher
+                        )
+                    );
+                }
+            );
+
+
+        if(vorhanden){
+
+            select.value =
+                vorher;
+        }
     }
 }
 
 
 function mitarbeiterWechsel(){
 
-    aktuellerZettel = [];
+    aktuellerZettel =
+        [];
 
 
-    el('stundenTabelle').innerHTML =
-        '';
+    if(
+        el('stundenTabelle')
+    ){
+
+        el('stundenTabelle').innerHTML =
+            '';
+    }
 
 
-    el('stundenGesamt').style.display =
-        'none';
+    if(
+        el('stundenGesamt')
+    ){
+
+        el('stundenGesamt').style.display =
+            'none';
+    }
 
 
     mitarbeiterStundenzettelAnzeigen();
@@ -1801,8 +2393,10 @@ function getMitarbeiterName(){
 
     if(
         !select ||
-        select.selectedIndex < 0
+        select.selectedIndex < 0 ||
+        !select.value
     ){
+
         return '';
     }
 
@@ -1819,9 +2413,12 @@ function getMitarbeiterName(){
    STUNDENZETTEL
    ===================================================== */
 
-function monatName(monat){
+function monatName(
+    monat
+){
 
     if(!monat){
+
         return '';
     }
 
@@ -1831,6 +2428,7 @@ function monatName(monat){
 
 
     const namen = [
+
         '',
         'Januar',
         'Februar',
@@ -1848,12 +2446,19 @@ function monatName(monat){
 
 
     return (
+
         namen[
             Number(
                 teile[1]
             )
-        ] +
-        ' ' +
+        ]
+
+        +
+
+        ' '
+
+        +
+
         teile[0]
     );
 }
@@ -1861,8 +2466,8 @@ function monatName(monat){
 
 function mitarbeiterStundenzettelAnzeigen(){
 
-    const mitarbeiterId =
-        el('zeitMitarbeiter').value;
+    const select =
+        el('zeitMitarbeiter');
 
 
     const box =
@@ -1870,9 +2475,30 @@ function mitarbeiterStundenzettelAnzeigen(){
 
 
     if(
-        !mitarbeiterId ||
+        !select ||
         !box
     ){
+
+        return;
+    }
+
+
+    const mitarbeiterId =
+        select.value;
+
+
+    if(
+        !mitarbeiterId
+    ){
+
+        box.innerHTML =
+
+            '<div class="info">' +
+
+            'Mitarbeiter werden aus Firebase geladen...' +
+
+            '</div>';
+
         return;
     }
 
@@ -1884,9 +2510,13 @@ function mitarbeiterStundenzettelAnzeigen(){
             function(x){
 
                 return (
+
                     String(
                         x.mitarbeiterId
-                    ) ===
+                    )
+
+                    ===
+
                     String(
                         mitarbeiterId
                     )
@@ -1895,7 +2525,10 @@ function mitarbeiterStundenzettelAnzeigen(){
         )
 
         .sort(
-            function(a,b){
+            function(
+                a,
+                b
+            ){
 
                 return String(
                     b.monat
@@ -1908,11 +2541,17 @@ function mitarbeiterStundenzettelAnzeigen(){
         );
 
 
-    if(liste.length === 0){
+    if(
+        liste.length ===
+        0
+    ){
 
         box.innerHTML =
+
             '<div class="info">' +
+
             'Noch kein gespeicherter Stundenzettel für diesen Mitarbeiter.' +
+
             '</div>';
 
         return;
@@ -1920,24 +2559,33 @@ function mitarbeiterStundenzettelAnzeigen(){
 
 
     let html =
-        '<h3 style="margin-top:18px">Gespeicherte Monate</h3>';
+
+        '<h3 style="margin-top:18px">' +
+
+        'Gespeicherte Monate' +
+
+        '</h3>';
 
 
     liste.forEach(
         function(zettel){
 
-            let gesamt = 0;
+            let gesamt =
+                0;
 
 
             (
-                zettel.tage || []
+                zettel.tage ||
+                []
             )
             .forEach(
                 function(tag){
 
                     gesamt +=
+
                         Number(
-                            tag.stunden || 0
+                            tag.stunden ||
+                            0
                         );
                 }
             );
@@ -1948,17 +2596,27 @@ function mitarbeiterStundenzettelAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
+
                 monatName(
                     zettel.monat
                 ) +
+
                 '</strong><br>' +
 
                 'Gesamt: ' +
-                gesamt.toFixed(2) +
+
+                gesamt
+                    .toFixed(2)
+                    .replace('.',',')
+
+                +
+
                 ' Std.' +
 
                 '<button onclick="gespeichertenMonatOeffnen(\'' +
+
                 zettel.monat +
+
                 '\')">' +
 
                 'Öffnen' +
@@ -1975,7 +2633,9 @@ function mitarbeiterStundenzettelAnzeigen(){
 }
 
 
-function gespeichertenMonatOeffnen(monat){
+function gespeichertenMonatOeffnen(
+    monat
+){
 
     el('zeitMonat').value =
         monat;
@@ -1987,15 +2647,17 @@ function gespeichertenMonatOeffnen(monat){
     setTimeout(
         function(){
 
-            const tabelle =
-                el('stundenKopf');
+            if(
+                el('stundenKopf')
+            ){
 
+                el('stundenKopf').scrollIntoView({
 
-            if(tabelle){
+                    behavior:
+                        'smooth',
 
-                tabelle.scrollIntoView({
-                    behavior:'smooth',
-                    block:'start'
+                    block:
+                        'start'
                 });
             }
 
@@ -2005,9 +2667,12 @@ function gespeichertenMonatOeffnen(monat){
 }
 
 
-function zeitInMinuten(zeit){
+function zeitInMinuten(
+    zeit
+){
 
     if(!zeit){
+
         return 0;
     }
 
@@ -2017,10 +2682,17 @@ function zeitInMinuten(zeit){
 
 
     return (
+
         Number(
             teile[0]
-        ) *
-        60 +
+        )
+
+        *
+
+        60
+
+        +
+
         Number(
             teile[1]
         )
@@ -2038,6 +2710,7 @@ function stundenBerechnen(
         !start ||
         !ende
     ){
+
         return 0;
     }
 
@@ -2065,44 +2738,68 @@ function stundenBerechnen(
 
 
     return Math.max(
+
         0,
+
         (
-            endeMin -
-            startMin -
+
+            endeMin
+
+            -
+
+            startMin
+
+            -
+
             Number(
-                pause || 0
+                pause ||
+                0
             )
-        ) /
+        )
+
+        /
+
         60
     );
 }
 
 
-function formatDatum(datum){
+function formatDatum(
+    datum
+){
 
     return (
+
         String(
             datum.getDate()
         ).padStart(
             2,
             '0'
-        ) +
-        '.' +
+        )
+
+        +
+
+        '.'
+
+        +
+
         String(
             datum.getMonth() + 1
         ).padStart(
             2,
             '0'
-        ) +
-        '.' +
+        )
+
+        +
+
+        '.'
+
+        +
+
         datum.getFullYear()
     );
 }
 
-
-/*
- * Neuen kompletten Monat erzeugen.
- */
 
 function monatErstellen(){
 
@@ -2115,21 +2812,28 @@ function monatErstellen(){
 
 
     if(
-        !mitarbeiterId ||
-        !monat
+        !mitarbeiterId
     ){
 
         alert(
-            'Bitte Mitarbeiter und Monat auswählen.'
+            'Bitte zuerst einen Mitarbeiter auswählen.'
         );
 
         return;
     }
 
 
-    /*
-     * Schutz vor versehentlichem Überschreiben.
-     */
+    if(
+        !monat
+    ){
+
+        alert(
+            'Bitte einen Monat auswählen.'
+        );
+
+        return;
+    }
+
 
     const vorhanden =
         laden('stundenzettel')
@@ -2137,13 +2841,21 @@ function monatErstellen(){
             function(x){
 
                 return (
+
                     String(
                         x.mitarbeiterId
-                    ) ===
+                    )
+
+                    ===
+
                     String(
                         mitarbeiterId
-                    ) &&
-                    x.monat === monat
+                    )
+
+                    &&
+
+                    x.monat ===
+                    monat
                 );
             }
         );
@@ -2153,9 +2865,10 @@ function monatErstellen(){
 
         if(
             !confirm(
-                'Für diesen Monat existiert bereits ein Stundenzettel. Neu erstellen und die angezeigten Daten ersetzen?'
+                'Für diesen Monat existiert bereits ein Stundenzettel. Wirklich neu erstellen?'
             )
         ){
+
             return;
         }
     }
@@ -2171,7 +2884,8 @@ function monatErstellen(){
 
     const pause =
         Number(
-            el('zeitPause').value || 0
+            el('zeitPause').value ||
+            0
         );
 
 
@@ -2199,7 +2913,10 @@ function monatErstellen(){
         );
 
 
-    if(arbeitstage.length === 0){
+    if(
+        arbeitstage.length ===
+        0
+    ){
 
         alert(
             'Bitte mindestens einen Arbeitstag auswählen.'
@@ -2233,7 +2950,8 @@ function monatErstellen(){
         ).getDate();
 
 
-    aktuellerZettel = [];
+    aktuellerZettel =
+        [];
 
 
     for(
@@ -2265,39 +2983,49 @@ function monatErstellen(){
 
             status:
                 arbeitet
-                    ? 'Arbeit'
-                    : 'Frei',
+                ?
+                'Arbeit'
+                :
+                'Frei',
 
             start:
                 arbeitet
-                    ? start
-                    : '',
+                ?
+                start
+                :
+                '',
 
             ende:
                 arbeitet
-                    ? ende
-                    : '',
+                ?
+                ende
+                :
+                '',
 
             pause:
                 arbeitet
-                    ? pause
-                    : 0,
+                ?
+                pause
+                :
+                0,
 
             stunden:
                 arbeitet
-                    ?
-                    stundenBerechnen(
-                        start,
-                        ende,
-                        pause
-                    )
-                    :
-                    0,
+                ?
+                stundenBerechnen(
+                    start,
+                    ende,
+                    pause
+                )
+                :
+                0,
 
             objekt:
                 arbeitet
-                    ? objekt
-                    : ''
+                ?
+                objekt
+                :
+                ''
         });
     }
 
@@ -2306,17 +3034,14 @@ function monatErstellen(){
 }
 
 
-/*
- * Tabelle mit bearbeitbaren Feldern erzeugen.
- */
-
 function zettelAnzeigen(){
 
     const tbody =
         el('stundenTabelle');
 
 
-    tbody.innerHTML = '';
+    tbody.innerHTML =
+        '';
 
 
     aktuellerZettel.forEach(
@@ -2326,7 +3051,9 @@ function zettelAnzeigen(){
         ){
 
             const arbeitet =
-                zettel.status === 'Arbeit';
+
+                zettel.status ===
+                'Arbeit';
 
 
             const tr =
@@ -2335,48 +3062,60 @@ function zettelAnzeigen(){
                 );
 
 
-            tr.id =
-                'stundenZeile_' +
-                index;
-
-
             tr.className =
+
                 arbeitet
-                    ? 'arbeit'
-                    : 'frei';
+                ?
+                'arbeit'
+                :
+                'frei';
 
 
             tr.innerHTML =
 
                 '<td>' +
+
                 esc(
                     zettel.datum
                 ) +
+
                 '</td>' +
 
 
                 '<td>' +
 
-                '<select ' +
-                'class="table-select" ' +
-                'onchange="zettelStatusAendern(' +
+                '<select class="table-select" onchange="zettelStatusAendern(' +
+
                 index +
+
                 ',this.value)">' +
 
                 '<option value="Arbeit"' +
+
                 (
                     arbeitet
-                        ? ' selected'
-                        : ''
-                ) +
+                    ?
+                    ' selected'
+                    :
+                    ''
+                )
+
+                +
+
                 '>Arbeit</option>' +
 
                 '<option value="Frei"' +
+
                 (
                     !arbeitet
-                        ? ' selected'
-                        : ''
-                ) +
+                    ?
+                    ' selected'
+                    :
+                    ''
+                )
+
+                +
+
                 '>Frei</option>' +
 
                 '</select>' +
@@ -2386,21 +3125,28 @@ function zettelAnzeigen(){
 
                 '<td>' +
 
-                '<input ' +
-                'class="table-input" ' +
-                'type="time" ' +
-                'value="' +
+                '<input class="table-input" type="time" value="' +
+
                 esc(
                     zettel.start
                 ) +
+
                 '" ' +
+
                 (
                     arbeitet
-                        ? ''
-                        : 'disabled '
-                ) +
+                    ?
+                    ''
+                    :
+                    'disabled '
+                )
+
+                +
+
                 'onchange="zettelWertAendern(' +
+
                 index +
+
                 ',\'start\',this.value)">' +
 
                 '</td>' +
@@ -2408,21 +3154,28 @@ function zettelAnzeigen(){
 
                 '<td>' +
 
-                '<input ' +
-                'class="table-input" ' +
-                'type="time" ' +
-                'value="' +
+                '<input class="table-input" type="time" value="' +
+
                 esc(
                     zettel.ende
                 ) +
+
                 '" ' +
+
                 (
                     arbeitet
-                        ? ''
-                        : 'disabled '
-                ) +
+                    ?
+                    ''
+                    :
+                    'disabled '
+                )
+
+                +
+
                 'onchange="zettelWertAendern(' +
+
                 index +
+
                 ',\'ende\',this.value)">' +
 
                 '</td>' +
@@ -2430,33 +3183,42 @@ function zettelAnzeigen(){
 
                 '<td>' +
 
-                '<input ' +
-                'class="table-input table-pause" ' +
-                'type="number" ' +
-                'min="0" ' +
-                'value="' +
+                '<input class="table-input table-pause" type="number" min="0" value="' +
+
                 esc(
                     zettel.pause
                 ) +
+
                 '" ' +
+
                 (
                     arbeitet
-                        ? ''
-                        : 'disabled '
-                ) +
+                    ?
+                    ''
+                    :
+                    'disabled '
+                )
+
+                +
+
                 'onchange="zettelWertAendern(' +
+
                 index +
+
                 ',\'pause\',this.value)">' +
 
                 '</td>' +
 
 
                 '<td id="stundenWert_' +
+
                 index +
+
                 '">' +
 
                 Number(
-                    zettel.stunden || 0
+                    zettel.stunden ||
+                    0
                 ).toFixed(2) +
 
                 '</td>' +
@@ -2464,21 +3226,28 @@ function zettelAnzeigen(){
 
                 '<td>' +
 
-                '<input ' +
-                'class="table-input table-objekt" ' +
-                'type="text" ' +
-                'value="' +
+                '<input class="table-input table-objekt" type="text" value="' +
+
                 esc(
                     zettel.objekt
                 ) +
+
                 '" ' +
+
                 (
                     arbeitet
-                        ? ''
-                        : 'disabled '
-                ) +
+                    ?
+                    ''
+                    :
+                    'disabled '
+                )
+
+                +
+
                 'onchange="zettelWertAendern(' +
+
                 index +
+
                 ',\'objekt\',this.value)">' +
 
                 '</td>';
@@ -2493,14 +3262,24 @@ function zettelAnzeigen(){
 
     el('stundenKopf').innerHTML =
 
-        '<br><strong>Mitarbeiter:</strong> ' +
+        '<br><strong>Mitarbeiter:</strong> '
+
+        +
+
         esc(
             getMitarbeiterName()
-        ) +
+        )
 
-        '<br>' +
+        +
 
-        '<strong>Monat:</strong> ' +
+        '<br>'
+
+        +
+
+        '<strong>Monat:</strong> '
+
+        +
+
         esc(
             el('zeitMonat').value
         );
@@ -2509,10 +3288,6 @@ function zettelAnzeigen(){
     stundenGesamtAktualisieren();
 }
 
-
-/*
- * Arbeit/Frei ändern.
- */
 
 function zettelStatusAendern(
     index,
@@ -2524,6 +3299,7 @@ function zettelStatusAendern(
 
 
     if(!zettel){
+
         return;
     }
 
@@ -2532,7 +3308,10 @@ function zettelStatusAendern(
         status;
 
 
-    if(status === 'Arbeit'){
+    if(
+        status ===
+        'Arbeit'
+    ){
 
         if(!zettel.start){
 
@@ -2550,22 +3329,19 @@ function zettelStatusAendern(
         }
 
 
-        if(
-            zettel.pause === '' ||
-            zettel.pause == null
-        ){
-
-            zettel.pause =
-                Number(
-                    el('zeitPause').value || 0
-                );
-        }
+        zettel.pause =
+            Number(
+                zettel.pause ||
+                el('zeitPause').value ||
+                0
+            );
 
 
         if(!zettel.objekt){
 
             zettel.objekt =
-                el('zeitObjekt').value || '';
+                el('zeitObjekt').value ||
+                '';
         }
 
 
@@ -2584,18 +3360,9 @@ function zettelStatusAendern(
     }
 
 
-    /*
-     * Zeile neu erzeugen, damit Felder
-     * aktiviert/deaktiviert werden.
-     */
-
     zettelAnzeigen();
 }
 
-
-/*
- * Einzelnes Feld eines Tages ändern.
- */
 
 function zettelWertAendern(
     index,
@@ -2608,19 +3375,25 @@ function zettelWertAendern(
 
 
     if(!zettel){
+
         return;
     }
 
 
-    if(feld === 'pause'){
+    if(
+        feld ===
+        'pause'
+    ){
 
         zettel.pause =
             Math.max(
                 0,
                 Number(
-                    wert || 0
+                    wert ||
+                    0
                 )
             );
+
 
     }else{
 
@@ -2630,7 +3403,8 @@ function zettelWertAendern(
 
 
     if(
-        zettel.status === 'Arbeit'
+        zettel.status ===
+        'Arbeit'
     ){
 
         zettel.stunden =
@@ -2640,6 +3414,7 @@ function zettelWertAendern(
                 zettel.pause
             );
 
+
     }else{
 
         zettel.stunden =
@@ -2647,18 +3422,19 @@ function zettelWertAendern(
     }
 
 
-    const stundenFeld =
+    const feldStunden =
         el(
             'stundenWert_' +
             index
         );
 
 
-    if(stundenFeld){
+    if(feldStunden){
 
-        stundenFeld.textContent =
+        feldStunden.textContent =
             Number(
-                zettel.stunden || 0
+                zettel.stunden ||
+                0
             ).toFixed(2);
     }
 
@@ -2667,25 +3443,25 @@ function zettelWertAendern(
 }
 
 
-/*
- * Gesamtstunden neu berechnen.
- */
-
 function stundenGesamtAktualisieren(){
 
-    let gesamt = 0;
+    let gesamt =
+        0;
 
 
     aktuellerZettel.forEach(
         function(zettel){
 
             if(
-                zettel.status === 'Arbeit'
+                zettel.status ===
+                'Arbeit'
             ){
 
                 gesamt +=
+
                     Number(
-                        zettel.stunden || 0
+                        zettel.stunden ||
+                        0
                     );
             }
         }
@@ -2697,7 +3473,8 @@ function stundenGesamtAktualisieren(){
 
 
     if(
-        aktuellerZettel.length === 0
+        aktuellerZettel.length ===
+        0
     ){
 
         box.style.display =
@@ -2719,20 +3496,19 @@ function stundenGesamtAktualisieren(){
 
         gesamt
             .toFixed(2)
-            .replace('.',',') +
+            .replace('.',',')
+
+        +
 
         ' Stunden</div>';
 }
 
 
-/*
- * Lokal + Firebase speichern.
- */
-
 function stundenzettelSpeichern(){
 
     if(
-        aktuellerZettel.length === 0
+        aktuellerZettel.length ===
+        0
     ){
 
         alert(
@@ -2764,16 +3540,12 @@ function stundenzettelSpeichern(){
     }
 
 
-    /*
-     * Vor dem Speichern noch einmal alle
-     * Stunden sicher neu berechnen.
-     */
-
     aktuellerZettel.forEach(
         function(zettel){
 
             if(
-                zettel.status === 'Arbeit'
+                zettel.status ===
+                'Arbeit'
             ){
 
                 zettel.stunden =
@@ -2782,6 +3554,7 @@ function stundenzettelSpeichern(){
                         zettel.ende,
                         zettel.pause
                     );
+
 
             }else{
 
@@ -2799,16 +3572,24 @@ function stundenzettelSpeichern(){
 
 
     const key =
+
         String(
             mitarbeiterId
-        ) +
-        '_' +
+        )
+
+        +
+
+        '_'
+
+        +
+
         monat;
 
 
     const zettel = {
 
-        key:key,
+        key:
+            key,
 
         mitarbeiterId:
             String(
@@ -2831,16 +3612,20 @@ function stundenzettelSpeichern(){
             function(x){
 
                 return (
-                    x.key === key
+                    x.key ===
+                    key
                 );
             }
         );
 
 
-    if(index >= 0){
+    if(
+        index >= 0
+    ){
 
         alle[index] =
             zettel;
+
 
     }else{
 
@@ -2878,6 +3663,7 @@ function stundenzettelSpeichern(){
                 )
             );
 
+
         }catch(e){
 
             console.error(
@@ -2899,14 +3685,20 @@ function stundenzettelSpeichern(){
 }
 
 
-/*
- * Gespeicherten Monat laden.
- */
-
 function gespeichertenZettelLaden(){
 
+    const select =
+        el('zeitMitarbeiter');
+
+
+    if(!select){
+
+        return;
+    }
+
+
     const mitarbeiterId =
-        el('zeitMitarbeiter').value;
+        select.value;
 
 
     const monat =
@@ -2917,23 +3709,33 @@ function gespeichertenZettelLaden(){
         !mitarbeiterId ||
         !monat
     ){
+
         return;
     }
 
 
     const zettel =
         laden('stundenzettel')
+
         .find(
             function(x){
 
                 return (
+
                     String(
                         x.mitarbeiterId
-                    ) ===
+                    )
+
+                    ===
+
                     String(
                         mitarbeiterId
-                    ) &&
-                    x.monat === monat
+                    )
+
+                    &&
+
+                    x.monat ===
+                    monat
                 );
             }
         );
@@ -2941,7 +3743,8 @@ function gespeichertenZettelLaden(){
 
     if(!zettel){
 
-        aktuellerZettel = [];
+        aktuellerZettel =
+            [];
 
 
         el('stundenTabelle').innerHTML =
@@ -2953,8 +3756,11 @@ function gespeichertenZettelLaden(){
 
 
         el('stundenKopf').innerHTML =
+
             '<br><div class="info">' +
+
             'Für diesen Monat ist noch kein Stundenzettel gespeichert.' +
+
             '</div>';
 
 
@@ -2965,46 +3771,58 @@ function gespeichertenZettelLaden(){
     aktuellerZettel =
         JSON.parse(
             JSON.stringify(
-                zettel.tage || []
+                zettel.tage ||
+                []
             )
         );
 
-
-    /*
-     * Ältere gespeicherte Daten absichern.
-     */
 
     aktuellerZettel.forEach(
         function(tag){
 
             tag.status =
-                tag.status || 'Frei';
+                tag.status ||
+                'Frei';
+
 
             tag.start =
-                tag.start || '';
+                tag.start ||
+                '';
+
 
             tag.ende =
-                tag.ende || '';
+                tag.ende ||
+                '';
+
 
             tag.pause =
                 Number(
-                    tag.pause || 0
+                    tag.pause ||
+                    0
                 );
 
+
             tag.objekt =
-                tag.objekt || '';
+                tag.objekt ||
+                '';
 
 
             tag.stunden =
-                tag.status === 'Arbeit'
-                    ?
-                    stundenBerechnen(
-                        tag.start,
-                        tag.ende,
-                        tag.pause
-                    )
-                    :
-                    0;
+
+                tag.status ===
+                'Arbeit'
+
+                ?
+
+                stundenBerechnen(
+                    tag.start,
+                    tag.ende,
+                    tag.pause
+                )
+
+                :
+
+                0;
         }
     );
 
@@ -3013,14 +3831,11 @@ function gespeichertenZettelLaden(){
 }
 
 
-/*
- * PDF
- */
-
 function pdfErstellen(){
 
     if(
-        aktuellerZettel.length === 0
+        aktuellerZettel.length ===
+        0
     ){
 
         alert(
@@ -3046,6 +3861,7 @@ function pdfErstellen(){
                 aktuellerZettel
             )
         );
+
 
     }else{
 
@@ -3082,7 +3898,8 @@ function kundeSpeichern(){
 
     daten.push({
 
-        name:name,
+        name:
+            name,
 
         adresse:
             el('kundeAdresse').value,
@@ -3115,6 +3932,7 @@ function kundenAnzeigen(){
 
 
     if(!box){
+
         return;
     }
 
@@ -3123,7 +3941,8 @@ function kundenAnzeigen(){
         laden('kunden');
 
 
-    box.innerHTML = '';
+    box.innerHTML =
+        '';
 
 
     daten.forEach(
@@ -3137,19 +3956,23 @@ function kundenAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
+
                 esc(
                     kunde.name
                 ) +
+
                 '</strong><br>' +
 
                 esc(
                     kunde.adresse
                 ) +
+
                 '<br>' +
 
                 esc(
                     kunde.telefon
                 ) +
+
                 '<br>' +
 
                 esc(
@@ -3157,7 +3980,9 @@ function kundenAnzeigen(){
                 ) +
 
                 '<button class="danger" onclick="loeschen(\'kunden\',' +
+
                 index +
+
                 ')">' +
 
                 'Löschen' +
@@ -3192,7 +4017,8 @@ function auftragSpeichern(){
 
     const auftrag = {
 
-        kunde:kunde,
+        kunde:
+            kunde,
 
         ort:
             el('auftragOrt').value,
@@ -3264,6 +4090,7 @@ function auftraegeAnzeigen(){
 
 
     if(!box){
+
         return;
     }
 
@@ -3272,7 +4099,8 @@ function auftraegeAnzeigen(){
         laden('auftraege');
 
 
-    box.innerHTML = '';
+    box.innerHTML =
+        '';
 
 
     daten.forEach(
@@ -3286,29 +4114,35 @@ function auftraegeAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
+
                 esc(
                     auftrag.kunde
                 ) +
+
                 '</strong><br>' +
 
                 esc(
                     auftrag.art
                 ) +
+
                 '<br>' +
 
                 esc(
                     auftrag.ort
                 ) +
+
                 '<br>' +
 
                 esc(
                     auftrag.datum
                 ) +
+
                 '<br>' +
 
                 esc(
                     auftrag.preis
                 ) +
+
                 ' €<br>' +
 
                 esc(
@@ -3316,7 +4150,9 @@ function auftraegeAnzeigen(){
                 ) +
 
                 '<button class="danger" onclick="loeschen(\'auftraege\',' +
+
                 index +
+
                 ')">' +
 
                 'Löschen' +
@@ -3355,7 +4191,8 @@ function rechnungSpeichern(){
 
     daten.push({
 
-        kunde:kunde,
+        kunde:
+            kunde,
 
         nummer:
             el('rechnungNummer').value,
@@ -3388,6 +4225,7 @@ function rechnungenAnzeigen(){
 
 
     if(!box){
+
         return;
     }
 
@@ -3396,7 +4234,8 @@ function rechnungenAnzeigen(){
         laden('rechnungen');
 
 
-    box.innerHTML = '';
+    box.innerHTML =
+        '';
 
 
     daten.forEach(
@@ -3410,25 +4249,31 @@ function rechnungenAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
+
                 esc(
                     r.kunde
                 ) +
+
                 '</strong><br>' +
 
                 'Nr.: ' +
+
                 esc(
                     r.nummer
                 ) +
+
                 '<br>' +
 
                 esc(
                     r.betrag
                 ) +
+
                 ' €<br>' +
 
                 esc(
                     r.datum
                 ) +
+
                 '<br>' +
 
                 esc(
@@ -3436,7 +4281,9 @@ function rechnungenAnzeigen(){
                 ) +
 
                 '<button class="danger" onclick="loeschen(\'rechnungen\',' +
+
                 index +
+
                 ')">' +
 
                 'Löschen' +
@@ -3463,6 +4310,7 @@ function loeschen(
             'Eintrag wirklich löschen?'
         )
     ){
+
         return;
     }
 
@@ -3518,7 +4366,8 @@ function(){
 
     if(
         page &&
-        page.id !== 'home'
+        page.id !==
+        'home'
     ){
 
         openPage(
@@ -3545,9 +4394,13 @@ function(){
 
     el('zeitMonat').value =
 
-        heute.getFullYear() +
+        heute.getFullYear()
 
-        '-' +
+        +
+
+        '-'
+
+        +
 
         String(
             heute.getMonth() + 1
@@ -3572,15 +4425,34 @@ function(){
     rechnungenAnzeigen();
 
 
+    /*
+     * Reihenfolge wichtig:
+     *
+     * 1. Mitarbeiter laden
+     * 2. Stundenzettel laden
+     * 3. Falls nötig Mitarbeiter aus alten
+     *    Stundenzetteln rekonstruieren
+     */
+
     setTimeout(
         function(){
 
+            mitarbeiterAusFirestoreLaden();
+
             auftraegeAusFirestoreLaden();
+
+        },
+        400
+    );
+
+
+    setTimeout(
+        function(){
 
             stundenzettelAusFirestoreLaden();
 
         },
-        500
+        900
     );
 
 })();
