@@ -196,7 +196,7 @@ textarea{
 
 table{
     width:100%;
-    min-width:650px;
+    min-width:950px;
     border-collapse:collapse;
     font-size:13px;
 }
@@ -204,8 +204,9 @@ table{
 th,
 td{
     border:1px solid #d0d5dd;
-    padding:8px 5px;
+    padding:7px 5px;
     text-align:center;
+    vertical-align:middle;
 }
 
 th{
@@ -219,6 +220,30 @@ tr.arbeit{
 tr.frei{
     background:#f9fafb;
     color:#667085;
+}
+
+.table-input,
+.table-select{
+    min-width:92px;
+    width:100%;
+    padding:8px;
+    margin:0;
+    border:1px solid #d0d5dd;
+    border-radius:7px;
+    font-size:13px;
+}
+
+.table-pause{
+    min-width:70px;
+}
+
+.table-objekt{
+    min-width:150px;
+}
+
+.table-input:disabled{
+    background:#f2f4f7;
+    color:#98a2b3;
 }
 
 .price-class{
@@ -342,40 +367,16 @@ footer{
         <label>Reinigungsart</label>
 
         <select id="service" onchange="serviceChanged()">
-
-            <option value="fenster">
-                Fenster / Glasreinigung
-            </option>
-
-            <option value="bau">
-                Bauendreinigung
-            </option>
-
-            <option value="grund">
-                Grundreinigung
-            </option>
-
-            <option value="treppe">
-                Treppenhausreinigung
-            </option>
-
-            <option value="unterhalt">
-                Unterhaltsreinigung
-            </option>
-
+            <option value="fenster">Fenster / Glasreinigung</option>
+            <option value="bau">Bauendreinigung</option>
+            <option value="grund">Grundreinigung</option>
+            <option value="treppe">Treppenhausreinigung</option>
+            <option value="unterhalt">Unterhaltsreinigung</option>
         </select>
 
         <div id="flaechenBlock">
-
             <label>Fläche</label>
-
-            <input
-                id="qm"
-                type="number"
-                step="0.01"
-                placeholder="Fläche in m²"
-            >
-
+            <input id="qm" type="number" step="0.01" placeholder="Fläche in m²">
         </div>
 
         <div id="unterhaltBlock" style="display:none">
@@ -383,7 +384,6 @@ footer{
             <label>Wie oft wird gereinigt?</label>
 
             <select id="unterhaltHaeufigkeit">
-
                 <option value="1">1× pro Woche</option>
                 <option value="2">2× pro Woche</option>
                 <option value="3">3× pro Woche</option>
@@ -391,16 +391,10 @@ footer{
                 <option value="5">5× pro Woche</option>
                 <option value="6">6× pro Woche</option>
                 <option value="7">Täglich / 7× pro Woche</option>
-
             </select>
 
             <label>Reinigungsleistung</label>
-
-            <input
-                id="leistungProStunde"
-                type="number"
-                value="180"
-            >
+            <input id="leistungProStunde" type="number" value="180">
 
         </div>
 
@@ -409,53 +403,24 @@ footer{
             <label>Preisart Fenster</label>
 
             <select id="fensterPreisArt">
-
-                <option value="pauschal">
-                    Automatischer Pauschalpreis
-                </option>
-
-                <option value="qm">
-                    Preis nach m²
-                </option>
-
+                <option value="pauschal">Automatischer Pauschalpreis</option>
+                <option value="qm">Preis nach m²</option>
             </select>
 
             <label>Anzahl Fenster</label>
-
-            <input
-                id="fensterAnzahl"
-                type="number"
-                value="1"
-            >
+            <input id="fensterAnzahl" type="number" value="1">
 
             <label>Breite</label>
-
-            <input
-                id="fensterBreite"
-                type="number"
-                step="0.01"
-            >
+            <input id="fensterBreite" type="number" step="0.01">
 
             <label>Höhe</label>
-
-            <input
-                id="fensterHoehe"
-                type="number"
-                step="0.01"
-            >
+            <input id="fensterHoehe" type="number" step="0.01">
 
             <label>Reinigungsseiten</label>
 
             <select id="fensterSeiten">
-
-                <option value="1">
-                    Eine Seite
-                </option>
-
-                <option value="2" selected>
-                    Innen + Außen
-                </option>
-
+                <option value="1">Eine Seite</option>
+                <option value="2" selected>Innen + Außen</option>
             </select>
 
             <button onclick="arMessungStarten()">
@@ -493,11 +458,7 @@ footer{
             Berechnen
         </button>
 
-        <div
-            id="preisErgebnis"
-            class="result"
-            style="display:none"
-        ></div>
+        <div id="preisErgebnis" class="result" style="display:none"></div>
 
     </div>
 
@@ -520,15 +481,9 @@ footer{
             📐 Kamera-Messung starten
         </button>
 
-        <div
-            id="arErgebnis"
-            class="result"
-            style="display:none"
-        ></div>
+        <div id="arErgebnis" class="result" style="display:none"></div>
 
-        <h2 style="margin-top:20px">
-            Pauschalpreise
-        </h2>
+        <h2 style="margin-top:20px">Pauschalpreise</h2>
 
         <label>Klein – bis 1,00 m²</label>
         <input id="preisKlein" type="number" value="8">
@@ -554,65 +509,26 @@ footer{
 
         <label>Preisberechnung</label>
 
-        <select
-            id="fotoPreisArt"
-            onchange="fensterPreisArtChanged()"
-        >
-
-            <option value="automatisch">
-                Automatische Fensterklasse
-            </option>
-
-            <option value="manuell">
-                Pauschalpreis manuell
-            </option>
-
-            <option value="qm">
-                Preis nach m²
-            </option>
-
+        <select id="fotoPreisArt" onchange="fensterPreisArtChanged()">
+            <option value="automatisch">Automatische Fensterklasse</option>
+            <option value="manuell">Pauschalpreis manuell</option>
+            <option value="qm">Preis nach m²</option>
         </select>
 
-        <div
-            id="manuellerFensterPreisBlock"
-            style="display:none"
-        >
-
-            <input
-                id="manuellerFensterPreis"
-                type="number"
-                value="10"
-            >
-
+        <div id="manuellerFensterPreisBlock" style="display:none">
+            <input id="manuellerFensterPreis" type="number" value="10">
         </div>
 
-        <div
-            id="qmFensterPreisBlock"
-            style="display:none"
-        >
-
-            <input
-                id="fotoPreisQm"
-                type="number"
-                value="4.50"
-            >
-
+        <div id="qmFensterPreisBlock" style="display:none">
+            <input id="fotoPreisQm" type="number" value="4.50">
         </div>
 
         <button onclick="fensterPreisBerechnen()">
             💰 Fensterpreis berechnen
         </button>
 
-        <div
-            id="fensterKlasseErgebnis"
-            style="display:none"
-        ></div>
-
-        <div
-            id="fotoErgebnis"
-            class="result"
-            style="display:none"
-        ></div>
+        <div id="fensterKlasseErgebnis" style="display:none"></div>
+        <div id="fotoErgebnis" class="result" style="display:none"></div>
 
     </div>
 
@@ -631,15 +547,8 @@ footer{
 
     <div class="card">
 
-        <input
-            id="mitarbeiterName"
-            placeholder="Vorname Nachname"
-        >
-
-        <input
-            id="mitarbeiterTelefon"
-            placeholder="Telefon"
-        >
+        <input id="mitarbeiterName" placeholder="Vorname Nachname">
+        <input id="mitarbeiterTelefon" placeholder="Telefon">
 
         <select id="mitarbeiterArt">
             <option>Vollzeit</option>
@@ -647,11 +556,7 @@ footer{
             <option>Minijob</option>
         </select>
 
-        <input
-            id="mitarbeiterLohn"
-            type="number"
-            placeholder="Stundenlohn €"
-        >
+        <input id="mitarbeiterLohn" type="number" placeholder="Stundenlohn €">
 
         <button onclick="mitarbeiterSpeichern()">
             Mitarbeiter speichern
@@ -686,7 +591,7 @@ footer{
 
         <select
             id="zeitMitarbeiter"
-            onchange="mitarbeiterStundenzettelAnzeigen()"
+            onchange="mitarbeiterWechsel()"
         ></select>
 
         <div id="stundenCloudStatus"></div>
@@ -701,36 +606,23 @@ footer{
             onchange="gespeichertenZettelLaden()"
         >
 
-        <label>Arbeitsbeginn</label>
+        <div class="info">
+            Die Werte hier unten werden verwendet, wenn du einen neuen Monat
+            automatisch erstellst. Danach kann jeder einzelne Tag direkt in
+            der Tabelle geändert werden.
+        </div>
 
-        <input
-            id="zeitStart"
-            type="time"
-            value="22:00"
-        >
+        <label>Standard-Arbeitsbeginn</label>
+        <input id="zeitStart" type="time" value="22:00">
 
-        <label>Arbeitsende</label>
+        <label>Standard-Arbeitsende</label>
+        <input id="zeitEnde" type="time" value="23:30">
 
-        <input
-            id="zeitEnde"
-            type="time"
-            value="23:30"
-        >
+        <label>Standard-Pause in Minuten</label>
+        <input id="zeitPause" type="number" value="0" min="0">
 
-        <label>Pause in Minuten</label>
-
-        <input
-            id="zeitPause"
-            type="number"
-            value="0"
-        >
-
-        <label>Objekt / Kunde</label>
-
-        <input
-            id="zeitObjekt"
-            placeholder="Objekt / Kunde"
-        >
+        <label>Standard-Objekt / Kunde</label>
+        <input id="zeitObjekt" placeholder="Objekt / Kunde">
 
         <label>Arbeitstage</label>
 
@@ -774,12 +666,20 @@ footer{
         </div>
 
         <button onclick="monatErstellen()">
-            📅 Monat automatisch erstellen
+            📅 Neuen Monat automatisch erstellen
         </button>
 
     </div>
 
+
     <div class="card">
+
+        <h2>Arbeitszeiten</h2>
+
+        <div class="info">
+            ✏️ Du kannst jeden Tag direkt bearbeiten. Änderungen werden beim
+            Drücken auf „Stundenzettel speichern“ in Firebase gespeichert.
+        </div>
 
         <div id="stundenKopf"></div>
 
@@ -807,11 +707,7 @@ footer{
 
         </div>
 
-        <div
-            id="stundenGesamt"
-            class="result"
-            style="display:none"
-        ></div>
+        <div id="stundenGesamt" class="result" style="display:none"></div>
 
         <button onclick="stundenzettelSpeichern()">
             💾 Stundenzettel speichern
@@ -843,10 +739,7 @@ footer{
         <input id="kundeTelefon" placeholder="Telefon">
         <input id="kundeEmail" placeholder="E-Mail">
 
-        <textarea
-            id="kundeNotiz"
-            placeholder="Notizen"
-        ></textarea>
+        <textarea id="kundeNotiz" placeholder="Notizen"></textarea>
 
         <button onclick="kundeSpeichern()">
             Kunde speichern
@@ -855,11 +748,8 @@ footer{
     </div>
 
     <div class="card">
-
         <h2>Gespeicherte Kunden</h2>
-
         <div id="kundenListe"></div>
-
     </div>
 
 </div>
@@ -877,30 +767,18 @@ footer{
 
     <div class="card">
 
-        <input
-            id="auftragKunde"
-            placeholder="Kunde"
-        >
-
-        <input
-            id="auftragOrt"
-            placeholder="Objekt / Adresse"
-        >
+        <input id="auftragKunde" placeholder="Kunde">
+        <input id="auftragOrt" placeholder="Objekt / Adresse">
 
         <select id="auftragArt">
-
             <option>Unterhaltsreinigung</option>
             <option>Grundreinigung</option>
             <option>Bauendreinigung</option>
             <option>Glasreinigung</option>
             <option>Treppenhausreinigung</option>
-
         </select>
 
-        <input
-            id="auftragDatum"
-            type="date"
-        >
+        <input id="auftragDatum" type="date">
 
         <input
             id="auftragPreis"
@@ -923,11 +801,7 @@ footer{
 
         <h2>Gespeicherte Aufträge</h2>
 
-        <div
-            id="auftragStatus"
-            class="info"
-            style="display:none"
-        ></div>
+        <div id="auftragStatus" class="info" style="display:none"></div>
 
         <div id="auftragListe"></div>
 
@@ -948,15 +822,8 @@ footer{
 
     <div class="card">
 
-        <input
-            id="rechnungKunde"
-            placeholder="Kunde"
-        >
-
-        <input
-            id="rechnungNummer"
-            placeholder="Rechnungsnummer"
-        >
+        <input id="rechnungKunde" placeholder="Kunde">
+        <input id="rechnungNummer" placeholder="Rechnungsnummer">
 
         <input
             id="rechnungBetrag"
@@ -964,10 +831,7 @@ footer{
             placeholder="Betrag €"
         >
 
-        <input
-            id="rechnungDatum"
-            type="date"
-        >
+        <input id="rechnungDatum" type="date">
 
         <select id="rechnungStatus">
             <option>Offen</option>
@@ -981,9 +845,7 @@ footer{
     </div>
 
     <div class="card">
-
         <div id="rechnungListe"></div>
-
     </div>
 
 </div>
@@ -1003,10 +865,11 @@ let arFlaeche = 0;
 let aktuellerZettel = [];
 
 
-/* HILFSFUNKTIONEN */
+/* =====================================================
+   HILFSFUNKTIONEN
+   ===================================================== */
 
 function el(id){
-
     return document.getElementById(id);
 }
 
@@ -1026,10 +889,7 @@ function laden(key){
 }
 
 
-function speichern(
-    key,
-    daten
-){
+function speichern(key,daten){
 
     localStorage.setItem(
         key,
@@ -1045,60 +905,43 @@ function esc(text){
             ? ''
             : text
     )
-
     .replace(/&/g,'&amp;')
-
     .replace(/</g,'&lt;')
-
     .replace(/>/g,'&gt;')
-
     .replace(/"/g,'&quot;')
-
     .replace(/'/g,'&#039;');
 }
 
 
-/* SEITEN */
+/* =====================================================
+   SEITEN
+   ===================================================== */
 
 function openPage(id){
 
     document
         .querySelectorAll('.page')
-        .forEach(
-            function(page){
+        .forEach(function(page){
 
-                page.classList.remove(
-                    'active'
-                );
-            }
-        );
+            page.classList.remove('active');
+
+        });
 
 
-    const page =
-        el(id);
+    const page = el(id);
 
 
     if(page){
-
-        page.classList.add(
-            'active'
-        );
+        page.classList.add('active');
     }
 
 
-    if(
-        id ===
-        'mitarbeiter'
-    ){
-
+    if(id === 'mitarbeiter'){
         mitarbeiterAnzeigen();
     }
 
 
-    if(
-        id ===
-        'stundenzettel'
-    ){
+    if(id === 'stundenzettel'){
 
         mitarbeiterAuswahl();
 
@@ -1108,10 +951,7 @@ function openPage(id){
     }
 
 
-    if(
-        id ===
-        'auftraege'
-    ){
+    if(id === 'auftraege'){
 
         auftraegeAnzeigen();
 
@@ -1121,15 +961,13 @@ function openPage(id){
 
     aktualisieren();
 
-
-    window.scrollTo(
-        0,
-        0
-    );
+    window.scrollTo(0,0);
 }
 
 
-/* FIRESTORE AUFTRÄGE */
+/* =====================================================
+   FIRESTORE AUFTRÄGE
+   ===================================================== */
 
 function auftraegeAusFirestoreLaden(){
 
@@ -1138,14 +976,12 @@ function auftraegeAusFirestoreLaden(){
         typeof Android.loadOrdersFromFirestore === 'function'
     ){
 
-        const status =
-            el('auftragStatus');
+        const status = el('auftragStatus');
 
 
         if(status){
 
-            status.style.display =
-                'block';
+            status.style.display = 'block';
 
             status.innerHTML =
                 '☁️ Aufträge werden geladen...';
@@ -1169,47 +1005,35 @@ function(daten){
 
     try{
 
-        if(
-            typeof daten ===
-            'string'
-        ){
-
-            daten =
-                JSON.parse(daten);
+        if(typeof daten === 'string'){
+            daten = JSON.parse(daten);
         }
 
 
-        if(
-            !Array.isArray(daten)
-        ){
-
+        if(!Array.isArray(daten)){
             return;
         }
 
 
         const sauber =
-            daten.filter(
-                function(auftrag){
+            daten.filter(function(auftrag){
 
-                    if(!auftrag){
-
-                        return false;
-                    }
-
-
-                    const kunde =
-                        String(
-                            auftrag.kunde || ''
-                        ).trim();
-
-
-                    return (
-                        kunde !== ''
-                        &&
-                        kunde !== 'undefined'
-                    );
+                if(!auftrag){
+                    return false;
                 }
-            );
+
+
+                const kunde =
+                    String(
+                        auftrag.kunde || ''
+                    ).trim();
+
+
+                return (
+                    kunde !== '' &&
+                    kunde !== 'undefined'
+                );
+            });
 
 
         speichern(
@@ -1221,21 +1045,16 @@ function(daten){
         auftraegeAnzeigen();
 
 
-        const status =
-            el('auftragStatus');
+        const status = el('auftragStatus');
 
 
         if(status){
 
-            status.style.display =
-                'block';
+            status.style.display = 'block';
 
             status.innerHTML =
-
                 '☁️ ' +
-
                 sauber.length +
-
                 ' Auftrag/Aufträge aus Firebase geladen.';
         }
 
@@ -1246,7 +1065,9 @@ function(daten){
 };
 
 
-/* FIRESTORE STUNDENZETTEL */
+/* =====================================================
+   FIRESTORE STUNDENZETTEL
+   ===================================================== */
 
 function stundenzettelAusFirestoreLaden(){
 
@@ -1289,20 +1110,12 @@ function(daten){
 
     try{
 
-        if(
-            typeof daten ===
-            'string'
-        ){
-
-            daten =
-                JSON.parse(daten);
+        if(typeof daten === 'string'){
+            daten = JSON.parse(daten);
         }
 
 
-        if(
-            !Array.isArray(daten)
-        ){
-
+        if(!Array.isArray(daten)){
             return;
         }
 
@@ -1316,6 +1129,14 @@ function(daten){
         mitarbeiterStundenzettelAnzeigen();
 
 
+        /*
+         * Falls gerade ein Monat ausgewählt ist,
+         * laden wir ihn direkt neu.
+         */
+
+        gespeichertenZettelLaden();
+
+
         const status =
             el('stundenCloudStatus');
 
@@ -1326,11 +1147,8 @@ function(daten){
                 'info';
 
             status.innerHTML =
-
                 '☁️ ' +
-
                 daten.length +
-
                 ' Stundenzettel aus Firebase geladen.';
         }
 
@@ -1344,7 +1162,9 @@ function(daten){
 };
 
 
-/* AR */
+/* =====================================================
+   AR
+   ===================================================== */
 
 function arMessungStarten(){
 
@@ -1381,27 +1201,21 @@ function(
         parseFloat(flaeche) || 0;
 
 
-    if(
-        el('fensterBreite')
-    ){
+    if(el('fensterBreite')){
 
         el('fensterBreite').value =
             arBreite.toFixed(2);
     }
 
 
-    if(
-        el('fensterHoehe')
-    ){
+    if(el('fensterHoehe')){
 
         el('fensterHoehe').value =
             arHoehe.toFixed(2);
     }
 
 
-    openPage(
-        'foto'
-    );
+    openPage('foto');
 
 
     const box =
@@ -1417,21 +1231,15 @@ function(
         '<strong>✅ Fenster gemessen</strong><br><br>' +
 
         'Breite: ' +
-
         arBreite.toFixed(2) +
-
         ' m<br>' +
 
         'Höhe: ' +
-
         arHoehe.toFixed(2) +
-
         ' m<br>' +
 
         '<div class="big">' +
-
         arFlaeche.toFixed(2) +
-
         ' m²</div>';
 
 
@@ -1439,72 +1247,50 @@ function(
 };
 
 
-/* FENSTER */
+/* =====================================================
+   FENSTER
+   ===================================================== */
 
-function getFensterKlasse(
-    flaeche
-){
+function getFensterKlasse(flaeche){
 
-    if(
-        flaeche <= 1
-    ){
+    if(flaeche <= 1){
 
         return {
-
-            name:
-                'Kleines Fenster',
-
-            preis:
-                parseFloat(
-                    el('preisKlein').value || 0
-                )
+            name:'Kleines Fenster',
+            preis:parseFloat(
+                el('preisKlein').value || 0
+            )
         };
     }
 
 
-    if(
-        flaeche <= 2
-    ){
+    if(flaeche <= 2){
 
         return {
-
-            name:
-                'Mittleres Fenster',
-
-            preis:
-                parseFloat(
-                    el('preisMittel').value || 0
-                )
+            name:'Mittleres Fenster',
+            preis:parseFloat(
+                el('preisMittel').value || 0
+            )
         };
     }
 
 
-    if(
-        flaeche <= 3.5
-    ){
+    if(flaeche <= 3.5){
 
         return {
-
-            name:
-                'Großes Fenster',
-
-            preis:
-                parseFloat(
-                    el('preisGross').value || 0
-                )
+            name:'Großes Fenster',
+            preis:parseFloat(
+                el('preisGross').value || 0
+            )
         };
     }
 
 
     return {
-
-        name:
-            'Sehr großes Fenster',
-
-        preis:
-            parseFloat(
-                el('preisSehrGross').value || 0
-            )
+        name:'Sehr großes Fenster',
+        preis:parseFloat(
+            el('preisSehrGross').value || 0
+        )
     };
 }
 
@@ -1515,7 +1301,6 @@ function fensterKlasseVorschau(){
         arFlaeche <= 0 ||
         !el('fensterKlasseErgebnis')
     ){
-
         return;
     }
 
@@ -1539,21 +1324,15 @@ function fensterKlasseVorschau(){
         '<div class="price-class">' +
 
         '<div class="name">' +
-
         klasse.name +
-
         '</div>' +
 
         '<div>' +
-
         arFlaeche.toFixed(2) +
-
         ' m²</div>' +
 
         '<div class="price">' +
-
         klasse.preis.toFixed(2) +
-
         ' € pro Fenster</div>' +
 
         '</div>';
@@ -1567,29 +1346,21 @@ function fensterPreisArtChanged(){
 
 
     el('manuellerFensterPreisBlock').style.display =
-
         art === 'manuell'
-        ?
-        'block'
-        :
-        'none';
+            ? 'block'
+            : 'none';
 
 
     el('qmFensterPreisBlock').style.display =
-
         art === 'qm'
-        ?
-        'block'
-        :
-        'none';
+            ? 'block'
+            : 'none';
 }
 
 
 function fensterPreisBerechnen(){
 
-    if(
-        arFlaeche <= 0
-    ){
+    if(arFlaeche <= 0){
 
         alert(
             'Bitte zuerst das Fenster messen.'
@@ -1612,24 +1383,17 @@ function fensterPreisBerechnen(){
         el('fotoPreisArt').value;
 
 
-    let preis =
-        0;
+    let preis = 0;
 
 
-    if(
-        art ===
-        'automatisch'
-    ){
+    if(art === 'automatisch'){
 
         preis =
             getFensterKlasse(
                 arFlaeche
             ).preis;
 
-    }else if(
-        art ===
-        'manuell'
-    ){
+    }else if(art === 'manuell'){
 
         preis =
             Number(
@@ -1639,13 +1403,10 @@ function fensterPreisBerechnen(){
     }else{
 
         preis =
-
             arFlaeche *
-
             Number(
                 el('fotoPreisQm').value || 0
             ) *
-
             Number(
                 el('fotoSeiten').value || 1
             );
@@ -1670,14 +1431,14 @@ function fensterPreisBerechnen(){
         '<strong>Fensterpreis</strong>' +
 
         '<div class="big">' +
-
         gesamt.toFixed(2) +
-
         ' €</div>';
 }
 
 
-/* PREISRECHNER */
+/* =====================================================
+   PREISRECHNER
+   ===================================================== */
 
 function serviceChanged(){
 
@@ -1686,45 +1447,21 @@ function serviceChanged(){
 
 
     el('fensterBlock').style.display =
-
-        service ===
-        'fenster'
-
-        ?
-
-        'block'
-
-        :
-
-        'none';
+        service === 'fenster'
+            ? 'block'
+            : 'none';
 
 
     el('flaechenBlock').style.display =
-
-        service ===
-        'fenster'
-
-        ?
-
-        'none'
-
-        :
-
-        'block';
+        service === 'fenster'
+            ? 'none'
+            : 'block';
 
 
     el('unterhaltBlock').style.display =
-
-        service ===
-        'unterhalt'
-
-        ?
-
-        'block'
-
-        :
-
-        'none';
+        service === 'unterhalt'
+            ? 'block'
+            : 'none';
 }
 
 
@@ -1735,42 +1472,35 @@ function preisBerechnen(){
             el('stunden').value || 0
         );
 
-
     const stundensatz =
         Number(
             el('stundensatz').value || 0
         );
-
 
     const qm =
         Number(
             el('qm').value || 0
         );
 
-
     const qmPreis =
         Number(
             el('qmPreis').value || 0
         );
-
 
     const anfahrt =
         Number(
             el('anfahrt').value || 0
         );
 
-
     const material =
         Number(
             el('material').value || 0
         );
 
-
     const zuschlag =
         Number(
             el('zuschlag').value || 0
         );
-
 
     const mwst =
         Number(
@@ -1779,48 +1509,26 @@ function preisBerechnen(){
 
 
     let netto =
-
-        stunden *
-
-        stundensatz
-
-        +
-
-        qm *
-
-        qmPreis
-
-        +
-
-        anfahrt
-
-        +
-
+        stunden * stundensatz +
+        qm * qmPreis +
+        anfahrt +
         material;
 
 
     netto +=
-
         netto *
-
         zuschlag /
-
         100;
 
 
     const steuer =
-
         netto *
-
         mwst /
-
         100;
 
 
     const brutto =
-
         netto +
-
         steuer;
 
 
@@ -1837,26 +1545,22 @@ function preisBerechnen(){
         '<strong>Berechnung</strong><br><br>' +
 
         'Netto: ' +
-
         netto.toFixed(2) +
-
         ' €<br>' +
 
         'MwSt.: ' +
-
         steuer.toFixed(2) +
-
         ' €<br>' +
 
         '<div class="big">' +
-
         brutto.toFixed(2) +
-
         ' €</div>';
 }
 
 
-/* MITARBEITER */
+/* =====================================================
+   MITARBEITER
+   ===================================================== */
 
 function mitarbeiterSpeichern(){
 
@@ -1880,11 +1584,9 @@ function mitarbeiterSpeichern(){
 
     daten.push({
 
-        id:
-            Date.now(),
+        id:Date.now(),
 
-        name:
-            name,
+        name:name,
 
         telefon:
             el('mitarbeiterTelefon').value,
@@ -1903,14 +1605,9 @@ function mitarbeiterSpeichern(){
     );
 
 
-    el('mitarbeiterName').value =
-        '';
-
-    el('mitarbeiterTelefon').value =
-        '';
-
-    el('mitarbeiterLohn').value =
-        '';
+    el('mitarbeiterName').value = '';
+    el('mitarbeiterTelefon').value = '';
+    el('mitarbeiterLohn').value = '';
 
 
     mitarbeiterAnzeigen();
@@ -1931,7 +1628,6 @@ function mitarbeiterAnzeigen(){
 
 
     if(!box){
-
         return;
     }
 
@@ -1940,8 +1636,7 @@ function mitarbeiterAnzeigen(){
         laden('mitarbeiter');
 
 
-    box.innerHTML =
-        '';
+    box.innerHTML = '';
 
 
     daten.forEach(
@@ -1955,35 +1650,20 @@ function mitarbeiterAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-
-                esc(
-                    m.name
-                ) +
-
+                esc(m.name) +
                 '</strong><br>' +
 
-                esc(
-                    m.art
-                ) +
-
+                esc(m.art) +
                 '<br>' +
 
-                esc(
-                    m.telefon
-                ) +
-
+                esc(m.telefon) +
                 '<br>' +
 
-                esc(
-                    m.lohn
-                ) +
-
+                esc(m.lohn) +
                 ' €/Std.' +
 
                 '<button onclick="mitarbeiterOeffnen(' +
-
                 index +
-
                 ')">' +
 
                 '📋 Stundenzettel öffnen' +
@@ -1996,16 +1676,13 @@ function mitarbeiterAnzeigen(){
 }
 
 
-function mitarbeiterOeffnen(
-    index
-){
+function mitarbeiterOeffnen(index){
 
     const m =
         laden('mitarbeiter')[index];
 
 
     if(!m){
-
         return;
     }
 
@@ -2024,7 +1701,7 @@ function mitarbeiterOeffnen(
                 );
 
 
-            mitarbeiterStundenzettelAnzeigen();
+            mitarbeiterWechsel();
 
         },
         50
@@ -2039,7 +1716,6 @@ function mitarbeiterAuswahl(){
 
 
     if(!select){
-
         return;
     }
 
@@ -2052,14 +1728,10 @@ function mitarbeiterAuswahl(){
         laden('mitarbeiter');
 
 
-    select.innerHTML =
-        '';
+    select.innerHTML = '';
 
 
-    if(
-        daten.length ===
-        0
-    ){
+    if(daten.length === 0){
 
         select.innerHTML =
             '<option value="">Bitte zuerst Mitarbeiter anlegen</option>';
@@ -2102,6 +1774,25 @@ function mitarbeiterAuswahl(){
 }
 
 
+function mitarbeiterWechsel(){
+
+    aktuellerZettel = [];
+
+
+    el('stundenTabelle').innerHTML =
+        '';
+
+
+    el('stundenGesamt').style.display =
+        'none';
+
+
+    mitarbeiterStundenzettelAnzeigen();
+
+    gespeichertenZettelLaden();
+}
+
+
 function getMitarbeiterName(){
 
     const select =
@@ -2112,7 +1803,6 @@ function getMitarbeiterName(){
         !select ||
         select.selectedIndex < 0
     ){
-
         return '';
     }
 
@@ -2125,14 +1815,13 @@ function getMitarbeiterName(){
 }
 
 
-/* STUNDENZETTEL */
+/* =====================================================
+   STUNDENZETTEL
+   ===================================================== */
 
-function monatName(
-    monat
-){
+function monatName(monat){
 
     if(!monat){
-
         return '';
     }
 
@@ -2142,7 +1831,6 @@ function monatName(
 
 
     const namen = [
-
         '',
         'Januar',
         'Februar',
@@ -2156,24 +1844,16 @@ function monatName(
         'Oktober',
         'November',
         'Dezember'
-
     ];
 
 
     return (
-
         namen[
             Number(
                 teile[1]
             )
-        ]
-
-        +
-
-        ' '
-
-        +
-
+        ] +
+        ' ' +
         teile[0]
     );
 }
@@ -2193,7 +1873,6 @@ function mitarbeiterStundenzettelAnzeigen(){
         !mitarbeiterId ||
         !box
     ){
-
         return;
     }
 
@@ -2205,44 +1884,81 @@ function mitarbeiterStundenzettelAnzeigen(){
             function(x){
 
                 return (
-
                     String(
                         x.mitarbeiterId
-                    )
-
-                    ===
-
+                    ) ===
                     String(
                         mitarbeiterId
+                    )
+                );
+            }
+        )
+
+        .sort(
+            function(a,b){
+
+                return String(
+                    b.monat
+                ).localeCompare(
+                    String(
+                        a.monat
                     )
                 );
             }
         );
 
 
+    if(liste.length === 0){
+
+        box.innerHTML =
+            '<div class="info">' +
+            'Noch kein gespeicherter Stundenzettel für diesen Mitarbeiter.' +
+            '</div>';
+
+        return;
+    }
+
+
     let html =
-        '';
+        '<h3 style="margin-top:18px">Gespeicherte Monate</h3>';
 
 
     liste.forEach(
         function(zettel){
+
+            let gesamt = 0;
+
+
+            (
+                zettel.tage || []
+            )
+            .forEach(
+                function(tag){
+
+                    gesamt +=
+                        Number(
+                            tag.stunden || 0
+                        );
+                }
+            );
+
 
             html +=
 
                 '<div class="item">' +
 
                 '<strong>' +
-
                 monatName(
                     zettel.monat
                 ) +
+                '</strong><br>' +
 
-                '</strong>' +
+                'Gesamt: ' +
+                gesamt.toFixed(2) +
+                ' Std.' +
 
                 '<button onclick="gespeichertenMonatOeffnen(\'' +
-
                 zettel.monat +
-
                 '\')">' +
 
                 'Öffnen' +
@@ -2259,24 +1975,39 @@ function mitarbeiterStundenzettelAnzeigen(){
 }
 
 
-function gespeichertenMonatOeffnen(
-    monat
-){
+function gespeichertenMonatOeffnen(monat){
 
     el('zeitMonat').value =
         monat;
 
 
     gespeichertenZettelLaden();
+
+
+    setTimeout(
+        function(){
+
+            const tabelle =
+                el('stundenKopf');
+
+
+            if(tabelle){
+
+                tabelle.scrollIntoView({
+                    behavior:'smooth',
+                    block:'start'
+                });
+            }
+
+        },
+        100
+    );
 }
 
 
-function zeitInMinuten(
-    zeit
-){
+function zeitInMinuten(zeit){
 
     if(!zeit){
-
         return 0;
     }
 
@@ -2286,17 +2017,10 @@ function zeitInMinuten(
 
 
     return (
-
         Number(
             teile[0]
-        )
-
-        *
-
-        60
-
-        +
-
+        ) *
+        60 +
         Number(
             teile[1]
         )
@@ -2309,6 +2033,14 @@ function stundenBerechnen(
     ende,
     pause
 ){
+
+    if(
+        !start ||
+        !ende
+    ){
+        return 0;
+    }
+
 
     let startMin =
         zeitInMinuten(
@@ -2333,67 +2065,44 @@ function stundenBerechnen(
 
 
     return Math.max(
-
         0,
-
         (
-
-            endeMin
-
-            -
-
-            startMin
-
-            -
-
+            endeMin -
+            startMin -
             Number(
                 pause || 0
             )
-        )
-
-        /
-
+        ) /
         60
     );
 }
 
 
-function formatDatum(
-    datum
-){
+function formatDatum(datum){
 
     return (
-
         String(
             datum.getDate()
         ).padStart(
             2,
             '0'
-        )
-
-        +
-
-        '.'
-
-        +
-
+        ) +
+        '.' +
         String(
             datum.getMonth() + 1
         ).padStart(
             2,
             '0'
-        )
-
-        +
-
-        '.'
-
-        +
-
+        ) +
+        '.' +
         datum.getFullYear()
     );
 }
 
+
+/*
+ * Neuen kompletten Monat erzeugen.
+ */
 
 function monatErstellen(){
 
@@ -2415,6 +2124,40 @@ function monatErstellen(){
         );
 
         return;
+    }
+
+
+    /*
+     * Schutz vor versehentlichem Überschreiben.
+     */
+
+    const vorhanden =
+        laden('stundenzettel')
+        .find(
+            function(x){
+
+                return (
+                    String(
+                        x.mitarbeiterId
+                    ) ===
+                    String(
+                        mitarbeiterId
+                    ) &&
+                    x.monat === monat
+                );
+            }
+        );
+
+
+    if(vorhanden){
+
+        if(
+            !confirm(
+                'Für diesen Monat existiert bereits ein Stundenzettel. Neu erstellen und die angezeigten Daten ersetzen?'
+            )
+        ){
+            return;
+        }
     }
 
 
@@ -2456,6 +2199,16 @@ function monatErstellen(){
         );
 
 
+    if(arbeitstage.length === 0){
+
+        alert(
+            'Bitte mindestens einen Arbeitstag auswählen.'
+        );
+
+        return;
+    }
+
+
     const teile =
         monat.split('-');
 
@@ -2480,8 +2233,7 @@ function monatErstellen(){
         ).getDate();
 
 
-    aktuellerZettel =
-        [];
+    aktuellerZettel = [];
 
 
     for(
@@ -2513,49 +2265,39 @@ function monatErstellen(){
 
             status:
                 arbeitet
-                ?
-                'Arbeit'
-                :
-                'Frei',
+                    ? 'Arbeit'
+                    : 'Frei',
 
             start:
                 arbeitet
-                ?
-                start
-                :
-                '',
+                    ? start
+                    : '',
 
             ende:
                 arbeitet
-                ?
-                ende
-                :
-                '',
+                    ? ende
+                    : '',
 
             pause:
                 arbeitet
-                ?
-                pause
-                :
-                0,
+                    ? pause
+                    : 0,
 
             stunden:
                 arbeitet
-                ?
-                stundenBerechnen(
-                    start,
-                    ende,
-                    pause
-                )
-                :
-                0,
+                    ?
+                    stundenBerechnen(
+                        start,
+                        ende,
+                        pause
+                    )
+                    :
+                    0,
 
             objekt:
                 arbeitet
-                ?
-                objekt
-                :
-                ''
+                    ? objekt
+                    : ''
         });
     }
 
@@ -2564,27 +2306,27 @@ function monatErstellen(){
 }
 
 
+/*
+ * Tabelle mit bearbeitbaren Feldern erzeugen.
+ */
+
 function zettelAnzeigen(){
 
     const tbody =
         el('stundenTabelle');
 
 
-    tbody.innerHTML =
-        '';
-
-
-    let gesamt =
-        0;
+    tbody.innerHTML = '';
 
 
     aktuellerZettel.forEach(
-        function(zettel){
+        function(
+            zettel,
+            index
+        ){
 
-            gesamt +=
-                Number(
-                    zettel.stunden || 0
-                );
+            const arbeitet =
+                zettel.status === 'Arbeit';
 
 
             const tr =
@@ -2593,49 +2335,152 @@ function zettelAnzeigen(){
                 );
 
 
+            tr.id =
+                'stundenZeile_' +
+                index;
+
+
             tr.className =
-                zettel.status ===
-                'Arbeit'
-
-                ?
-
-                'arbeit'
-
-                :
-
-                'frei';
+                arbeitet
+                    ? 'arbeit'
+                    : 'frei';
 
 
             tr.innerHTML =
 
                 '<td>' +
-                esc(zettel.datum) +
+                esc(
+                    zettel.datum
+                ) +
                 '</td>' +
 
-                '<td>' +
-                esc(zettel.status) +
-                '</td>' +
 
                 '<td>' +
-                esc(zettel.start) +
+
+                '<select ' +
+                'class="table-select" ' +
+                'onchange="zettelStatusAendern(' +
+                index +
+                ',this.value)">' +
+
+                '<option value="Arbeit"' +
+                (
+                    arbeitet
+                        ? ' selected'
+                        : ''
+                ) +
+                '>Arbeit</option>' +
+
+                '<option value="Frei"' +
+                (
+                    !arbeitet
+                        ? ' selected'
+                        : ''
+                ) +
+                '>Frei</option>' +
+
+                '</select>' +
+
                 '</td>' +
 
-                '<td>' +
-                esc(zettel.ende) +
-                '</td>' +
 
                 '<td>' +
-                esc(zettel.pause) +
+
+                '<input ' +
+                'class="table-input" ' +
+                'type="time" ' +
+                'value="' +
+                esc(
+                    zettel.start
+                ) +
+                '" ' +
+                (
+                    arbeitet
+                        ? ''
+                        : 'disabled '
+                ) +
+                'onchange="zettelWertAendern(' +
+                index +
+                ',\'start\',this.value)">' +
+
                 '</td>' +
 
+
                 '<td>' +
+
+                '<input ' +
+                'class="table-input" ' +
+                'type="time" ' +
+                'value="' +
+                esc(
+                    zettel.ende
+                ) +
+                '" ' +
+                (
+                    arbeitet
+                        ? ''
+                        : 'disabled '
+                ) +
+                'onchange="zettelWertAendern(' +
+                index +
+                ',\'ende\',this.value)">' +
+
+                '</td>' +
+
+
+                '<td>' +
+
+                '<input ' +
+                'class="table-input table-pause" ' +
+                'type="number" ' +
+                'min="0" ' +
+                'value="' +
+                esc(
+                    zettel.pause
+                ) +
+                '" ' +
+                (
+                    arbeitet
+                        ? ''
+                        : 'disabled '
+                ) +
+                'onchange="zettelWertAendern(' +
+                index +
+                ',\'pause\',this.value)">' +
+
+                '</td>' +
+
+
+                '<td id="stundenWert_' +
+                index +
+                '">' +
+
                 Number(
                     zettel.stunden || 0
                 ).toFixed(2) +
+
                 '</td>' +
 
+
                 '<td>' +
-                esc(zettel.objekt) +
+
+                '<input ' +
+                'class="table-input table-objekt" ' +
+                'type="text" ' +
+                'value="' +
+                esc(
+                    zettel.objekt
+                ) +
+                '" ' +
+                (
+                    arbeitet
+                        ? ''
+                        : 'disabled '
+                ) +
+                'onchange="zettelWertAendern(' +
+                index +
+                ',\'objekt\',this.value)">' +
+
                 '</td>';
 
 
@@ -2648,29 +2493,218 @@ function zettelAnzeigen(){
 
     el('stundenKopf').innerHTML =
 
-        '<strong>Mitarbeiter:</strong> ' +
-
+        '<br><strong>Mitarbeiter:</strong> ' +
         esc(
             getMitarbeiterName()
-        )
+        ) +
 
-        +
+        '<br>' +
 
-        '<br>'
-
-        +
-
-        '<strong>Monat:</strong> '
-
-        +
-
+        '<strong>Monat:</strong> ' +
         esc(
             el('zeitMonat').value
         );
 
 
+    stundenGesamtAktualisieren();
+}
+
+
+/*
+ * Arbeit/Frei ändern.
+ */
+
+function zettelStatusAendern(
+    index,
+    status
+){
+
+    const zettel =
+        aktuellerZettel[index];
+
+
+    if(!zettel){
+        return;
+    }
+
+
+    zettel.status =
+        status;
+
+
+    if(status === 'Arbeit'){
+
+        if(!zettel.start){
+
+            zettel.start =
+                el('zeitStart').value ||
+                '08:00';
+        }
+
+
+        if(!zettel.ende){
+
+            zettel.ende =
+                el('zeitEnde').value ||
+                '16:00';
+        }
+
+
+        if(
+            zettel.pause === '' ||
+            zettel.pause == null
+        ){
+
+            zettel.pause =
+                Number(
+                    el('zeitPause').value || 0
+                );
+        }
+
+
+        if(!zettel.objekt){
+
+            zettel.objekt =
+                el('zeitObjekt').value || '';
+        }
+
+
+        zettel.stunden =
+            stundenBerechnen(
+                zettel.start,
+                zettel.ende,
+                zettel.pause
+            );
+
+
+    }else{
+
+        zettel.stunden =
+            0;
+    }
+
+
+    /*
+     * Zeile neu erzeugen, damit Felder
+     * aktiviert/deaktiviert werden.
+     */
+
+    zettelAnzeigen();
+}
+
+
+/*
+ * Einzelnes Feld eines Tages ändern.
+ */
+
+function zettelWertAendern(
+    index,
+    feld,
+    wert
+){
+
+    const zettel =
+        aktuellerZettel[index];
+
+
+    if(!zettel){
+        return;
+    }
+
+
+    if(feld === 'pause'){
+
+        zettel.pause =
+            Math.max(
+                0,
+                Number(
+                    wert || 0
+                )
+            );
+
+    }else{
+
+        zettel[feld] =
+            wert;
+    }
+
+
+    if(
+        zettel.status === 'Arbeit'
+    ){
+
+        zettel.stunden =
+            stundenBerechnen(
+                zettel.start,
+                zettel.ende,
+                zettel.pause
+            );
+
+    }else{
+
+        zettel.stunden =
+            0;
+    }
+
+
+    const stundenFeld =
+        el(
+            'stundenWert_' +
+            index
+        );
+
+
+    if(stundenFeld){
+
+        stundenFeld.textContent =
+            Number(
+                zettel.stunden || 0
+            ).toFixed(2);
+    }
+
+
+    stundenGesamtAktualisieren();
+}
+
+
+/*
+ * Gesamtstunden neu berechnen.
+ */
+
+function stundenGesamtAktualisieren(){
+
+    let gesamt = 0;
+
+
+    aktuellerZettel.forEach(
+        function(zettel){
+
+            if(
+                zettel.status === 'Arbeit'
+            ){
+
+                gesamt +=
+                    Number(
+                        zettel.stunden || 0
+                    );
+            }
+        }
+    );
+
+
     const box =
         el('stundenGesamt');
+
+
+    if(
+        aktuellerZettel.length === 0
+    ){
+
+        box.style.display =
+            'none';
+
+        return;
+    }
 
 
     box.style.display =
@@ -2683,21 +2717,26 @@ function zettelAnzeigen(){
 
         '<div class="big">' +
 
-        gesamt.toFixed(2) +
+        gesamt
+            .toFixed(2)
+            .replace('.',',') +
 
         ' Stunden</div>';
 }
 
 
+/*
+ * Lokal + Firebase speichern.
+ */
+
 function stundenzettelSpeichern(){
 
     if(
-        aktuellerZettel.length ===
-        0
+        aktuellerZettel.length === 0
     ){
 
         alert(
-            'Bitte zuerst den Monat erstellen.'
+            'Bitte zuerst einen Monat öffnen oder erstellen.'
         );
 
         return;
@@ -2712,6 +2751,47 @@ function stundenzettelSpeichern(){
         el('zeitMonat').value;
 
 
+    if(
+        !mitarbeiterId ||
+        !monat
+    ){
+
+        alert(
+            'Bitte Mitarbeiter und Monat auswählen.'
+        );
+
+        return;
+    }
+
+
+    /*
+     * Vor dem Speichern noch einmal alle
+     * Stunden sicher neu berechnen.
+     */
+
+    aktuellerZettel.forEach(
+        function(zettel){
+
+            if(
+                zettel.status === 'Arbeit'
+            ){
+
+                zettel.stunden =
+                    stundenBerechnen(
+                        zettel.start,
+                        zettel.ende,
+                        zettel.pause
+                    );
+
+            }else{
+
+                zettel.stunden =
+                    0;
+            }
+        }
+    );
+
+
     const alle =
         laden(
             'stundenzettel'
@@ -2719,24 +2799,16 @@ function stundenzettelSpeichern(){
 
 
     const key =
-
         String(
             mitarbeiterId
-        )
-
-        +
-
-        '_'
-
-        +
-
+        ) +
+        '_' +
         monat;
 
 
     const zettel = {
 
-        key:
-            key,
+        key:key,
 
         mitarbeiterId:
             String(
@@ -2759,16 +2831,13 @@ function stundenzettelSpeichern(){
             function(x){
 
                 return (
-                    x.key ===
-                    key
+                    x.key === key
                 );
             }
         );
 
 
-    if(
-        index >= 0
-    ){
+    if(index >= 0){
 
         alle[index] =
             zettel;
@@ -2786,10 +2855,6 @@ function stundenzettelSpeichern(){
         alle
     );
 
-
-    /*
-     * Zusätzlich in Firebase speichern.
-     */
 
     if(
         window.Android &&
@@ -2823,14 +2888,20 @@ function stundenzettelSpeichern(){
     }
 
 
+    mitarbeiterStundenzettelAnzeigen();
+
+    stundenGesamtAktualisieren();
+
+
     alert(
         'Stundenzettel gespeichert. ✅'
     );
-
-
-    mitarbeiterStundenzettelAnzeigen();
 }
 
+
+/*
+ * Gespeicherten Monat laden.
+ */
 
 function gespeichertenZettelLaden(){
 
@@ -2846,33 +2917,23 @@ function gespeichertenZettelLaden(){
         !mitarbeiterId ||
         !monat
     ){
-
         return;
     }
 
 
     const zettel =
         laden('stundenzettel')
-
         .find(
             function(x){
 
                 return (
-
                     String(
                         x.mitarbeiterId
-                    )
-
-                    ===
-
+                    ) ===
                     String(
                         mitarbeiterId
-                    )
-
-                    &&
-
-                    x.monat ===
-                    monat
+                    ) &&
+                    x.monat === monat
                 );
             }
         );
@@ -2880,8 +2941,7 @@ function gespeichertenZettelLaden(){
 
     if(!zettel){
 
-        aktuellerZettel =
-            [];
+        aktuellerZettel = [];
 
 
         el('stundenTabelle').innerHTML =
@@ -2892,23 +2952,75 @@ function gespeichertenZettelLaden(){
             'none';
 
 
+        el('stundenKopf').innerHTML =
+            '<br><div class="info">' +
+            'Für diesen Monat ist noch kein Stundenzettel gespeichert.' +
+            '</div>';
+
+
         return;
     }
 
 
     aktuellerZettel =
-        zettel.tage || [];
+        JSON.parse(
+            JSON.stringify(
+                zettel.tage || []
+            )
+        );
+
+
+    /*
+     * Ältere gespeicherte Daten absichern.
+     */
+
+    aktuellerZettel.forEach(
+        function(tag){
+
+            tag.status =
+                tag.status || 'Frei';
+
+            tag.start =
+                tag.start || '';
+
+            tag.ende =
+                tag.ende || '';
+
+            tag.pause =
+                Number(
+                    tag.pause || 0
+                );
+
+            tag.objekt =
+                tag.objekt || '';
+
+
+            tag.stunden =
+                tag.status === 'Arbeit'
+                    ?
+                    stundenBerechnen(
+                        tag.start,
+                        tag.ende,
+                        tag.pause
+                    )
+                    :
+                    0;
+        }
+    );
 
 
     zettelAnzeigen();
 }
 
 
+/*
+ * PDF
+ */
+
 function pdfErstellen(){
 
     if(
-        aktuellerZettel.length ===
-        0
+        aktuellerZettel.length === 0
     ){
 
         alert(
@@ -2934,11 +3046,19 @@ function pdfErstellen(){
                 aktuellerZettel
             )
         );
+
+    }else{
+
+        alert(
+            'PDF-Erstellung ist nur in der Android-App verfügbar.'
+        );
     }
 }
 
 
-/* KUNDEN */
+/* =====================================================
+   KUNDEN
+   ===================================================== */
 
 function kundeSpeichern(){
 
@@ -2962,8 +3082,7 @@ function kundeSpeichern(){
 
     daten.push({
 
-        name:
-            name,
+        name:name,
 
         adresse:
             el('kundeAdresse').value,
@@ -2996,7 +3115,6 @@ function kundenAnzeigen(){
 
 
     if(!box){
-
         return;
     }
 
@@ -3005,8 +3123,7 @@ function kundenAnzeigen(){
         laden('kunden');
 
 
-    box.innerHTML =
-        '';
+    box.innerHTML = '';
 
 
     daten.forEach(
@@ -3020,21 +3137,27 @@ function kundenAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-                esc(kunde.name) +
+                esc(
+                    kunde.name
+                ) +
                 '</strong><br>' +
 
-                esc(kunde.adresse) +
+                esc(
+                    kunde.adresse
+                ) +
                 '<br>' +
 
-                esc(kunde.telefon) +
+                esc(
+                    kunde.telefon
+                ) +
                 '<br>' +
 
-                esc(kunde.email) +
+                esc(
+                    kunde.email
+                ) +
 
                 '<button class="danger" onclick="loeschen(\'kunden\',' +
-
                 index +
-
                 ')">' +
 
                 'Löschen' +
@@ -3047,7 +3170,9 @@ function kundenAnzeigen(){
 }
 
 
-/* AUFTRÄGE */
+/* =====================================================
+   AUFTRÄGE
+   ===================================================== */
 
 function auftragSpeichern(){
 
@@ -3067,8 +3192,7 @@ function auftragSpeichern(){
 
     const auftrag = {
 
-        kunde:
-            kunde,
+        kunde:kunde,
 
         ort:
             el('auftragOrt').value,
@@ -3140,7 +3264,6 @@ function auftraegeAnzeigen(){
 
 
     if(!box){
-
         return;
     }
 
@@ -3149,8 +3272,7 @@ function auftraegeAnzeigen(){
         laden('auftraege');
 
 
-    box.innerHTML =
-        '';
+    box.innerHTML = '';
 
 
     daten.forEach(
@@ -3164,35 +3286,29 @@ function auftraegeAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-
                 esc(
                     auftrag.kunde
                 ) +
-
                 '</strong><br>' +
 
                 esc(
                     auftrag.art
                 ) +
-
                 '<br>' +
 
                 esc(
                     auftrag.ort
                 ) +
-
                 '<br>' +
 
                 esc(
                     auftrag.datum
                 ) +
-
                 '<br>' +
 
                 esc(
                     auftrag.preis
                 ) +
-
                 ' €<br>' +
 
                 esc(
@@ -3200,9 +3316,7 @@ function auftraegeAnzeigen(){
                 ) +
 
                 '<button class="danger" onclick="loeschen(\'auftraege\',' +
-
                 index +
-
                 ')">' +
 
                 'Löschen' +
@@ -3215,7 +3329,9 @@ function auftraegeAnzeigen(){
 }
 
 
-/* RECHNUNGEN */
+/* =====================================================
+   RECHNUNGEN
+   ===================================================== */
 
 function rechnungSpeichern(){
 
@@ -3239,8 +3355,7 @@ function rechnungSpeichern(){
 
     daten.push({
 
-        kunde:
-            kunde,
+        kunde:kunde,
 
         nummer:
             el('rechnungNummer').value,
@@ -3273,7 +3388,6 @@ function rechnungenAnzeigen(){
 
 
     if(!box){
-
         return;
     }
 
@@ -3282,8 +3396,7 @@ function rechnungenAnzeigen(){
         laden('rechnungen');
 
 
-    box.innerHTML =
-        '';
+    box.innerHTML = '';
 
 
     daten.forEach(
@@ -3297,31 +3410,25 @@ function rechnungenAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-
                 esc(
                     r.kunde
                 ) +
-
                 '</strong><br>' +
 
                 'Nr.: ' +
-
                 esc(
                     r.nummer
                 ) +
-
                 '<br>' +
 
                 esc(
                     r.betrag
                 ) +
-
                 ' €<br>' +
 
                 esc(
                     r.datum
                 ) +
-
                 '<br>' +
 
                 esc(
@@ -3329,9 +3436,7 @@ function rechnungenAnzeigen(){
                 ) +
 
                 '<button class="danger" onclick="loeschen(\'rechnungen\',' +
-
                 index +
-
                 ')">' +
 
                 'Löschen' +
@@ -3344,7 +3449,9 @@ function rechnungenAnzeigen(){
 }
 
 
-/* LÖSCHEN */
+/* =====================================================
+   LÖSCHEN
+   ===================================================== */
 
 function loeschen(
     key,
@@ -3356,7 +3463,6 @@ function loeschen(
             'Eintrag wirklich löschen?'
         )
     ){
-
         return;
     }
 
@@ -3381,7 +3487,9 @@ function loeschen(
 }
 
 
-/* AKTUALISIEREN */
+/* =====================================================
+   AKTUALISIEREN
+   ===================================================== */
 
 function aktualisieren(){
 
@@ -3395,7 +3503,9 @@ function aktualisieren(){
 }
 
 
-/* ANDROID ZURÜCK */
+/* =====================================================
+   ANDROID ZURÜCK
+   ===================================================== */
 
 window.androidBack =
 function(){
@@ -3408,8 +3518,7 @@ function(){
 
     if(
         page &&
-        page.id !==
-        'home'
+        page.id !== 'home'
     ){
 
         openPage(
@@ -3424,7 +3533,9 @@ function(){
 };
 
 
-/* START */
+/* =====================================================
+   START
+   ===================================================== */
 
 (function(){
 
@@ -3434,13 +3545,9 @@ function(){
 
     el('zeitMonat').value =
 
-        heute.getFullYear()
+        heute.getFullYear() +
 
-        +
-
-        '-'
-
-        +
+        '-' +
 
         String(
             heute.getMonth() + 1
