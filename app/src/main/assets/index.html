@@ -4088,7 +4088,14 @@ function(){
     kundenAnzeigen();
 
     auftraegeAnzeigen();
-
+if (
+    window.Android &&
+    typeof Android.loadOrdersFromFirestore === 'function'
+) {
+    Android.loadOrdersFromFirestore();
+}
+    
+}
     rechnungenAnzeigen();
 
 })();
