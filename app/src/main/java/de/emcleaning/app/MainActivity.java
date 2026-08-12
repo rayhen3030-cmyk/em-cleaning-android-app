@@ -18,6 +18,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -37,43 +44,23 @@ public class MainActivity extends Activity {
     private static final int PDF_CREATE_REQUEST = 3001;
 
     /*
-     * SHA-256 von:
-     * admin:2012
-     *
-     * Dadurch steht die Admin-PIN nicht direkt
-     * als Klartext im Java-Code.
+     * Admin-PIN.
+     * Später können wir daraus noch ein richtiges
+     * Firebase-Admin-Konto machen.
      */
-    private static final String ADMIN_PIN_HASH =
-            "644b470df4dac0e41df0cd61c5d1e5c460961978683698055a42b2db77c501fd";
+    private static final String ADMIN_PIN = "2012";
 
     private boolean arMeasurementRunning = false;
+
+    private boolean adminLoggedIn = false;
+    private String loggedEmployeeId = "";
+    private String loggedEmployeeName = "";
 
     private String pendingPdfEmployee = "";
     private String pendingPdfMonth = "";
     private String pendingPdfJson = "[]";
 
     private Uri lastSavedPdfUri = null;
-
-    /*
-     * =====================================================
-     * SITZUNG / LOGIN
-     * =====================================================
-     */
-
-    private boolean adminLoggedIn = false;
-
-    private String loggedInEmployeeId = "";
-    private String loggedInEmployeeName = "";
-
-    /*
-     * Kleine lokale Sperre gegen sehr schnelles
-     * PIN-Ausprobieren.
-     */
-    private int employeeFailedAttempts = 0;
-    private long employeeLockUntil = 0;
-
-    private int adminFailedAttempts = 0;
-    private long adminLockUntil = 0;
 
 
     @Override
@@ -87,24 +74,14 @@ public class MainActivity extends Activity {
 
         setContentView(webView);
 
-        WebSettings settings =
-                webView.getSettings();
+        WebSettings settings = webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-
-        /*
-         * Sicherheitsrelevante WebView-Einstellungen.
-         */
-        settings.setAllowFileAccessFromFileURLs(false);
-        settings.setAllowUniversalAccessFromFileURLs(false);
-
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(false);
-
-        WebView.setWebContentsDebuggingEnabled(false);
 
         webView.setWebViewClient(
                 new WebViewClient()
@@ -127,8 +104,7 @@ public class MainActivity extends Activity {
                             );
                         }
 
-                        filePathCallback =
-                                callback;
+                        filePathCallback = callback;
 
                         try {
 
@@ -148,8 +124,7 @@ public class MainActivity extends Activity {
 
                         } catch (Exception e) {
 
-                            filePathCallback =
-                                    null;
+                            filePathCallback = null;
 
                             return false;
                         }
@@ -179,7 +154,7 @@ public class MainActivity extends Activity {
 
     /*
      * =====================================================
-     * FIREBASE ANMELDUNG
+     * FIREBASE
      * =====================================================
      */
 
@@ -187,15 +162,10 @@ public class MainActivity extends Activity {
             Runnable action
     ) {
 
-        com.google.firebase.auth.FirebaseAuth auth =
-                com.google.firebase.auth.FirebaseAuth
-                        .getInstance();
+        FirebaseAuth auth =
+                FirebaseAuth.getInstance();
 
-        if (
-                auth.getCurrentUser()
-                        !=
-                null
-        ) {
+        if (auth.getCurrentUser() != null) {
 
             if (action != null) {
 
@@ -218,46 +188,56 @@ public class MainActivity extends Activity {
                 )
 
                 .addOnFailureListener(
-                        e ->
-                                runOnUiThread(
-                                        () ->
-                                                Toast.makeText(
-                                                        MainActivity.this,
-                                                        "Firebase-Anmeldung fehlgeschlagen: "
-                                                                +
-                                                                safeString(
-                                                                        e.getMessage()
-                                                                ),
-                                                        Toast.LENGTH_LONG
-                                                ).show()
-                                )
+                        e -> toast(
+                                "Firebase-Anmeldung fehlgeschlagen: "
+                                        + e.getMessage()
+                        )
                 );
     }
 
 
-    /*
-     * =====================================================
-     * HILFSFUNKTIONEN
-     * =====================================================
-     */
+    private FirebaseFirestore db() {
 
-    private String safeString(
+        return FirebaseFirestore.getInstance();
+    }
+
+
+    private void toast(
+            String text
+    ) {
+
+        runOnUiThread(
+                () ->
+                        Toast.makeText(
+                                MainActivity.this,
+                                text,
+                                Toast.LENGTH_LONG
+                        ).show()
+        );
+    }
+
+
+    private String safe(
             String value
     ) {
 
         return value == null
-                ?
-                ""
-                :
-                value;
+                ? ""
+                : value;
     }
 
 
-    private String sha256(
-            String value
+    private String pinHash(
+            String employeeId,
+            String pin
     ) {
 
         try {
+
+            String value =
+                    safe(employeeId)
+                            + ":"
+                            + safe(pin);
 
             MessageDigest digest =
                     MessageDigest.getInstance(
@@ -266,19 +246,17 @@ public class MainActivity extends Activity {
 
             byte[] bytes =
                     digest.digest(
-                            safeString(
-                                    value
-                            ).getBytes(
+                            value.getBytes(
                                     "UTF-8"
                             )
                     );
 
-            StringBuilder builder =
+            StringBuilder result =
                     new StringBuilder();
 
             for (byte b : bytes) {
 
-                builder.append(
+                result.append(
                         String.format(
                                 Locale.US,
                                 "%02x",
@@ -287,7 +265,7 @@ public class MainActivity extends Activity {
                 );
             }
 
-            return builder.toString();
+            return result.toString();
 
         } catch (Exception e) {
 
@@ -296,128 +274,66 @@ public class MainActivity extends Activity {
     }
 
 
-    private String createPinHash(
-            String employeeId,
-            String pin
+    private long timestampMillis(
+            QueryDocumentSnapshot doc,
+            String field
     ) {
 
-        return sha256(
+        try {
 
-                safeString(
-                        employeeId
-                )
+            Timestamp timestamp =
+                    doc.getTimestamp(
+                            field
+                    );
 
-                +
+            if (timestamp == null) {
 
-                ":"
+                return 0;
+            }
 
-                +
+            return timestamp
+                    .toDate()
+                    .getTime();
 
-                safeString(
-                        pin
-                )
-        );
+        } catch (Exception e) {
+
+            return 0;
+        }
     }
 
 
-    private String createAdminPinHash(
-            String pin
+    /*
+     * =====================================================
+     * JAVASCRIPT CALLBACK
+     * =====================================================
+     */
+
+    private void sendJs(
+            String function,
+            Object json
     ) {
 
-        return sha256(
-
-                "admin:"
-
-                +
-
-                safeString(
-                        pin
-                )
-        );
-    }
-
-
-    private void postJavascript(
-            String javascript
-    ) {
-
-        if (
-                webView
-                        ==
-                null
-        ) {
+        if (webView == null) {
 
             return;
         }
 
+        String javascript =
+
+                "if(typeof window."
+                        + function
+                        + "==='function'){window."
+                        + function
+                        + "("
+                        + json.toString()
+                        + ");}";
+
         webView.post(
-                () -> {
-
-                    if (
-                            webView
-                                    !=
-                            null
-                    ) {
-
+                () ->
                         webView.evaluateJavascript(
                                 javascript,
                                 null
-                        );
-                    }
-                }
-        );
-    }
-
-
-    private boolean employeeSessionActive() {
-
-        return
-                loggedInEmployeeId != null
-                &&
-                !loggedInEmployeeId
-                        .trim()
-                        .isEmpty();
-    }
-
-
-    private void clearEmployeeSession() {
-
-        loggedInEmployeeId =
-                "";
-
-        loggedInEmployeeName =
-                "";
-
-        employeeFailedAttempts =
-                0;
-
-        employeeLockUntil =
-                0;
-    }
-
-
-    private void clearAdminSession() {
-
-        adminLoggedIn =
-                false;
-
-        adminFailedAttempts =
-                0;
-
-        adminLockUntil =
-                0;
-    }
-
-
-    private void showAdminRequired() {
-
-        runOnUiThread(
-                () ->
-                        Toast.makeText(
-                                MainActivity.this,
-                                "Diese Funktion ist nur für die Verwaltung.",
-                                Toast.LENGTH_SHORT
-                        ).show()
+                        )
         );
     }
 
@@ -432,40 +348,9 @@ public class MainActivity extends Activity {
 
 
         /*
-         * =================================================
-         * SITZUNGSSTATUS
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public boolean isAdminLoggedIn() {
-
-            return adminLoggedIn;
-        }
-
-
-        @JavascriptInterface
-        public boolean isEmployeeLoggedIn() {
-
-            return employeeSessionActive();
-        }
-
-
-        @JavascriptInterface
-        public String getLoggedInEmployeeId() {
-
-            return employeeSessionActive()
-                    ?
-                    loggedInEmployeeId
-                    :
-                    "";
-        }
-
-
-        /*
-         * =================================================
+         * -------------------------------------------------
          * ADMIN LOGIN
-         * =================================================
+         * -------------------------------------------------
          */
 
         @JavascriptInterface
@@ -473,133 +358,552 @@ public class MainActivity extends Activity {
                 String pin
         ) {
 
-            String cleanPin =
-                    safeString(
-                            pin
-                    ).trim();
+            String clean =
+                    safe(pin).trim();
 
-            long now =
-                    System.currentTimeMillis();
+            JSONObject result =
+                    new JSONObject();
 
-            if (
-                    now
-                            <
-                    adminLockUntil
-            ) {
-
-                long seconds =
-                        Math.max(
-                                1,
-                                (
-                                        adminLockUntil
-                                                -
-                                        now
-                                )
-                                        /
-                                        1000
-                        );
-
-                sendAdminLoginResult(
-                        false,
-                        "Zu viele falsche Versuche. Bitte "
-                                +
-                                seconds
-                                +
-                                " Sekunden warten."
-                );
-
-                return;
-            }
-
-            if (
-                    !cleanPin.matches(
-                            "\\d{4}"
-                    )
-            ) {
-
-                sendAdminLoginResult(
-                        false,
-                        "Die Admin-PIN muss aus 4 Ziffern bestehen."
-                );
-
-                return;
-            }
-
-            String enteredHash =
-                    createAdminPinHash(
-                            cleanPin
-                    );
-
-            if (
-                    !ADMIN_PIN_HASH.equals(
-                            enteredHash
-                    )
-            ) {
-
-                adminFailedAttempts++;
+            try {
 
                 if (
-                        adminFailedAttempts
-                                >=
-                        5
+                        ADMIN_PIN.equals(
+                                clean
+                        )
                 ) {
 
-                    adminLockUntil =
-                            System.currentTimeMillis()
-                                    +
-                                    30000;
+                    adminLoggedIn = true;
 
-                    adminFailedAttempts =
-                            0;
+                    loggedEmployeeId = "";
+                    loggedEmployeeName = "";
 
-                    sendAdminLoginResult(
-                            false,
-                            "Zu viele falsche Versuche. Bitte 30 Sekunden warten."
+                    result.put(
+                            "success",
+                            true
                     );
 
-                    return;
+                    result.put(
+                            "message",
+                            "Verwaltung geöffnet."
+                    );
+
+                } else {
+
+                    adminLoggedIn = false;
+
+                    result.put(
+                            "success",
+                            false
+                    );
+
+                    result.put(
+                            "message",
+                            "Admin-PIN ist falsch."
+                    );
                 }
 
-                sendAdminLoginResult(
-                        false,
-                        "Admin-PIN ist falsch."
+                sendJs(
+                        "receiveAdminLogin",
+                        result
                 );
 
-                return;
+            } catch (Exception e) {
+
+                e.printStackTrace();
             }
-
-            /*
-             * Admin-Modus aktivieren.
-             * Mitarbeitersitzung gleichzeitig beenden.
-             */
-
-            clearEmployeeSession();
-
-            adminLoggedIn =
-                    true;
-
-            adminFailedAttempts =
-                    0;
-
-            adminLockUntil =
-                    0;
-
-            sendAdminLoginResult(
-                    true,
-                    "Verwaltung geöffnet."
-            );
         }
 
 
         @JavascriptInterface
         public void logoutAdmin() {
 
-            clearAdminSession();
+            adminLoggedIn = false;
         }
 
 
-        private void sendAdminLoginResult(
+        /*
+         * -------------------------------------------------
+         * MITARBEITER
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void saveEmployeeToFirestore(
+                String id,
+                String name,
+                String telefon,
+                String art,
+                String lohn,
+                String pin
+        ) {
+
+            if (!adminLoggedIn) {
+
+                toast(
+                        "Nur die Verwaltung darf Mitarbeiter ändern."
+                );
+
+                return;
+            }
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String employeeId =
+                                safe(id).trim();
+
+                        if (employeeId.isEmpty()) {
+
+                            employeeId =
+                                    String.valueOf(
+                                            System.currentTimeMillis()
+                                    );
+                        }
+
+                        String employeeName =
+                                safe(name).trim();
+
+                        String cleanPin =
+                                safe(pin).trim();
+
+                        if (employeeName.isEmpty()) {
+
+                            toast(
+                                    "Name fehlt."
+                            );
+
+                            return;
+                        }
+
+                        if (
+                                !cleanPin.isEmpty()
+                                        &&
+                                        !cleanPin.matches(
+                                                "\\d{4}"
+                                        )
+                        ) {
+
+                            toast(
+                                    "PIN muss aus genau 4 Ziffern bestehen."
+                            );
+
+                            return;
+                        }
+
+                        final String finalId =
+                                employeeId;
+
+                        DocumentReference ref =
+                                db()
+                                        .collection(
+                                                "employees"
+                                        )
+                                        .document(
+                                                finalId
+                                        );
+
+                        ref.get()
+
+                                .addOnSuccessListener(
+                                        snapshot -> {
+
+                                            Map<String, Object> map =
+                                                    new HashMap<>();
+
+                                            map.put(
+                                                    "id",
+                                                    finalId
+                                            );
+
+                                            map.put(
+                                                    "name",
+                                                    employeeName
+                                            );
+
+                                            map.put(
+                                                    "telefon",
+                                                    safe(telefon)
+                                            );
+
+                                            map.put(
+                                                    "art",
+                                                    safe(art)
+                                            );
+
+                                            map.put(
+                                                    "lohn",
+                                                    safe(lohn)
+                                            );
+
+                                            if (!cleanPin.isEmpty()) {
+
+                                                map.put(
+                                                        "pinHash",
+                                                        pinHash(
+                                                                finalId,
+                                                                cleanPin
+                                                        )
+                                                );
+
+                                                map.put(
+                                                        "pinSet",
+                                                        true
+                                                );
+
+                                            } else {
+
+                                                Object oldHash =
+                                                        snapshot.get(
+                                                                "pinHash"
+                                                        );
+
+                                                if (oldHash != null) {
+
+                                                    map.put(
+                                                            "pinHash",
+                                                            oldHash
+                                                    );
+
+                                                    map.put(
+                                                            "pinSet",
+                                                            true
+                                                    );
+
+                                                } else {
+
+                                                    map.put(
+                                                            "pinSet",
+                                                            false
+                                                    );
+                                                }
+                                            }
+
+                                            map.put(
+                                                    "updatedAt",
+                                                    FieldValue.serverTimestamp()
+                                            );
+
+                                            ref.set(
+                                                    map
+                                            )
+
+                                                    .addOnSuccessListener(
+                                                            unused ->
+                                                                    toast(
+                                                                            "Mitarbeiter gespeichert ✅"
+                                                                    )
+                                                    )
+
+                                                    .addOnFailureListener(
+                                                            e ->
+                                                                    toast(
+                                                                            "Mitarbeiter konnte nicht gespeichert werden."
+                                                                    )
+                                                    );
+                                        }
+                                );
+                    }
+            );
+        }
+
+
+        @JavascriptInterface
+        public void loadEmployeesFromFirestore() {
+
+            ensureFirebaseAuth(
+                    () ->
+
+                            db()
+                                    .collection(
+                                            "employees"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            snapshots -> {
+
+                                                JSONArray result =
+                                                        new JSONArray();
+
+                                                for (
+                                                        QueryDocumentSnapshot doc :
+                                                        snapshots
+                                                ) {
+
+                                                    try {
+
+                                                        JSONObject item =
+                                                                new JSONObject();
+
+                                                        String id =
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "id"
+                                                                        )
+                                                                );
+
+                                                        if (id.isEmpty()) {
+
+                                                            id =
+                                                                    doc.getId();
+                                                        }
+
+                                                        item.put(
+                                                                "id",
+                                                                id
+                                                        );
+
+                                                        item.put(
+                                                                "name",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "name"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        Boolean pinSet =
+                                                                doc.getBoolean(
+                                                                        "pinSet"
+                                                                );
+
+                                                        item.put(
+                                                                "pinSet",
+                                                                pinSet != null
+                                                                        && pinSet
+                                                        );
+
+                                                        /*
+                                                         * Sensiblere Daten nur
+                                                         * im Admin-Modus.
+                                                         */
+
+                                                        if (adminLoggedIn) {
+
+                                                            item.put(
+                                                                    "telefon",
+                                                                    safe(
+                                                                            doc.getString(
+                                                                                    "telefon"
+                                                                            )
+                                                                    )
+                                                            );
+
+                                                            item.put(
+                                                                    "art",
+                                                                    safe(
+                                                                            doc.getString(
+                                                                                    "art"
+                                                                            )
+                                                                    )
+                                                            );
+
+                                                            item.put(
+                                                                    "lohn",
+                                                                    safe(
+                                                                            doc.getString(
+                                                                                    "lohn"
+                                                                            )
+                                                                    )
+                                                            );
+                                                        }
+
+                                                        result.put(
+                                                                item
+                                                        );
+
+                                                    } catch (Exception e) {
+
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+
+                                                sendJs(
+                                                        "receiveEmployeesFromFirestore",
+                                                        result
+                                                );
+                                            }
+                                    )
+                    );
+        }
+
+
+        /*
+         * -------------------------------------------------
+         * MITARBEITER LOGIN
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void loginEmployee(
+                String employeeId,
+                String pin
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String id =
+                                safe(employeeId).trim();
+
+                        String cleanPin =
+                                safe(pin).trim();
+
+                        if (
+                                id.isEmpty()
+                                        ||
+                                        !cleanPin.matches(
+                                                "\\d{4}"
+                                        )
+                        ) {
+
+                            sendEmployeeLogin(
+                                    false,
+                                    null,
+                                    "Bitte Name und 4-stellige PIN eingeben."
+                            );
+
+                            return;
+                        }
+
+                        db()
+                                .collection(
+                                        "employees"
+                                )
+                                .document(
+                                        id
+                                )
+                                .get()
+
+                                .addOnSuccessListener(
+                                        snapshot -> {
+
+                                            if (!snapshot.exists()) {
+
+                                                sendEmployeeLogin(
+                                                        false,
+                                                        null,
+                                                        "Mitarbeiter nicht gefunden."
+                                                );
+
+                                                return;
+                                            }
+
+                                            String stored =
+                                                    snapshot.getString(
+                                                            "pinHash"
+                                                    );
+
+                                            if (
+                                                    stored == null
+                                                            ||
+                                                            stored.trim().isEmpty()
+                                            ) {
+
+                                                sendEmployeeLogin(
+                                                        false,
+                                                        null,
+                                                        "Für diesen Mitarbeiter wurde noch keine PIN eingerichtet."
+                                                );
+
+                                                return;
+                                            }
+
+                                            String entered =
+                                                    pinHash(
+                                                            id,
+                                                            cleanPin
+                                                    );
+
+                                            if (
+                                                    !stored.equals(
+                                                            entered
+                                                    )
+                                            ) {
+
+                                                sendEmployeeLogin(
+                                                        false,
+                                                        null,
+                                                        "PIN ist falsch."
+                                                );
+
+                                                return;
+                                            }
+
+                                            try {
+
+                                                JSONObject employee =
+                                                        new JSONObject();
+
+                                                employee.put(
+                                                        "id",
+                                                        id
+                                                );
+
+                                                employee.put(
+                                                        "name",
+                                                        safe(
+                                                                snapshot.getString(
+                                                                        "name"
+                                                                )
+                                                        )
+                                                );
+
+                                                employee.put(
+                                                        "telefon",
+                                                        safe(
+                                                                snapshot.getString(
+                                                                        "telefon"
+                                                                )
+                                                        )
+                                                );
+
+                                                employee.put(
+                                                        "art",
+                                                        safe(
+                                                                snapshot.getString(
+                                                                        "art"
+                                                                )
+                                                        )
+                                                );
+
+                                                loggedEmployeeId =
+                                                        id;
+
+                                                loggedEmployeeName =
+                                                        safe(
+                                                                snapshot.getString(
+                                                                        "name"
+                                                                )
+                                                        );
+
+                                                adminLoggedIn =
+                                                        false;
+
+                                                sendEmployeeLogin(
+                                                        true,
+                                                        employee,
+                                                        "Anmeldung erfolgreich."
+                                                );
+
+                                            } catch (Exception e) {
+
+                                                sendEmployeeLogin(
+                                                        false,
+                                                        null,
+                                                        "Login-Fehler."
+                                                );
+                                            }
+                                        }
+                                );
+                    }
+            );
+        }
+
+
+        private void sendEmployeeLogin(
                 boolean success,
+                JSONObject employee,
                 String message
         ) {
 
@@ -615,30 +919,20 @@ public class MainActivity extends Activity {
 
                 result.put(
                         "message",
-                        safeString(
-                                message
-                        )
+                        message
                 );
 
-                postJavascript(
+                if (employee != null) {
 
-                        "if(typeof window.receiveAdminLogin==='function'){"
+                    result.put(
+                            "employee",
+                            employee
+                    );
+                }
 
-                                +
-
-                                "window.receiveAdminLogin("
-
-                                +
-
-                                result.toString()
-
-                                +
-
-                                ");"
-
-                                +
-
-                                "}"
+                sendJs(
+                        "receiveEmployeeLogin",
+                        result
                 );
 
             } catch (Exception e) {
@@ -648,34 +942,1298 @@ public class MainActivity extends Activity {
         }
 
 
-        /*
-         * =================================================
-         * MITARBEITER AUSLOGGEN
-         * =================================================
-         */
-
         @JavascriptInterface
         public void logoutEmployee() {
 
-            clearEmployeeSession();
+            loggedEmployeeId = "";
+            loggedEmployeeName = "";
         }
 
 
         /*
-         * =================================================
+         * -------------------------------------------------
+         * STUNDENZETTEL
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void saveTimesheetToFirestore(
+                String employeeId,
+                String employeeName,
+                String month,
+                String json
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String finalId;
+
+                        String finalName;
+
+                        if (adminLoggedIn) {
+
+                            finalId =
+                                    safe(employeeId);
+
+                            finalName =
+                                    safe(employeeName);
+
+                        } else {
+
+                            finalId =
+                                    loggedEmployeeId;
+
+                            finalName =
+                                    loggedEmployeeName;
+                        }
+
+                        if (
+                                finalId.trim().isEmpty()
+                                        ||
+                                        safe(month).trim().isEmpty()
+                        ) {
+
+                            toast(
+                                    "Mitarbeiter oder Monat fehlt."
+                            );
+
+                            return;
+                        }
+
+                        String documentId =
+                                finalId
+                                        + "_"
+                                        + month;
+
+                        Map<String, Object> map =
+                                new HashMap<>();
+
+                        map.put(
+                                "key",
+                                documentId
+                        );
+
+                        map.put(
+                                "mitarbeiterId",
+                                finalId
+                        );
+
+                        map.put(
+                                "mitarbeiter",
+                                finalName
+                        );
+
+                        map.put(
+                                "monat",
+                                safe(month)
+                        );
+
+                        map.put(
+                                "tageJson",
+                                json == null
+                                        ? "[]"
+                                        : json
+                        );
+
+                        map.put(
+                                "updatedAt",
+                                FieldValue.serverTimestamp()
+                        );
+
+                        db()
+                                .collection(
+                                        "timesheets"
+                                )
+                                .document(
+                                        documentId
+                                )
+                                .set(
+                                        map
+                                )
+
+                                .addOnSuccessListener(
+                                        unused ->
+                                                toast(
+                                                        "Stundenzettel gespeichert ✅"
+                                                )
+                                )
+
+                                .addOnFailureListener(
+                                        e ->
+                                                toast(
+                                                        "Stundenzettel konnte nicht gespeichert werden."
+                                                )
+                                );
+                    }
+            );
+        }
+
+
+        @JavascriptInterface
+        public void loadTimesheetsFromFirestore() {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        if (
+                                !adminLoggedIn
+                                        &&
+                                        loggedEmployeeId.isEmpty()
+                        ) {
+
+                            return;
+                        }
+
+                        if (adminLoggedIn) {
+
+                            db()
+                                    .collection(
+                                            "timesheets"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            snapshots ->
+                                                    sendTimesheets(
+                                                            snapshots
+                                                    )
+                                    );
+
+                        } else {
+
+                            db()
+                                    .collection(
+                                            "timesheets"
+                                    )
+                                    .whereEqualTo(
+                                            "mitarbeiterId",
+                                            loggedEmployeeId
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            snapshots ->
+                                                    sendTimesheets(
+                                                            snapshots
+                                                    )
+                                    );
+                        }
+                    }
+            );
+        }
+
+
+        private void sendTimesheets(
+                com.google.firebase.firestore.QuerySnapshot snapshots
+        ) {
+
+            JSONArray result =
+                    new JSONArray();
+
+            for (
+                    QueryDocumentSnapshot doc :
+                    snapshots
+            ) {
+
+                try {
+
+                    JSONObject item =
+                            new JSONObject();
+
+                    item.put(
+                            "key",
+                            safe(
+                                    doc.getString(
+                                            "key"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "mitarbeiterId",
+                            safe(
+                                    doc.getString(
+                                            "mitarbeiterId"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "mitarbeiter",
+                            safe(
+                                    doc.getString(
+                                            "mitarbeiter"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "monat",
+                            safe(
+                                    doc.getString(
+                                            "monat"
+                                    )
+                            )
+                    );
+
+                    String tageJson =
+                            doc.getString(
+                                    "tageJson"
+                            );
+
+                    if (
+                            tageJson == null
+                                    ||
+                                    tageJson.trim().isEmpty()
+                    ) {
+
+                        item.put(
+                                "tage",
+                                new JSONArray()
+                        );
+
+                    } else {
+
+                        try {
+
+                            item.put(
+                                    "tage",
+                                    new JSONArray(
+                                            tageJson
+                                    )
+                            );
+
+                        } catch (Exception e) {
+
+                            item.put(
+                                    "tage",
+                                    new JSONArray()
+                            );
+                        }
+                    }
+
+                    result.put(
+                            item
+                    );
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+            sendJs(
+                    "receiveTimesheetsFromFirestore",
+                    result
+            );
+        }
+
+
+        /*
+         * -------------------------------------------------
+         * CHAT
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void sendChatMessage(
+                String employeeId,
+                String employeeName,
+                String message
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String text =
+                                safe(message).trim();
+
+                        if (text.isEmpty()) {
+
+                            return;
+                        }
+
+                        String finalEmployeeId;
+                        String finalEmployeeName;
+                        String sender;
+
+                        if (adminLoggedIn) {
+
+                            finalEmployeeId =
+                                    safe(employeeId);
+
+                            finalEmployeeName =
+                                    safe(employeeName);
+
+                            sender =
+                                    "admin";
+
+                        } else {
+
+                            finalEmployeeId =
+                                    loggedEmployeeId;
+
+                            finalEmployeeName =
+                                    loggedEmployeeName;
+
+                            sender =
+                                    "employee";
+                        }
+
+                        if (finalEmployeeId.isEmpty()) {
+
+                            return;
+                        }
+
+                        Map<String, Object> map =
+                                new HashMap<>();
+
+                        map.put(
+                                "employeeId",
+                                finalEmployeeId
+                        );
+
+                        map.put(
+                                "employeeName",
+                                finalEmployeeName
+                        );
+
+                        map.put(
+                                "sender",
+                                sender
+                        );
+
+                        map.put(
+                                "message",
+                                text
+                        );
+
+                        map.put(
+                                "createdAt",
+                                FieldValue.serverTimestamp()
+                        );
+
+                        db()
+                                .collection(
+                                        "messages"
+                                )
+                                .add(
+                                        map
+                                )
+
+                                .addOnSuccessListener(
+                                        unused ->
+                                                loadChatMessages(
+                                                        finalEmployeeId
+                                                )
+                                );
+                    }
+            );
+        }
+
+
+        @JavascriptInterface
+        public void loadChatMessages(
+                String employeeId
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String finalId =
+                                adminLoggedIn
+                                        ? safe(employeeId)
+                                        : loggedEmployeeId;
+
+                        if (finalId.isEmpty()) {
+
+                            return;
+                        }
+
+                        db()
+                                .collection(
+                                        "messages"
+                                )
+                                .whereEqualTo(
+                                        "employeeId",
+                                        finalId
+                                )
+                                .get()
+
+                                .addOnSuccessListener(
+                                        snapshots -> {
+
+                                            JSONArray result =
+                                                    new JSONArray();
+
+                                            for (
+                                                    QueryDocumentSnapshot doc :
+                                                    snapshots
+                                            ) {
+
+                                                try {
+
+                                                    JSONObject item =
+                                                            new JSONObject();
+
+                                                    item.put(
+                                                            "id",
+                                                            doc.getId()
+                                                    );
+
+                                                    item.put(
+                                                            "employeeId",
+                                                            safe(
+                                                                    doc.getString(
+                                                                            "employeeId"
+                                                                    )
+                                                            )
+                                                    );
+
+                                                    item.put(
+                                                            "employeeName",
+                                                            safe(
+                                                                    doc.getString(
+                                                                            "employeeName"
+                                                                    )
+                                                            )
+                                                    );
+
+                                                    item.put(
+                                                            "sender",
+                                                            safe(
+                                                                    doc.getString(
+                                                                            "sender"
+                                                                    )
+                                                            )
+                                                    );
+
+                                                    item.put(
+                                                            "message",
+                                                            safe(
+                                                                    doc.getString(
+                                                                            "message"
+                                                                    )
+                                                            )
+                                                    );
+
+                                                    item.put(
+                                                            "createdAt",
+                                                            timestampMillis(
+                                                                    doc,
+                                                                    "createdAt"
+                                                            )
+                                                    );
+
+                                                    result.put(
+                                                            item
+                                                    );
+
+                                                } catch (Exception e) {
+
+                                                    e.printStackTrace();
+                                                }
+                                            }
+
+                                            sendJs(
+                                                    "receiveChatMessagesFromFirestore",
+                                                    result
+                                            );
+                                        }
+                                );
+                    }
+            );
+        }
+
+
+        /*
+         * -------------------------------------------------
+         * TICKETS
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void saveTicket(
+                String employeeId,
+                String employeeName,
+                String type,
+                String subject,
+                String description
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String finalId;
+                        String finalName;
+
+                        if (adminLoggedIn) {
+
+                            finalId =
+                                    safe(employeeId);
+
+                            finalName =
+                                    safe(employeeName);
+
+                        } else {
+
+                            finalId =
+                                    loggedEmployeeId;
+
+                            finalName =
+                                    loggedEmployeeName;
+                        }
+
+                        if (
+                                finalId.isEmpty()
+                                        ||
+                                        safe(subject).trim().isEmpty()
+                        ) {
+
+                            toast(
+                                    "Bitte Betreff eingeben."
+                            );
+
+                            return;
+                        }
+
+                        Map<String, Object> map =
+                                new HashMap<>();
+
+                        map.put(
+                                "employeeId",
+                                finalId
+                        );
+
+                        map.put(
+                                "employeeName",
+                                finalName
+                        );
+
+                        map.put(
+                                "type",
+                                safe(type)
+                        );
+
+                        map.put(
+                                "subject",
+                                safe(subject)
+                        );
+
+                        map.put(
+                                "description",
+                                safe(description)
+                        );
+
+                        map.put(
+                                "status",
+                                "Offen"
+                        );
+
+                        map.put(
+                                "createdAt",
+                                FieldValue.serverTimestamp()
+                        );
+
+                        db()
+                                .collection(
+                                        "tickets"
+                                )
+                                .add(
+                                        map
+                                )
+
+                                .addOnSuccessListener(
+                                        unused -> {
+
+                                            toast(
+                                                    "Ticket gesendet ✅"
+                                            );
+
+                                            loadTickets(
+                                                    finalId
+                                            );
+                                        }
+                                );
+                    }
+            );
+        }
+
+
+        @JavascriptInterface
+        public void loadTickets(
+                String employeeId
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        if (adminLoggedIn) {
+
+                            db()
+                                    .collection(
+                                            "tickets"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            this::sendTickets
+                                    );
+
+                        } else {
+
+                            if (loggedEmployeeId.isEmpty()) {
+
+                                return;
+                            }
+
+                            db()
+                                    .collection(
+                                            "tickets"
+                                    )
+                                    .whereEqualTo(
+                                            "employeeId",
+                                            loggedEmployeeId
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            this::sendTickets
+                                    );
+                        }
+                    }
+            );
+        }
+
+
+        private void sendTickets(
+                com.google.firebase.firestore.QuerySnapshot snapshots
+        ) {
+
+            JSONArray result =
+                    new JSONArray();
+
+            for (
+                    QueryDocumentSnapshot doc :
+                    snapshots
+            ) {
+
+                try {
+
+                    JSONObject item =
+                            new JSONObject();
+
+                    item.put(
+                            "id",
+                            doc.getId()
+                    );
+
+                    item.put(
+                            "employeeId",
+                            safe(
+                                    doc.getString(
+                                            "employeeId"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "employeeName",
+                            safe(
+                                    doc.getString(
+                                            "employeeName"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "type",
+                            safe(
+                                    doc.getString(
+                                            "type"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "subject",
+                            safe(
+                                    doc.getString(
+                                            "subject"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "description",
+                            safe(
+                                    doc.getString(
+                                            "description"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "status",
+                            safe(
+                                    doc.getString(
+                                            "status"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "createdAt",
+                            timestampMillis(
+                                    doc,
+                                    "createdAt"
+                            )
+                    );
+
+                    result.put(
+                            item
+                    );
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+            sendJs(
+                    "receiveTicketsFromFirestore",
+                    result
+            );
+        }
+
+
+        @JavascriptInterface
+        public void updateTicketStatus(
+                String ticketId,
+                String status
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            db()
+                    .collection(
+                            "tickets"
+                    )
+                    .document(
+                            safe(ticketId)
+                    )
+                    .update(
+                            "status",
+                            safe(status)
+                    )
+
+                    .addOnSuccessListener(
+                            unused -> {
+
+                                toast(
+                                        "Ticket aktualisiert ✅"
+                                );
+
+                                loadTickets(
+                                        ""
+                                );
+                            }
+                    );
+        }
+
+
+        /*
+         * -------------------------------------------------
+         * URLAUB
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void saveLeaveRequest(
+                String employeeId,
+                String employeeName,
+                String from,
+                String to,
+                String note
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        String finalId;
+                        String finalName;
+
+                        if (adminLoggedIn) {
+
+                            finalId =
+                                    safe(employeeId);
+
+                            finalName =
+                                    safe(employeeName);
+
+                        } else {
+
+                            finalId =
+                                    loggedEmployeeId;
+
+                            finalName =
+                                    loggedEmployeeName;
+                        }
+
+                        if (
+                                finalId.isEmpty()
+                                        ||
+                                        safe(from).isEmpty()
+                                        ||
+                                        safe(to).isEmpty()
+                        ) {
+
+                            toast(
+                                    "Bitte Zeitraum auswählen."
+                            );
+
+                            return;
+                        }
+
+                        Map<String, Object> map =
+                                new HashMap<>();
+
+                        map.put(
+                                "employeeId",
+                                finalId
+                        );
+
+                        map.put(
+                                "employeeName",
+                                finalName
+                        );
+
+                        map.put(
+                                "from",
+                                safe(from)
+                        );
+
+                        map.put(
+                                "to",
+                                safe(to)
+                        );
+
+                        map.put(
+                                "note",
+                                safe(note)
+                        );
+
+                        map.put(
+                                "status",
+                                "Offen"
+                        );
+
+                        map.put(
+                                "createdAt",
+                                FieldValue.serverTimestamp()
+                        );
+
+                        db()
+                                .collection(
+                                        "leaveRequests"
+                                )
+                                .add(
+                                        map
+                                )
+
+                                .addOnSuccessListener(
+                                        unused -> {
+
+                                            toast(
+                                                    "Urlaubsantrag gesendet ✅"
+                                            );
+
+                                            loadLeaveRequests(
+                                                    finalId
+                                            );
+                                        }
+                                );
+                    }
+            );
+        }
+
+
+        @JavascriptInterface
+        public void loadLeaveRequests(
+                String employeeId
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        if (adminLoggedIn) {
+
+                            db()
+                                    .collection(
+                                            "leaveRequests"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            this::sendLeaveRequests
+                                    );
+
+                        } else {
+
+                            if (loggedEmployeeId.isEmpty()) {
+
+                                return;
+                            }
+
+                            db()
+                                    .collection(
+                                            "leaveRequests"
+                                    )
+                                    .whereEqualTo(
+                                            "employeeId",
+                                            loggedEmployeeId
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            this::sendLeaveRequests
+                                    );
+                        }
+                    }
+            );
+        }
+
+
+        private void sendLeaveRequests(
+                com.google.firebase.firestore.QuerySnapshot snapshots
+        ) {
+
+            JSONArray result =
+                    new JSONArray();
+
+            for (
+                    QueryDocumentSnapshot doc :
+                    snapshots
+            ) {
+
+                try {
+
+                    JSONObject item =
+                            new JSONObject();
+
+                    item.put(
+                            "id",
+                            doc.getId()
+                    );
+
+                    item.put(
+                            "employeeId",
+                            safe(
+                                    doc.getString(
+                                            "employeeId"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "employeeName",
+                            safe(
+                                    doc.getString(
+                                            "employeeName"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "from",
+                            safe(
+                                    doc.getString(
+                                            "from"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "to",
+                            safe(
+                                    doc.getString(
+                                            "to"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "note",
+                            safe(
+                                    doc.getString(
+                                            "note"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "status",
+                            safe(
+                                    doc.getString(
+                                            "status"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "createdAt",
+                            timestampMillis(
+                                    doc,
+                                    "createdAt"
+                            )
+                    );
+
+                    result.put(
+                            item
+                    );
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+            sendJs(
+                    "receiveLeaveRequestsFromFirestore",
+                    result
+            );
+        }
+
+
+        @JavascriptInterface
+        public void updateLeaveStatus(
+                String requestId,
+                String status
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            db()
+                    .collection(
+                            "leaveRequests"
+                    )
+                    .document(
+                            safe(requestId)
+                    )
+                    .update(
+                            "status",
+                            safe(status)
+                    )
+
+                    .addOnSuccessListener(
+                            unused -> {
+
+                                toast(
+                                        "Urlaubsantrag aktualisiert ✅"
+                                );
+
+                                loadLeaveRequests(
+                                        ""
+                                );
+                            }
+                    );
+        }
+
+
+        /*
+         * -------------------------------------------------
+         * AUFTRÄGE
+         * -------------------------------------------------
+         */
+
+        @JavascriptInterface
+        public void saveOrderToFirestore(
+                String customer,
+                String address,
+                String service,
+                String date,
+                String price,
+                String description
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            Map<String, Object> map =
+                    new HashMap<>();
+
+            map.put(
+                    "customer",
+                    safe(customer)
+            );
+
+            map.put(
+                    "address",
+                    safe(address)
+            );
+
+            map.put(
+                    "service",
+                    safe(service)
+            );
+
+            map.put(
+                    "date",
+                    safe(date)
+            );
+
+            map.put(
+                    "price",
+                    safe(price)
+            );
+
+            map.put(
+                    "description",
+                    safe(description)
+            );
+
+            map.put(
+                    "createdAt",
+                    FieldValue.serverTimestamp()
+            );
+
+            db()
+                    .collection(
+                            "orders"
+                    )
+                    .add(
+                            map
+                    )
+
+                    .addOnSuccessListener(
+                            unused ->
+                                    loadOrdersFromFirestore()
+                    );
+        }
+
+
+        @JavascriptInterface
+        public void loadOrdersFromFirestore() {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            db()
+                    .collection(
+                            "orders"
+                    )
+                    .get()
+
+                    .addOnSuccessListener(
+                            snapshots -> {
+
+                                JSONArray result =
+                                        new JSONArray();
+
+                                for (
+                                        QueryDocumentSnapshot doc :
+                                        snapshots
+                                ) {
+
+                                    try {
+
+                                        JSONObject item =
+                                                new JSONObject();
+
+                                        item.put(
+                                                "kunde",
+                                                safe(
+                                                        doc.getString(
+                                                                "customer"
+                                                        )
+                                                )
+                                        );
+
+                                        item.put(
+                                                "ort",
+                                                safe(
+                                                        doc.getString(
+                                                                "address"
+                                                        )
+                                                )
+                                        );
+
+                                        item.put(
+                                                "art",
+                                                safe(
+                                                        doc.getString(
+                                                                "service"
+                                                        )
+                                                )
+                                        );
+
+                                        item.put(
+                                                "datum",
+                                                safe(
+                                                        doc.getString(
+                                                                "date"
+                                                        )
+                                                )
+                                        );
+
+                                        item.put(
+                                                "preis",
+                                                safe(
+                                                        doc.getString(
+                                                                "price"
+                                                        )
+                                                )
+                                        );
+
+                                        item.put(
+                                                "notiz",
+                                                safe(
+                                                        doc.getString(
+                                                                "description"
+                                                        )
+                                                )
+                                        );
+
+                                        result.put(
+                                                item
+                                        );
+
+                                    } catch (Exception e) {
+
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                sendJs(
+                                        "receiveOrdersFromFirestore",
+                                        result
+                                );
+                            }
+                    );
+        }
+
+
+        /*
+         * -------------------------------------------------
          * AR
-         * Nur Verwaltung.
-         * =================================================
+         * -------------------------------------------------
          */
 
         @JavascriptInterface
         public void startArMeasurement() {
 
-            if (
-                    !adminLoggedIn
-            ) {
-
-                showAdminRequired();
+            if (!adminLoggedIn) {
 
                 return;
             }
@@ -704,1327 +2262,8 @@ public class MainActivity extends Activity {
                             arMeasurementRunning =
                                     false;
 
-                            Toast.makeText(
-                                    MainActivity.this,
-                                    "AR-Messung konnte nicht geöffnet werden.",
-                                    Toast.LENGTH_LONG
-                            ).show();
-                        }
-                    }
-            );
-        }
-
-
-        /*
-         * =================================================
-         * MITARBEITER SPEICHERN
-         * Nur Verwaltung.
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void saveEmployeeToFirestore(
-                String id,
-                String name,
-                String telefon,
-                String art,
-                String lohn,
-                String pin
-        ) {
-
-            if (
-                    !adminLoggedIn
-            ) {
-
-                showAdminRequired();
-
-                return;
-            }
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        String employeeId =
-                                safeString(
-                                        id
-                                ).trim();
-
-                        if (
-                                employeeId.isEmpty()
-                        ) {
-
-                            employeeId =
-                                    String.valueOf(
-                                            System.currentTimeMillis()
-                                    );
-                        }
-
-                        String employeeName =
-                                safeString(
-                                        name
-                                ).trim();
-
-                        if (
-                                employeeName.isEmpty()
-                        ) {
-
-                            runOnUiThread(
-                                    () ->
-                                            Toast.makeText(
-                                                    MainActivity.this,
-                                                    "Name des Mitarbeiters fehlt.",
-                                                    Toast.LENGTH_SHORT
-                                            ).show()
-                            );
-
-                            return;
-                        }
-
-                        String cleanPin =
-                                safeString(
-                                        pin
-                                ).trim();
-
-                        if (
-                                !cleanPin.isEmpty()
-                                &&
-                                !cleanPin.matches(
-                                        "\\d{4}"
-                                )
-                        ) {
-
-                            runOnUiThread(
-                                    () ->
-                                            Toast.makeText(
-                                                    MainActivity.this,
-                                                    "Die Mitarbeiter-PIN muss aus genau 4 Ziffern bestehen.",
-                                                    Toast.LENGTH_LONG
-                                            ).show()
-                            );
-
-                            return;
-                        }
-
-                        final String finalEmployeeId =
-                                employeeId;
-
-                        com.google.firebase.firestore.DocumentReference ref =
-
-                                com.google.firebase.firestore.FirebaseFirestore
-                                        .getInstance()
-
-                                        .collection(
-                                                "employees"
-                                        )
-
-                                        .document(
-                                                finalEmployeeId
-                                        );
-
-                        ref.get()
-
-                                .addOnSuccessListener(
-                                        snapshot -> {
-
-                                            Map<String, Object> employee =
-                                                    new HashMap<>();
-
-                                            employee.put(
-                                                    "id",
-                                                    finalEmployeeId
-                                            );
-
-                                            employee.put(
-                                                    "name",
-                                                    employeeName
-                                            );
-
-                                            employee.put(
-                                                    "telefon",
-                                                    safeString(
-                                                            telefon
-                                                    )
-                                            );
-
-                                            employee.put(
-                                                    "art",
-                                                    safeString(
-                                                            art
-                                                    )
-                                            );
-
-                                            employee.put(
-                                                    "lohn",
-                                                    safeString(
-                                                            lohn
-                                                    )
-                                            );
-
-                                            if (
-                                                    !cleanPin.isEmpty()
-                                            ) {
-
-                                                employee.put(
-                                                        "pinHash",
-                                                        createPinHash(
-                                                                finalEmployeeId,
-                                                                cleanPin
-                                                        )
-                                                );
-
-                                                employee.put(
-                                                        "pinSet",
-                                                        true
-                                                );
-
-                                            } else {
-
-                                                Object existingHash =
-                                                        snapshot.get(
-                                                                "pinHash"
-                                                        );
-
-                                                if (
-                                                        existingHash
-                                                                !=
-                                                        null
-                                                ) {
-
-                                                    employee.put(
-                                                            "pinHash",
-                                                            existingHash
-                                                    );
-
-                                                    employee.put(
-                                                            "pinSet",
-                                                            true
-                                                    );
-
-                                                } else {
-
-                                                    employee.put(
-                                                            "pinSet",
-                                                            false
-                                                    );
-                                                }
-                                            }
-
-                                            employee.put(
-                                                    "updatedAt",
-                                                    com.google.firebase.firestore
-                                                            .FieldValue
-                                                            .serverTimestamp()
-                                            );
-
-                                            ref.set(
-                                                    employee
-                                            )
-
-                                                    .addOnSuccessListener(
-                                                            unused ->
-                                                                    runOnUiThread(
-                                                                            () ->
-                                                                                    Toast.makeText(
-                                                                                            MainActivity.this,
-                                                                                            "Mitarbeiter in Firebase gespeichert ✅",
-                                                                                            Toast.LENGTH_SHORT
-                                                                                    ).show()
-                                                                    )
-                                                    )
-
-                                                    .addOnFailureListener(
-                                                            e ->
-                                                                    runOnUiThread(
-                                                                            () ->
-                                                                                    Toast.makeText(
-                                                                                            MainActivity.this,
-                                                                                            "Mitarbeiter konnte nicht gespeichert werden: "
-                                                                                                    +
-                                                                                                    safeString(
-                                                                                                            e.getMessage()
-                                                                                                    ),
-                                                                                            Toast.LENGTH_LONG
-                                                                                    ).show()
-                                                                    )
-                                                    );
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                runOnUiThread(
-                                                        () ->
-                                                                Toast.makeText(
-                                                                        MainActivity.this,
-                                                                        "Mitarbeiter konnte nicht geprüft werden.",
-                                                                        Toast.LENGTH_LONG
-                                                                ).show()
-                                                )
-                                );
-                    }
-            );
-        }
-
-
-        /*
-         * =================================================
-         * MITARBEITER LADEN
-         *
-         * Vor Admin-Login:
-         * Nur ID, Name und pinSet für Login-Liste.
-         *
-         * Im Admin-Modus:
-         * Vollständige Mitarbeiterdaten.
-         *
-         * pinHash wird niemals an HTML geschickt.
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void loadEmployeesFromFirestore() {
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        com.google.firebase.firestore.FirebaseFirestore
-                                .getInstance()
-
-                                .collection(
-                                        "employees"
-                                )
-
-                                .get()
-
-                                .addOnSuccessListener(
-                                        snapshots -> {
-
-                                            JSONArray array =
-                                                    new JSONArray();
-
-                                            for (
-                                                    com.google.firebase.firestore
-                                                            .QueryDocumentSnapshot doc
-                                                    :
-                                                    snapshots
-                                            ) {
-
-                                                try {
-
-                                                    JSONObject obj =
-                                                            new JSONObject();
-
-                                                    String id =
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "id"
-                                                                    )
-                                                            );
-
-                                                    if (
-                                                            id.isEmpty()
-                                                    ) {
-
-                                                        id =
-                                                                doc.getId();
-                                                    }
-
-                                                    obj.put(
-                                                            "id",
-                                                            id
-                                                    );
-
-                                                    obj.put(
-                                                            "name",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "name"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    Boolean pinSet =
-                                                            doc.getBoolean(
-                                                                    "pinSet"
-                                                            );
-
-                                                    obj.put(
-                                                            "pinSet",
-                                                            pinSet != null
-                                                                    &&
-                                                                    pinSet
-                                                    );
-
-                                                    /*
-                                                     * Nur Admin bekommt
-                                                     * Telefon, Beschäftigungsart
-                                                     * und Stundenlohn.
-                                                     */
-
-                                                    if (
-                                                            adminLoggedIn
-                                                    ) {
-
-                                                        obj.put(
-                                                                "telefon",
-                                                                safeString(
-                                                                        doc.getString(
-                                                                                "telefon"
-                                                                        )
-                                                                )
-                                                        );
-
-                                                        obj.put(
-                                                                "art",
-                                                                safeString(
-                                                                        doc.getString(
-                                                                                "art"
-                                                                        )
-                                                                )
-                                                        );
-
-                                                        obj.put(
-                                                                "lohn",
-                                                                safeString(
-                                                                        doc.getString(
-                                                                                "lohn"
-                                                                        )
-                                                                )
-                                                        );
-                                                    }
-
-                                                    array.put(
-                                                            obj
-                                                    );
-
-                                                } catch (Exception e) {
-
-                                                    e.printStackTrace();
-                                                }
-                                            }
-
-                                            postJavascript(
-
-                                                    "if(typeof window.receiveEmployeesFromFirestore==='function'){"
-
-                                                            +
-
-                                                            "window.receiveEmployeesFromFirestore("
-
-                                                            +
-
-                                                            array.toString()
-
-                                                            +
-
-                                                            ");"
-
-                                                            +
-
-                                                            "}"
-                                            );
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                runOnUiThread(
-                                                        () ->
-                                                                Toast.makeText(
-                                                                        MainActivity.this,
-                                                                        "Mitarbeiter konnten nicht geladen werden: "
-                                                                                +
-                                                                                safeString(
-                                                                                        e.getMessage()
-                                                                                ),
-                                                                        Toast.LENGTH_LONG
-                                                                ).show()
-                                                )
-                                );
-                    }
-            );
-        }
-
-
-        /*
-         * =================================================
-         * MITARBEITER LOGIN
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void loginEmployee(
-                String employeeId,
-                String pin
-        ) {
-
-            /*
-             * Admin-Sitzung beenden,
-             * wenn Mitarbeiter sich anmeldet.
-             */
-
-            clearAdminSession();
-
-            long now =
-                    System.currentTimeMillis();
-
-            if (
-                    now
-                            <
-                    employeeLockUntil
-            ) {
-
-                long seconds =
-                        Math.max(
-                                1,
-                                (
-                                        employeeLockUntil
-                                                -
-                                        now
-                                )
-                                        /
-                                        1000
-                        );
-
-                sendEmployeeLoginResult(
-                        false,
-                        null,
-                        "Zu viele falsche Versuche. Bitte "
-                                +
-                                seconds
-                                +
-                                " Sekunden warten."
-                );
-
-                return;
-            }
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        String id =
-                                safeString(
-                                        employeeId
-                                ).trim();
-
-                        String cleanPin =
-                                safeString(
-                                        pin
-                                ).trim();
-
-                        if (
-                                id.isEmpty()
-                                ||
-                                cleanPin.isEmpty()
-                        ) {
-
-                            sendEmployeeLoginResult(
-                                    false,
-                                    null,
-                                    "Bitte Mitarbeiter und PIN eingeben."
-                            );
-
-                            return;
-                        }
-
-                        if (
-                                !cleanPin.matches(
-                                        "\\d{4}"
-                                )
-                        ) {
-
-                            sendEmployeeLoginResult(
-                                    false,
-                                    null,
-                                    "Die PIN muss aus 4 Ziffern bestehen."
-                            );
-
-                            return;
-                        }
-
-                        com.google.firebase.firestore.FirebaseFirestore
-                                .getInstance()
-
-                                .collection(
-                                        "employees"
-                                )
-
-                                .document(
-                                        id
-                                )
-
-                                .get()
-
-                                .addOnSuccessListener(
-                                        snapshot -> {
-
-                                            if (
-                                                    !snapshot.exists()
-                                            ) {
-
-                                                registerEmployeeFailedLogin();
-
-                                                sendEmployeeLoginResult(
-                                                        false,
-                                                        null,
-                                                        "Mitarbeiter wurde nicht gefunden."
-                                                );
-
-                                                return;
-                                            }
-
-                                            String storedHash =
-                                                    snapshot.getString(
-                                                            "pinHash"
-                                                    );
-
-                                            if (
-                                                    storedHash == null
-                                                    ||
-                                                    storedHash
-                                                            .trim()
-                                                            .isEmpty()
-                                            ) {
-
-                                                sendEmployeeLoginResult(
-                                                        false,
-                                                        null,
-                                                        "Für diesen Mitarbeiter wurde noch keine PIN eingerichtet."
-                                                );
-
-                                                return;
-                                            }
-
-                                            String enteredHash =
-                                                    createPinHash(
-                                                            id,
-                                                            cleanPin
-                                                    );
-
-                                            if (
-                                                    !storedHash.equals(
-                                                            enteredHash
-                                                    )
-                                            ) {
-
-                                                registerEmployeeFailedLogin();
-
-                                                sendEmployeeLoginResult(
-                                                        false,
-                                                        null,
-                                                        "PIN ist falsch."
-                                                );
-
-                                                return;
-                                            }
-
-                                            try {
-
-                                                JSONObject employee =
-                                                        new JSONObject();
-
-                                                String employeeName =
-                                                        safeString(
-                                                                snapshot.getString(
-                                                                        "name"
-                                                                )
-                                                        );
-
-                                                employee.put(
-                                                        "id",
-                                                        id
-                                                );
-
-                                                employee.put(
-                                                        "name",
-                                                        employeeName
-                                                );
-
-                                                employee.put(
-                                                        "telefon",
-                                                        safeString(
-                                                                snapshot.getString(
-                                                                        "telefon"
-                                                                )
-                                                        )
-                                                );
-
-                                                employee.put(
-                                                        "art",
-                                                        safeString(
-                                                                snapshot.getString(
-                                                                        "art"
-                                                                )
-                                                        )
-                                                );
-
-                                                /*
-                                                 * Stundenlohn wird nicht
-                                                 * an Mitarbeiter übergeben.
-                                                 */
-
-                                                loggedInEmployeeId =
-                                                        id;
-
-                                                loggedInEmployeeName =
-                                                        employeeName;
-
-                                                employeeFailedAttempts =
-                                                        0;
-
-                                                employeeLockUntil =
-                                                        0;
-
-                                                sendEmployeeLoginResult(
-                                                        true,
-                                                        employee,
-                                                        "Anmeldung erfolgreich."
-                                                );
-
-                                            } catch (Exception e) {
-
-                                                clearEmployeeSession();
-
-                                                sendEmployeeLoginResult(
-                                                        false,
-                                                        null,
-                                                        "Login konnte nicht verarbeitet werden."
-                                                );
-                                            }
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e -> {
-
-                                            clearEmployeeSession();
-
-                                            sendEmployeeLoginResult(
-                                                    false,
-                                                    null,
-                                                    "Firebase-Verbindung fehlgeschlagen."
-                                            );
-                                        }
-                                );
-                    }
-            );
-        }
-
-
-        private void registerEmployeeFailedLogin() {
-
-            employeeFailedAttempts++;
-
-            if (
-                    employeeFailedAttempts
-                            >=
-                    5
-            ) {
-
-                employeeLockUntil =
-                        System.currentTimeMillis()
-                                +
-                                30000;
-
-                employeeFailedAttempts =
-                        0;
-            }
-        }
-
-
-        private void sendEmployeeLoginResult(
-                boolean success,
-                JSONObject employee,
-                String message
-        ) {
-
-            try {
-
-                JSONObject result =
-                        new JSONObject();
-
-                result.put(
-                        "success",
-                        success
-                );
-
-                result.put(
-                        "message",
-                        safeString(
-                                message
-                        )
-                );
-
-                if (
-                        employee != null
-                ) {
-
-                    result.put(
-                            "employee",
-                            employee
-                    );
-                }
-
-                postJavascript(
-
-                        "if(typeof window.receiveEmployeeLogin==='function'){"
-
-                                +
-
-                                "window.receiveEmployeeLogin("
-
-                                +
-
-                                result.toString()
-
-                                +
-
-                                ");"
-
-                                +
-
-                                "}"
-                );
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
-
-
-        /*
-         * =================================================
-         * AUFTRAG SPEICHERN
-         * Nur Verwaltung.
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void saveOrderToFirestore(
-                String customer,
-                String address,
-                String service,
-                String date,
-                String price,
-                String description
-        ) {
-
-            if (
-                    !adminLoggedIn
-            ) {
-
-                showAdminRequired();
-
-                return;
-            }
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        Map<String, Object> order =
-                                new HashMap<>();
-
-                        order.put(
-                                "customer",
-                                safeString(
-                                        customer
-                                )
-                        );
-
-                        order.put(
-                                "address",
-                                safeString(
-                                        address
-                                )
-                        );
-
-                        order.put(
-                                "service",
-                                safeString(
-                                        service
-                                )
-                        );
-
-                        order.put(
-                                "date",
-                                safeString(
-                                        date
-                                )
-                        );
-
-                        order.put(
-                                "price",
-                                safeString(
-                                        price
-                                )
-                        );
-
-                        order.put(
-                                "description",
-                                safeString(
-                                        description
-                                )
-                        );
-
-                        order.put(
-                                "createdAt",
-                                com.google.firebase.firestore
-                                        .FieldValue
-                                        .serverTimestamp()
-                        );
-
-                        com.google.firebase.firestore.FirebaseFirestore
-                                .getInstance()
-
-                                .collection(
-                                        "orders"
-                                )
-
-                                .add(
-                                        order
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                runOnUiThread(
-                                                        () ->
-                                                                Toast.makeText(
-                                                                        MainActivity.this,
-                                                                        "Auftrag konnte nicht gespeichert werden: "
-                                                                                +
-                                                                                safeString(
-                                                                                        e.getMessage()
-                                                                                ),
-                                                                        Toast.LENGTH_LONG
-                                                                ).show()
-                                                )
-                                );
-                    }
-            );
-        }
-
-
-        /*
-         * =================================================
-         * AUFTRÄGE LADEN
-         * Nur Verwaltung.
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void loadOrdersFromFirestore() {
-
-            if (
-                    !adminLoggedIn
-            ) {
-
-                showAdminRequired();
-
-                return;
-            }
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        com.google.firebase.firestore.FirebaseFirestore
-                                .getInstance()
-
-                                .collection(
-                                        "orders"
-                                )
-
-                                .get()
-
-                                .addOnSuccessListener(
-                                        snapshots -> {
-
-                                            JSONArray array =
-                                                    new JSONArray();
-
-                                            for (
-                                                    com.google.firebase.firestore
-                                                            .QueryDocumentSnapshot doc
-                                                    :
-                                                    snapshots
-                                            ) {
-
-                                                try {
-
-                                                    JSONObject obj =
-                                                            new JSONObject();
-
-                                                    obj.put(
-                                                            "kunde",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "customer"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "ort",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "address"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "art",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "service"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "datum",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "date"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "preis",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "price"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    obj.put(
-                                                            "notiz",
-                                                            safeString(
-                                                                    doc.getString(
-                                                                            "description"
-                                                                    )
-                                                            )
-                                                    );
-
-                                                    array.put(
-                                                            obj
-                                                    );
-
-                                                } catch (Exception e) {
-
-                                                    e.printStackTrace();
-                                                }
-                                            }
-
-                                            postJavascript(
-
-                                                    "if(typeof window.receiveOrdersFromFirestore==='function'){"
-
-                                                            +
-
-                                                            "window.receiveOrdersFromFirestore("
-
-                                                            +
-
-                                                            array.toString()
-
-                                                            +
-
-                                                            ");"
-
-                                                            +
-
-                                                            "}"
-                                            );
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                runOnUiThread(
-                                                        () ->
-                                                                Toast.makeText(
-                                                                        MainActivity.this,
-                                                                        "Aufträge konnten nicht geladen werden: "
-                                                                                +
-                                                                                safeString(
-                                                                                        e.getMessage()
-                                                                                ),
-                                                                        Toast.LENGTH_LONG
-                                                                ).show()
-                                                )
-                                );
-                    }
-            );
-        }
-
-
-        /*
-         * =================================================
-         * STUNDENZETTEL SPEICHERN
-         *
-         * Mitarbeiter:
-         * Darf ausschließlich seine eigene ID speichern.
-         *
-         * Admin:
-         * Darf jeden Mitarbeiter speichern.
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void saveTimesheetToFirestore(
-                String mitarbeiterId,
-                String mitarbeiterName,
-                String monat,
-                String jsonData
-        ) {
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        try {
-
-                            String requestedEmployeeId =
-                                    safeString(
-                                            mitarbeiterId
-                                    ).trim();
-
-                            String requestedEmployeeName =
-                                    safeString(
-                                            mitarbeiterName
-                                    ).trim();
-
-                            String month =
-                                    safeString(
-                                            monat
-                                    ).trim();
-
-                            String daysJson =
-                                    jsonData == null
-                                            ?
-                                            "[]"
-                                            :
-                                            jsonData;
-
-                            /*
-                             * Sitzung prüfen.
-                             */
-
-                            if (
-                                    !adminLoggedIn
-                                    &&
-                                    !employeeSessionActive()
-                            ) {
-
-                                runOnUiThread(
-                                        () ->
-                                                Toast.makeText(
-                                                        MainActivity.this,
-                                                        "Bitte zuerst anmelden.",
-                                                        Toast.LENGTH_LONG
-                                                ).show()
-                                );
-
-                                return;
-                            }
-
-                            String employeeId;
-                            String employeeName;
-
-                            if (
-                                    adminLoggedIn
-                            ) {
-
-                                employeeId =
-                                        requestedEmployeeId;
-
-                                employeeName =
-                                        requestedEmployeeName;
-
-                            } else {
-
-                                /*
-                                 * Wichtig:
-                                 * Die aus HTML übergebene Mitarbeiter-ID
-                                 * wird bei Mitarbeiter-Login NICHT vertraut.
-                                 */
-
-                                employeeId =
-                                        loggedInEmployeeId;
-
-                                employeeName =
-                                        loggedInEmployeeName;
-
-                                if (
-                                        !requestedEmployeeId.isEmpty()
-                                        &&
-                                        !requestedEmployeeId.equals(
-                                                loggedInEmployeeId
-                                        )
-                                ) {
-
-                                    runOnUiThread(
-                                            () ->
-                                                    Toast.makeText(
-                                                            MainActivity.this,
-                                                            "Zugriff auf fremden Stundenzettel blockiert.",
-                                                            Toast.LENGTH_LONG
-                                                    ).show()
-                                    );
-
-                                    return;
-                                }
-                            }
-
-                            if (
-                                    employeeId.isEmpty()
-                                    ||
-                                    month.isEmpty()
-                            ) {
-
-                                runOnUiThread(
-                                        () ->
-                                                Toast.makeText(
-                                                        MainActivity.this,
-                                                        "Mitarbeiter oder Monat fehlt.",
-                                                        Toast.LENGTH_LONG
-                                                ).show()
-                                );
-
-                                return;
-                            }
-
-                            /*
-                             * JSON prüfen.
-                             */
-
-                            JSONArray validatedDays =
-                                    new JSONArray(
-                                            daysJson
-                                    );
-
-                            if (
-                                    validatedDays.length()
-                                            >
-                                    31
-                            ) {
-
-                                runOnUiThread(
-                                        () ->
-                                                Toast.makeText(
-                                                        MainActivity.this,
-                                                        "Ungültiger Stundenzettel.",
-                                                        Toast.LENGTH_LONG
-                                                ).show()
-                                );
-
-                                return;
-                            }
-
-                            String documentId =
-
-                                    employeeId
-
-                                    +
-
-                                    "_"
-
-                                    +
-
-                                    month;
-
-                            Map<String, Object> timesheet =
-                                    new HashMap<>();
-
-                            timesheet.put(
-                                    "key",
-                                    documentId
-                            );
-
-                            timesheet.put(
-                                    "mitarbeiterId",
-                                    employeeId
-                            );
-
-                            timesheet.put(
-                                    "mitarbeiter",
-                                    employeeName
-                            );
-
-                            timesheet.put(
-                                    "monat",
-                                    month
-                            );
-
-                            timesheet.put(
-                                    "tageJson",
-                                    validatedDays.toString()
-                            );
-
-                            timesheet.put(
-                                    "updatedAt",
-                                    com.google.firebase.firestore
-                                            .FieldValue
-                                            .serverTimestamp()
-                            );
-
-                            com.google.firebase.firestore.FirebaseFirestore
-                                    .getInstance()
-
-                                    .collection(
-                                            "timesheets"
-                                    )
-
-                                    .document(
-                                            documentId
-                                    )
-
-                                    .set(
-                                            timesheet
-                                    )
-
-                                    .addOnSuccessListener(
-                                            unused ->
-                                                    runOnUiThread(
-                                                            () ->
-                                                                    Toast.makeText(
-                                                                            MainActivity.this,
-                                                                            "Stundenzettel in Firebase gespeichert ✅",
-                                                                            Toast.LENGTH_SHORT
-                                                                    ).show()
-                                                    )
-                                    )
-
-                                    .addOnFailureListener(
-                                            e ->
-                                                    runOnUiThread(
-                                                            () ->
-                                                                    Toast.makeText(
-                                                                            MainActivity.this,
-                                                                            "Stundenzettel konnte nicht gespeichert werden: "
-                                                                                    +
-                                                                                    safeString(
-                                                                                            e.getMessage()
-                                                                                    ),
-                                                                            Toast.LENGTH_LONG
-                                                                    ).show()
-                                                    )
-                                    );
-
-                        } catch (Exception e) {
-
-                            runOnUiThread(
-                                    () ->
-                                            Toast.makeText(
-                                                    MainActivity.this,
-                                                    "Stundenzettel-Fehler: "
-                                                            +
-                                                            safeString(
-                                                                    e.getMessage()
-                                                            ),
-                                                    Toast.LENGTH_LONG
-                                            ).show()
+                            toast(
+                                    "AR-Messung konnte nicht geöffnet werden."
                             );
                         }
                     }
@@ -2033,323 +2272,9 @@ public class MainActivity extends Activity {
 
 
         /*
-         * =================================================
-         * STUNDENZETTEL LADEN
-         *
-         * Admin:
-         * alle.
-         *
-         * Mitarbeiter:
-         * nur eigene Mitarbeiter-ID.
-         * =================================================
-         */
-
-        @JavascriptInterface
-        public void loadTimesheetsFromFirestore() {
-
-            if (
-                    adminLoggedIn
-            ) {
-
-                loadAllTimesheetsForAdmin();
-
-                return;
-            }
-
-            if (
-                    employeeSessionActive()
-            ) {
-
-                loadOwnTimesheetsForEmployee();
-
-                return;
-            }
-
-            /*
-             * Vor Login keine Stundenzettel ausliefern.
-             */
-
-            sendTimesheetsToWeb(
-                    new JSONArray()
-            );
-        }
-
-
-        private void loadAllTimesheetsForAdmin() {
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        com.google.firebase.firestore.FirebaseFirestore
-                                .getInstance()
-
-                                .collection(
-                                        "timesheets"
-                                )
-
-                                .get()
-
-                                .addOnSuccessListener(
-                                        snapshots -> {
-
-                                            JSONArray result =
-                                                    createTimesheetsArray(
-                                                            snapshots
-                                                    );
-
-                                            sendTimesheetsToWeb(
-                                                    result
-                                            );
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                runOnUiThread(
-                                                        () ->
-                                                                Toast.makeText(
-                                                                        MainActivity.this,
-                                                                        "Stundenzettel konnten nicht geladen werden: "
-                                                                                +
-                                                                                safeString(
-                                                                                        e.getMessage()
-                                                                                ),
-                                                                        Toast.LENGTH_LONG
-                                                                ).show()
-                                                )
-                                );
-                    }
-            );
-        }
-
-
-        private void loadOwnTimesheetsForEmployee() {
-
-            final String employeeId =
-                    loggedInEmployeeId;
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        com.google.firebase.firestore.FirebaseFirestore
-                                .getInstance()
-
-                                .collection(
-                                        "timesheets"
-                                )
-
-                                .whereEqualTo(
-                                        "mitarbeiterId",
-                                        employeeId
-                                )
-
-                                .get()
-
-                                .addOnSuccessListener(
-                                        snapshots -> {
-
-                                            JSONArray result =
-                                                    createTimesheetsArray(
-                                                            snapshots
-                                                    );
-
-                                            sendTimesheetsToWeb(
-                                                    result
-                                            );
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                runOnUiThread(
-                                                        () ->
-                                                                Toast.makeText(
-                                                                        MainActivity.this,
-                                                                        "Eigene Stundenzettel konnten nicht geladen werden: "
-                                                                                +
-                                                                                safeString(
-                                                                                        e.getMessage()
-                                                                                ),
-                                                                        Toast.LENGTH_LONG
-                                                                ).show()
-                                                )
-                                );
-                    }
-            );
-        }
-
-
-        private JSONArray createTimesheetsArray(
-                com.google.firebase.firestore.QuerySnapshot snapshots
-        ) {
-
-            JSONArray result =
-                    new JSONArray();
-
-            for (
-                    com.google.firebase.firestore.QueryDocumentSnapshot doc
-                    :
-                    snapshots
-            ) {
-
-                try {
-
-                    JSONObject obj =
-                            new JSONObject();
-
-                    String mitarbeiterId =
-                            safeString(
-                                    doc.getString(
-                                            "mitarbeiterId"
-                                    )
-                            );
-
-                    String mitarbeiter =
-                            safeString(
-                                    doc.getString(
-                                            "mitarbeiter"
-                                    )
-                            );
-
-                    String monat =
-                            safeString(
-                                    doc.getString(
-                                            "monat"
-                                    )
-                            );
-
-                    String key =
-                            safeString(
-                                    doc.getString(
-                                            "key"
-                                    )
-                            );
-
-                    if (
-                            key.trim()
-                                    .isEmpty()
-                    ) {
-
-                        key =
-
-                                mitarbeiterId
-
-                                +
-
-                                "_"
-
-                                +
-
-                                monat;
-                    }
-
-                    String tageJson =
-                            doc.getString(
-                                    "tageJson"
-                            );
-
-                    obj.put(
-                            "key",
-                            key
-                    );
-
-                    obj.put(
-                            "mitarbeiterId",
-                            mitarbeiterId
-                    );
-
-                    obj.put(
-                            "mitarbeiter",
-                            mitarbeiter
-                    );
-
-                    obj.put(
-                            "monat",
-                            monat
-                    );
-
-                    if (
-                            tageJson != null
-                            &&
-                            !tageJson
-                                    .trim()
-                                    .isEmpty()
-                    ) {
-
-                        try {
-
-                            JSONArray tage =
-                                    new JSONArray(
-                                            tageJson
-                                    );
-
-                            obj.put(
-                                    "tage",
-                                    tage
-                            );
-
-                        } catch (Exception ignored) {
-
-                            obj.put(
-                                    "tage",
-                                    new JSONArray()
-                            );
-                        }
-
-                    } else {
-
-                        obj.put(
-                                "tage",
-                                new JSONArray()
-                        );
-                    }
-
-                    result.put(
-                            obj
-                    );
-
-                } catch (Exception e) {
-
-                    e.printStackTrace();
-                }
-            }
-
-            return result;
-        }
-
-
-        private void sendTimesheetsToWeb(
-                JSONArray result
-        ) {
-
-            postJavascript(
-
-                    "if(typeof window.receiveTimesheetsFromFirestore==='function'){"
-
-                            +
-
-                            "window.receiveTimesheetsFromFirestore("
-
-                            +
-
-                            result.toString()
-
-                            +
-
-                            ");"
-
-                            +
-
-                            "}"
-            );
-        }
-
-
-        /*
-         * =================================================
+         * -------------------------------------------------
          * PDF
-         * Nur Verwaltung.
-         * =================================================
+         * -------------------------------------------------
          */
 
         @JavascriptInterface
@@ -2359,11 +2284,7 @@ public class MainActivity extends Activity {
                 String jsonData
         ) {
 
-            if (
-                    !adminLoggedIn
-            ) {
-
-                showAdminRequired();
+            if (!adminLoggedIn) {
 
                 return;
             }
@@ -2372,62 +2293,30 @@ public class MainActivity extends Activity {
                     () -> {
 
                         pendingPdfEmployee =
+                                safe(employee).trim();
 
-                                employee == null
-                                        ||
-                                        employee
-                                                .trim()
-                                                .isEmpty()
+                        if (
+                                pendingPdfEmployee.isEmpty()
+                        ) {
 
-                                        ?
-
-                                        "Mitarbeiter"
-
-                                        :
-
-                                        employee.trim();
+                            pendingPdfEmployee =
+                                    "Mitarbeiter";
+                        }
 
                         pendingPdfMonth =
-
-                                month == null
-                                        ?
-                                        ""
-                                        :
-                                        month.trim();
+                                safe(month);
 
                         pendingPdfJson =
-
                                 jsonData == null
-                                        ?
-                                        "[]"
-                                        :
-                                        jsonData;
+                                        ? "[]"
+                                        : jsonData;
 
                         String safeEmployee =
-                                pendingPdfEmployee.replaceAll(
-                                        "[^a-zA-Z0-9ÄÖÜäöüß_-]",
-                                        "_"
-                                );
-
-                        String fileName =
-
-                                "Stundenzettel_"
-
-                                +
-
-                                safeEmployee
-
-                                +
-
-                                "_"
-
-                                +
-
-                                pendingPdfMonth
-
-                                +
-
-                                ".pdf";
+                                pendingPdfEmployee
+                                        .replaceAll(
+                                                "[^a-zA-Z0-9ÄÖÜäöüß_-]",
+                                                "_"
+                                        );
 
                         Intent intent =
                                 new Intent(
@@ -2444,7 +2333,11 @@ public class MainActivity extends Activity {
 
                         intent.putExtra(
                                 Intent.EXTRA_TITLE,
-                                fileName
+                                "Stundenzettel_"
+                                        + safeEmployee
+                                        + "_"
+                                        + pendingPdfMonth
+                                        + ".pdf"
                         );
 
                         startActivityForResult(
@@ -2459,11 +2352,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void shareLastPdf() {
 
-            if (
-                    !adminLoggedIn
-            ) {
-
-                showAdminRequired();
+            if (!adminLoggedIn) {
 
                 return;
             }
@@ -2498,21 +2387,13 @@ public class MainActivity extends Activity {
         );
 
 
-        /*
-         * DATEIAUSWAHL
-         */
-
         if (
                 requestCode
                         ==
                 FILE_CHOOSER_REQUEST
         ) {
 
-            if (
-                    filePathCallback
-                            ==
-                    null
-            ) {
+            if (filePathCallback == null) {
 
                 return;
             }
@@ -2520,11 +2401,7 @@ public class MainActivity extends Activity {
             Uri[] results =
                     null;
 
-            if (
-                    resultCode
-                            ==
-                    RESULT_OK
-            ) {
+            if (resultCode == RESULT_OK) {
 
                 results =
                         WebChromeClient
@@ -2546,10 +2423,6 @@ public class MainActivity extends Activity {
         }
 
 
-        /*
-         * PDF
-         */
-
         if (
                 requestCode
                         ==
@@ -2557,41 +2430,24 @@ public class MainActivity extends Activity {
         ) {
 
             if (
-                    resultCode
-                            ==
-                    RESULT_OK
-                    &&
-                    data != null
-                    &&
-                    data.getData() != null
+                    resultCode == RESULT_OK
+                            &&
+                            data != null
+                            &&
+                            data.getData() != null
             ) {
 
-                Uri uri =
+                lastSavedPdfUri =
                         data.getData();
 
-                lastSavedPdfUri =
-                        uri;
-
                 createPdfFile(
-                        uri
+                        lastSavedPdfUri
                 );
-
-            } else {
-
-                Toast.makeText(
-                        this,
-                        "PDF-Speichern abgebrochen.",
-                        Toast.LENGTH_SHORT
-                ).show();
             }
 
             return;
         }
 
-
-        /*
-         * AR
-         */
 
         if (
                 requestCode
@@ -2603,11 +2459,9 @@ public class MainActivity extends Activity {
                     false;
 
             if (
-                    resultCode
-                            ==
-                    RESULT_OK
-                    &&
-                    data != null
+                    resultCode == RESULT_OK
+                            &&
+                            data != null
             ) {
 
                 double width =
@@ -2628,97 +2482,32 @@ public class MainActivity extends Activity {
                                 0
                         );
 
-                if (
-                        width <= 0
-                        ||
-                        height <= 0
-                        ||
-                        area <= 0
-                ) {
-
-                    if (
-                            webView
-                                    !=
-                            null
-                    ) {
-
-                        webView.postDelayed(
-                                () ->
-                                        webView.evaluateJavascript(
-                                                "alert('Die Messung war ungültig.');",
-                                                null
-                                        ),
-                                250
-                        );
-                    }
-
-                    return;
-                }
-
                 String javascript =
 
                         "if(typeof window.receiveArMeasurement==='function'){"
-
                                 +
-
                                 "window.receiveArMeasurement("
-
                                 +
-
                                 width
-
                                 +
-
                                 ","
-
                                 +
-
                                 height
-
                                 +
-
                                 ","
-
                                 +
-
                                 area
-
                                 +
-
                                 ");"
-
                                 +
-
                                 "}";
 
-                if (
-                        webView
-                                !=
-                        null
-                ) {
+                if (webView != null) {
 
                     webView.postDelayed(
                             () ->
                                     webView.evaluateJavascript(
                                             javascript,
-                                            null
-                                    ),
-                            250
-                    );
-                }
-
-            } else {
-
-                if (
-                        webView
-                                !=
-                        null
-                ) {
-
-                    webView.postDelayed(
-                            () ->
-                                    webView.evaluateJavascript(
-                                            "if(typeof openPage==='function'){openPage('foto');}",
                                             null
                                     ),
                             200
@@ -2731,7 +2520,7 @@ public class MainActivity extends Activity {
 
     /*
      * =====================================================
-     * PDF ERSTELLEN
+     * PDF
      * =====================================================
      */
 
@@ -2758,22 +2547,15 @@ public class MainActivity extends Activity {
             final int pageHeight =
                     842;
 
-            final int marginLeft =
+            final int margin =
                     28;
 
-            final int marginRight =
-                    28;
-
-            final int footerHeight =
-                    35;
-
-
-            Paint titlePaint =
+            Paint green =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-            titlePaint.setColor(
+            green.setColor(
                     Color.rgb(
                             7,
                             132,
@@ -2781,140 +2563,58 @@ public class MainActivity extends Activity {
                     )
             );
 
-            titlePaint.setTextSize(
-                    22f
+            green.setTextSize(
+                    21f
             );
 
-            titlePaint.setFakeBoldText(
+            green.setFakeBoldText(
                     true
             );
 
 
-            Paint subtitlePaint =
+            Paint bold =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-            subtitlePaint.setColor(
-                    Color.DKGRAY
-            );
-
-            subtitlePaint.setTextSize(
-                    10.5f
-            );
-
-
-            Paint boldPaint =
-                    new Paint(
-                            Paint.ANTI_ALIAS_FLAG
-                    );
-
-            boldPaint.setColor(
+            bold.setColor(
                     Color.BLACK
             );
 
-            boldPaint.setTextSize(
-                    9.5f
+            bold.setTextSize(
+                    9f
             );
 
-            boldPaint.setFakeBoldText(
+            bold.setFakeBoldText(
                     true
             );
 
 
-            Paint normalPaint =
+            Paint normal =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-            normalPaint.setColor(
+            normal.setColor(
                     Color.BLACK
             );
 
-            normalPaint.setTextSize(
-                    8.3f
+            normal.setTextSize(
+                    8f
             );
 
 
-            Paint smallPaint =
+            Paint line =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-            smallPaint.setColor(
-                    Color.DKGRAY
-            );
-
-            smallPaint.setTextSize(
-                    7.5f
+            line.setColor(
+                    Color.LTGRAY
             );
 
 
-            Paint linePaint =
-                    new Paint(
-                            Paint.ANTI_ALIAS_FLAG
-                    );
-
-            linePaint.setColor(
-                    Color.rgb(
-                            210,
-                            215,
-                            220
-                    )
-            );
-
-            linePaint.setStrokeWidth(
-                    1f
-            );
-
-
-            Paint headerBackgroundPaint =
-                    new Paint();
-
-            headerBackgroundPaint.setColor(
-                    Color.rgb(
-                            240,
-                            244,
-                            246
-                    )
-            );
-
-
-            Paint totalBackgroundPaint =
-                    new Paint();
-
-            totalBackgroundPaint.setColor(
-                    Color.rgb(
-                            236,
-                            253,
-                            243
-                    )
-            );
-
-
-            Paint totalBorderPaint =
-                    new Paint(
-                            Paint.ANTI_ALIAS_FLAG
-                    );
-
-            totalBorderPaint.setStyle(
-                    Paint.Style.STROKE
-            );
-
-            totalBorderPaint.setStrokeWidth(
-                    1f
-            );
-
-            totalBorderPaint.setColor(
-                    Color.rgb(
-                            171,
-                            239,
-                            198
-                    )
-            );
-
-
-            double totalHours =
+            double total =
                     0;
 
             for (
@@ -2923,277 +2623,170 @@ public class MainActivity extends Activity {
                     i++
             ) {
 
-                JSONObject row =
-                        rows.getJSONObject(
-                                i
-                        );
-
-                totalHours +=
-                        row.optDouble(
-                                "stunden",
-                                0
-                        );
+                total +=
+                        rows
+                                .getJSONObject(
+                                        i
+                                )
+                                .optDouble(
+                                        "stunden",
+                                        0
+                                );
             }
 
 
-            int pageNumber =
+            int pageNo =
                     1;
 
             int index =
                     0;
 
-            boolean firstPage =
+            boolean first =
                     true;
 
 
             while (
                     index < rows.length()
-                    ||
-                    firstPage
+                            ||
+                            first
             ) {
 
-                firstPage =
+                first =
                         false;
-
-                PdfDocument.PageInfo pageInfo =
-                        new PdfDocument.PageInfo.Builder(
-                                pageWidth,
-                                pageHeight,
-                                pageNumber
-                        ).create();
 
                 PdfDocument.Page page =
                         document.startPage(
-                                pageInfo
+
+                                new PdfDocument
+                                        .PageInfo
+                                        .Builder(
+                                                pageWidth,
+                                                pageHeight,
+                                                pageNo
+                                        )
+                                        .create()
                         );
 
                 Canvas canvas =
                         page.getCanvas();
 
                 float y =
-                        34;
-
+                        38;
 
                 canvas.drawText(
                         "E-M Cleaning Service",
-                        marginLeft,
+                        margin,
                         y,
-                        titlePaint
+                        green
                 );
 
                 y +=
-                        22;
-
+                        25;
 
                 canvas.drawText(
-                        "Stundennachweis",
-                        marginLeft,
+                        "Stundenzettel – "
+                                + pendingPdfEmployee
+                                + " – "
+                                + pendingPdfMonth,
+                        margin,
                         y,
-                        boldPaint
+                        bold
                 );
 
                 y +=
-                        16;
+                        25;
+
+
+                float xDate =
+                        margin;
+
+                float xStatus =
+                        100;
+
+                float xStart =
+                        165;
+
+                float xEnd =
+                        215;
+
+                float xPause =
+                        270;
+
+                float xHours =
+                        320;
+
+                float xObject =
+                        370;
 
 
                 canvas.drawText(
-                        "Mitarbeiter: "
-                                +
-                                pendingPdfEmployee,
-                        marginLeft,
+                        "Datum",
+                        xDate,
                         y,
-                        subtitlePaint
+                        bold
                 );
-
-
-                String monthText =
-
-                        "Monat: "
-
-                                +
-
-                                formatPdfMonth(
-                                        pendingPdfMonth
-                                );
-
-
-                float monthWidth =
-                        subtitlePaint.measureText(
-                                monthText
-                        );
-
 
                 canvas.drawText(
-                        monthText,
-                        pageWidth
-                                -
-                                marginRight
-                                -
-                                monthWidth,
+                        "Status",
+                        xStatus,
                         y,
-                        subtitlePaint
+                        bold
                 );
 
+                canvas.drawText(
+                        "Start",
+                        xStart,
+                        y,
+                        bold
+                );
+
+                canvas.drawText(
+                        "Ende",
+                        xEnd,
+                        y,
+                        bold
+                );
+
+                canvas.drawText(
+                        "Pause",
+                        xPause,
+                        y,
+                        bold
+                );
+
+                canvas.drawText(
+                        "Std.",
+                        xHours,
+                        y,
+                        bold
+                );
+
+                canvas.drawText(
+                        "Objekt",
+                        xObject,
+                        y,
+                        bold
+                );
+
+                y +=
+                        12;
+
+                canvas.drawLine(
+                        margin,
+                        y,
+                        pageWidth - margin,
+                        y,
+                        line
+                );
 
                 y +=
                         15;
 
 
-                canvas.drawLine(
-                        marginLeft,
-                        y,
-                        pageWidth - marginRight,
-                        y,
-                        linePaint
-                );
-
-
-                y +=
-                        20;
-
-
-                float xDate =
-                        marginLeft;
-
-                float xStatus =
-                        xDate + 67;
-
-                float xStart =
-                        xStatus + 58;
-
-                float xEnd =
-                        xStart + 47;
-
-                float xPause =
-                        xEnd + 47;
-
-                float xHours =
-                        xPause + 49;
-
-                float xObject =
-                        xHours + 52;
-
-
-                float tableHeaderTop =
-                        y - 13;
-
-                float tableHeaderBottom =
-                        y + 6;
-
-
-                canvas.drawRect(
-                        new RectF(
-                                marginLeft,
-                                tableHeaderTop,
-                                pageWidth - marginRight,
-                                tableHeaderBottom
-                        ),
-                        headerBackgroundPaint
-                );
-
-
-                canvas.drawText(
-                        "Datum",
-                        xDate + 3,
-                        y,
-                        boldPaint
-                );
-
-                canvas.drawText(
-                        "Status",
-                        xStatus + 3,
-                        y,
-                        boldPaint
-                );
-
-                canvas.drawText(
-                        "Start",
-                        xStart + 3,
-                        y,
-                        boldPaint
-                );
-
-                canvas.drawText(
-                        "Ende",
-                        xEnd + 3,
-                        y,
-                        boldPaint
-                );
-
-                canvas.drawText(
-                        "Pause",
-                        xPause + 3,
-                        y,
-                        boldPaint
-                );
-
-                canvas.drawText(
-                        "Std.",
-                        xHours + 3,
-                        y,
-                        boldPaint
-                );
-
-                canvas.drawText(
-                        "Objekt",
-                        xObject + 3,
-                        y,
-                        boldPaint
-                );
-
-
-                y +=
-                        14;
-
-
-                float[] columnLines = {
-
-                        marginLeft,
-                        xStatus,
-                        xStart,
-                        xEnd,
-                        xPause,
-                        xHours,
-                        xObject,
-                        pageWidth - marginRight
-                };
-
-
-                for (
-                        float x
-                        :
-                        columnLines
-                ) {
-
-                    canvas.drawLine(
-                            x,
-                            tableHeaderTop,
-                            x,
-                            tableHeaderBottom,
-                            linePaint
-                    );
-                }
-
-
-                canvas.drawLine(
-                        marginLeft,
-                        tableHeaderBottom,
-                        pageWidth - marginRight,
-                        tableHeaderBottom,
-                        linePaint
-                );
-
-
                 while (
                         index < rows.length()
-                        &&
-                        y
-                                <
-                        pageHeight
-                                -
-                                footerHeight
-                                -
-                                125
+                                &&
+                                y < 720
                 ) {
 
                     JSONObject row =
@@ -3201,329 +2794,145 @@ public class MainActivity extends Activity {
                                     index
                             );
 
-
-                    String date =
-                            row.optString(
-                                    "datum"
-                            );
-
-                    String status =
-                            row.optString(
-                                    "status"
-                            );
-
-                    String start =
-                            row.optString(
-                                    "start"
-                            );
-
-                    String end =
-                            row.optString(
-                                    "ende"
-                            );
-
-                    String pause =
-                            row.optString(
-                                    "pause"
-                            );
-
-                    double hours =
-                            row.optDouble(
-                                    "stunden",
-                                    0
-                            );
-
-                    String object =
-                            row.optString(
-                                    "objekt"
-                            );
-
-
-                    float rowTop =
-                            y - 9;
-
-                    float rowBottom =
-                            y + 7;
-
-
                     canvas.drawText(
                             shorten(
-                                    date,
+                                    row.optString(
+                                            "datum"
+                                    ),
                                     10
                             ),
-                            xDate + 3,
+                            xDate,
                             y,
-                            normalPaint
+                            normal
                     );
 
                     canvas.drawText(
                             shorten(
-                                    status,
+                                    row.optString(
+                                            "status"
+                                    ),
                                     8
                             ),
-                            xStatus + 3,
+                            xStatus,
                             y,
-                            normalPaint
+                            normal
                     );
 
                     canvas.drawText(
-                            shorten(
-                                    start,
-                                    5
+                            row.optString(
+                                    "start"
                             ),
-                            xStart + 3,
+                            xStart,
                             y,
-                            normalPaint
+                            normal
                     );
 
                     canvas.drawText(
-                            shorten(
-                                    end,
-                                    5
+                            row.optString(
+                                    "ende"
                             ),
-                            xEnd + 3,
+                            xEnd,
                             y,
-                            normalPaint
+                            normal
                     );
 
                     canvas.drawText(
-                            shorten(
-                                    pause,
-                                    5
+                            row.optString(
+                                    "pause"
                             ),
-                            xPause + 3,
+                            xPause,
                             y,
-                            normalPaint
+                            normal
                     );
 
                     canvas.drawText(
                             String.format(
                                     Locale.GERMANY,
                                     "%.2f",
-                                    hours
+                                    row.optDouble(
+                                            "stunden",
+                                            0
+                                    )
                             ),
-                            xHours + 3,
+                            xHours,
                             y,
-                            normalPaint
+                            normal
                     );
 
                     canvas.drawText(
                             shorten(
-                                    object,
-                                    28
+                                    row.optString(
+                                            "objekt"
+                                    ),
+                                    32
                             ),
-                            xObject + 3,
+                            xObject,
                             y,
-                            normalPaint
+                            normal
                     );
-
-
-                    for (
-                            float x
-                            :
-                            columnLines
-                    ) {
-
-                        canvas.drawLine(
-                                x,
-                                rowTop,
-                                x,
-                                rowBottom,
-                                linePaint
-                        );
-                    }
-
-
-                    canvas.drawLine(
-                            marginLeft,
-                            rowBottom,
-                            pageWidth - marginRight,
-                            rowBottom,
-                            linePaint
-                    );
-
 
                     y +=
-                            16;
+                            18;
 
                     index++;
                 }
 
 
                 if (
-                        index
-                                >=
-                        rows.length()
+                        index >= rows.length()
                 ) {
 
                     y +=
-                            18;
+                            25;
 
-
-                    RectF totalBox =
-                            new RectF(
-                                    marginLeft,
-                                    y,
-                                    pageWidth - marginRight,
-                                    y + 42
-                            );
-
-
-                    canvas.drawRoundRect(
-                            totalBox,
-                            8,
-                            8,
-                            totalBackgroundPaint
-                    );
-
-
-                    canvas.drawRoundRect(
-                            totalBox,
-                            8,
-                            8,
-                            totalBorderPaint
-                    );
-
-
-                    canvas.drawText(
-                            "Gesamtstunden",
-                            marginLeft + 12,
-                            y + 17,
-                            boldPaint
-                    );
-
-
-                    Paint totalHoursPaint =
+                    Paint totalPaint =
                             new Paint(
                                     Paint.ANTI_ALIAS_FLAG
                             );
 
-                    totalHoursPaint.setColor(
+                    totalPaint.setColor(
                             Color.rgb(
-                                    6,
-                                    118,
-                                    71
+                                    7,
+                                    132,
+                                    95
                             )
                     );
 
-                    totalHoursPaint.setTextSize(
-                            16f
+                    totalPaint.setTextSize(
+                            16
                     );
 
-                    totalHoursPaint.setFakeBoldText(
+                    totalPaint.setFakeBoldText(
                             true
                     );
 
-
                     canvas.drawText(
-                            String.format(
-                                    Locale.GERMANY,
-                                    "%.2f Std.",
-                                    totalHours
-                            ),
-                            marginLeft + 12,
-                            y + 34,
-                            totalHoursPaint
-                    );
-
-
-                    y +=
-                            78;
-
-
-                    canvas.drawText(
-                            "Unterschrift Mitarbeiter",
-                            marginLeft,
+                            "Gesamtstunden: "
+                                    +
+                                    String.format(
+                                            Locale.GERMANY,
+                                            "%.2f",
+                                            total
+                                    ),
+                            margin,
                             y,
-                            smallPaint
-                    );
-
-
-                    canvas.drawLine(
-                            marginLeft,
-                            y + 18,
-                            marginLeft + 220,
-                            y + 18,
-                            linePaint
-                    );
-
-
-                    canvas.drawText(
-                            "Unterschrift Arbeitgeber",
-                            pageWidth
-                                    -
-                                    marginRight
-                                    -
-                                    220,
-                            y,
-                            smallPaint
-                    );
-
-
-                    canvas.drawLine(
-                            pageWidth
-                                    -
-                                    marginRight
-                                    -
-                                    220,
-                            y + 18,
-                            pageWidth - marginRight,
-                            y + 18,
-                            linePaint
+                            totalPaint
                     );
                 }
 
-
-                canvas.drawLine(
-                        marginLeft,
-                        pageHeight - 30,
-                        pageWidth - marginRight,
-                        pageHeight - 30,
-                        linePaint
-                );
-
-
                 canvas.drawText(
-                        "E-M Cleaning Service",
-                        marginLeft,
-                        pageHeight - 16,
-                        smallPaint
-                );
-
-
-                String pageText =
-
                         "Seite "
-
-                                +
-
-                                pageNumber;
-
-
-                float pageTextWidth =
-                        smallPaint.measureText(
-                                pageText
-                        );
-
-
-                canvas.drawText(
-                        pageText,
-                        pageWidth
-                                -
-                                marginRight
-                                -
-                                pageTextWidth,
-                        pageHeight - 16,
-                        smallPaint
+                                + pageNo,
+                        pageWidth - 70,
+                        pageHeight - 20,
+                        normal
                 );
-
 
                 document.finishPage(
                         page
                 );
 
-
-                pageNumber++;
+                pageNo++;
             }
 
 
@@ -3533,61 +2942,39 @@ public class MainActivity extends Activity {
                                     uri
                             );
 
-
-            if (
-                    outputStream
-                            ==
-                    null
-            ) {
+            if (outputStream == null) {
 
                 throw new Exception(
-                        "Datei konnte nicht geöffnet werden."
+                        "PDF-Datei konnte nicht geöffnet werden."
                 );
             }
-
 
             document.writeTo(
                     outputStream
             );
 
-
             outputStream.flush();
 
-
-            Toast.makeText(
-                    this,
-                    "PDF gespeichert ✅",
-                    Toast.LENGTH_LONG
-            ).show();
-
+            toast(
+                    "PDF gespeichert ✅"
+            );
 
             showShareDialog(
                     uri
             );
 
-
         } catch (Exception e) {
 
-            Toast.makeText(
-                    this,
+            toast(
                     "PDF-Fehler: "
-                            +
-                            safeString(
-                                    e.getMessage()
-                            ),
-                    Toast.LENGTH_LONG
-            ).show();
-
+                            + e.getMessage()
+            );
 
         } finally {
 
             try {
 
-                if (
-                        outputStream
-                                !=
-                        null
-                ) {
+                if (outputStream != null) {
 
                     outputStream.close();
                 }
@@ -3601,25 +2988,9 @@ public class MainActivity extends Activity {
     }
 
 
-    /*
-     * =====================================================
-     * PDF TEILEN
-     * =====================================================
-     */
-
     private void showShareDialog(
             Uri uri
     ) {
-
-        if (
-                uri
-                        ==
-                null
-        ) {
-
-            return;
-        }
-
 
         new AlertDialog.Builder(
                 this
@@ -3630,7 +3001,7 @@ public class MainActivity extends Activity {
                 )
 
                 .setMessage(
-                        "Möchtest du den Stundenzettel jetzt teilen?"
+                        "Möchtest du den Stundenzettel teilen?"
                 )
 
                 .setNegativeButton(
@@ -3639,7 +3010,7 @@ public class MainActivity extends Activity {
                 )
 
                 .setPositiveButton(
-                        "PDF teilen",
+                        "Teilen",
                         (dialog, which) ->
                                 sharePdf(
                                         uri
@@ -3654,250 +3025,70 @@ public class MainActivity extends Activity {
             Uri uri
     ) {
 
-        if (
-                uri
-                        ==
-                null
-        ) {
-
-            Toast.makeText(
-                    this,
-                    "Bitte zuerst eine PDF speichern.",
-                    Toast.LENGTH_SHORT
-            ).show();
+        if (uri == null) {
 
             return;
         }
 
+        Intent intent =
+                new Intent(
+                        Intent.ACTION_SEND
+                );
 
-        try {
+        intent.setType(
+                "application/pdf"
+        );
 
-            Intent shareIntent =
-                    new Intent(
-                            Intent.ACTION_SEND
-                    );
+        intent.putExtra(
+                Intent.EXTRA_STREAM,
+                uri
+        );
 
+        intent.addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+        );
 
-            shareIntent.setType(
-                    "application/pdf"
-            );
-
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_STREAM,
-                    uri
-            );
-
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_SUBJECT,
-
-                    "Stundenzettel "
-
-                            +
-
-                            pendingPdfEmployee
-
-                            +
-
-                            " "
-
-                            +
-
-                            formatPdfMonth(
-                                    pendingPdfMonth
-                            )
-            );
-
-
-            shareIntent.putExtra(
-                    Intent.EXTRA_TEXT,
-
-                    "Stundenzettel von "
-
-                            +
-
-                            pendingPdfEmployee
-
-                            +
-
-                            " für "
-
-                            +
-
-                            formatPdfMonth(
-                                    pendingPdfMonth
-                            )
-
-                            +
-
-                            "."
-            );
-
-
-            shareIntent.addFlags(
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
-
-
-            startActivity(
-                    Intent.createChooser(
-                            shareIntent,
-                            "Stundenzettel teilen"
-                    )
-            );
-
-
-        } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "PDF konnte nicht geteilt werden.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+        startActivity(
+                Intent.createChooser(
+                        intent,
+                        "PDF teilen"
+                )
+        );
     }
 
-
-    /*
-     * =====================================================
-     * MONAT FORMATIEREN
-     * =====================================================
-     */
-
-    private String formatPdfMonth(
-            String month
-    ) {
-
-        if (
-                month
-                        ==
-                null
-                ||
-                month
-                        .trim()
-                        .isEmpty()
-        ) {
-
-            return "";
-        }
-
-
-        try {
-
-            String[] parts =
-                    month.split(
-                            "-"
-                    );
-
-
-            int year =
-                    Integer.parseInt(
-                            parts[0]
-                    );
-
-
-            int monthNumber =
-                    Integer.parseInt(
-                            parts[1]
-                    );
-
-
-            String[] monthNames = {
-
-                    "",
-                    "Januar",
-                    "Februar",
-                    "März",
-                    "April",
-                    "Mai",
-                    "Juni",
-                    "Juli",
-                    "August",
-                    "September",
-                    "Oktober",
-                    "November",
-                    "Dezember"
-            };
-
-
-            if (
-                    monthNumber >= 1
-                    &&
-                    monthNumber <= 12
-            ) {
-
-                return monthNames[
-                        monthNumber
-                        ]
-
-                        +
-
-                        " "
-
-                        +
-
-                        year;
-            }
-
-
-        } catch (Exception ignored) {
-
-        }
-
-
-        return month;
-    }
-
-
-    /*
-     * =====================================================
-     * TEXT KÜRZEN
-     * =====================================================
-     */
 
     private String shorten(
-            String text,
+            String value,
             int max
     ) {
 
-        if (
-                text
-                        ==
-                null
-        ) {
+        if (value == null) {
 
             return "";
         }
 
-
         if (
-                text.length()
+                value.length()
                         <=
                 max
         ) {
 
-            return text;
+            return value;
         }
 
-
-        return text.substring(
+        return value.substring(
                 0,
                 Math.max(
                         0,
                         max - 1
                 )
-        )
-
-                +
-
-                "…";
+        ) + "…";
     }
 
 
     /*
      * =====================================================
-     * WEBVIEW ZUSTAND
+     * WEBVIEW
      * =====================================================
      */
 
@@ -3906,17 +3097,12 @@ public class MainActivity extends Activity {
             Bundle outState
     ) {
 
-        if (
-                webView
-                        !=
-                null
-        ) {
+        if (webView != null) {
 
             webView.saveState(
                     outState
             );
         }
-
 
         super.onSaveInstanceState(
                 outState
@@ -3924,114 +3110,58 @@ public class MainActivity extends Activity {
     }
 
 
-    /*
-     * =====================================================
-     * ZURÜCK-TASTE
-     * =====================================================
-     */
-
     @Override
     public void onBackPressed() {
 
-        if (
-                webView
-                        ==
-                null
-        ) {
+        if (webView == null) {
 
             super.onBackPressed();
 
             return;
         }
 
-
-        if (
-                arMeasurementRunning
-        ) {
+        if (arMeasurementRunning) {
 
             super.onBackPressed();
 
             return;
         }
-
 
         webView.evaluateJavascript(
 
-                "if(typeof window.androidBack==='function'){"
-
-                        +
-
-                        "window.androidBack();"
-
-                        +
-
-                        "}else{"
-
-                        +
-
-                        "false;"
-
-                        +
-
-                        "}",
-
+                "if(typeof window.androidBack==='function'){window.androidBack();}else{false;}",
 
                 value -> {
 
                     boolean handled =
-
                             value != null
+                                    &&
+                                    value.contains(
+                                            "true"
+                                    );
 
-                            &&
-
-                            value.contains(
-                                    "true"
-                            );
-
-
-                    if (
-                            handled
-                    ) {
+                    if (handled) {
 
                         return;
                     }
 
-
-                    if (
-                            webView.canGoBack()
-                    ) {
+                    if (webView.canGoBack()) {
 
                         webView.goBack();
 
-                        return;
+                    } else {
+
+                        MainActivity.super.onBackPressed();
                     }
-
-
-                    MainActivity.super.onBackPressed();
                 }
         );
     }
 
 
-    /*
-     * =====================================================
-     * APP SCHLIESSEN
-     * =====================================================
-     */
-
     @Override
     protected void onDestroy() {
 
-        clearEmployeeSession();
-
-        clearAdminSession();
-
-
-        if (
-                webView
-                        !=
-                null
-        ) {
+        if (webView != null) {
 
             webView.removeJavascriptInterface(
                     "Android"
@@ -4041,10 +3171,8 @@ public class MainActivity extends Activity {
 
             webView.destroy();
 
-            webView =
-                    null;
+            webView = null;
         }
-
 
         super.onDestroy();
     }
