@@ -161,6 +161,22 @@ textarea{
     color:#b54708;
 }
 
+.login-wrap{
+    max-width:480px;
+    margin:40px auto;
+}
+
+.login-title{
+    font-size:28px;
+    margin-bottom:8px;
+}
+
+.login-sub{
+    color:#667085;
+    line-height:1.5;
+    margin-bottom:15px;
+}
+
 .days{
     margin-top:10px;
     display:grid;
@@ -246,25 +262,20 @@ tr.frei{
     color:#98a2b3;
 }
 
-.price-class{
-    border:2px solid #abefc6;
-    background:#ecfdf3;
-    border-radius:14px;
-    padding:16px;
-    margin-top:15px;
+.admin-only{
+    display:block;
 }
 
-.price-class .name{
-    font-size:22px;
-    font-weight:bold;
-    color:#067647;
+.employee-only{
+    display:none;
 }
 
-.price-class .price{
-    font-size:30px;
-    font-weight:bold;
-    color:#067647;
-    margin-top:8px;
+body.employee-mode .admin-only{
+    display:none !important;
+}
+
+body.employee-mode .employee-only{
+    display:block !important;
 }
 
 footer{
@@ -286,67 +297,152 @@ footer{
 
 <header>
     <h1>E-M Cleaning</h1>
-    <p>Gebäudereinigung – Verwaltung & Kalkulation</p>
+    <p>Gebäudereinigung – Verwaltung & Zeiterfassung</p>
 </header>
+
+
+<!-- LOGIN -->
+
+<div id="login" class="page active">
+
+    <div class="login-wrap">
+
+        <div class="card">
+
+            <div class="login-title">
+                👤 Mitarbeiter-Login
+            </div>
+
+            <div class="login-sub">
+                Bitte deinen Namen auswählen und deine 4-stellige PIN eingeben.
+            </div>
+
+            <div id="loginStatus" class="info">
+                Mitarbeiter werden geladen...
+            </div>
+
+            <label>Mitarbeiter</label>
+
+            <select id="loginMitarbeiter">
+                <option value="">Wird geladen...</option>
+            </select>
+
+            <label>PIN</label>
+
+            <input
+                id="loginPin"
+                type="password"
+                inputmode="numeric"
+                maxlength="4"
+                placeholder="4-stellige PIN"
+            >
+
+            <button onclick="mitarbeiterLogin()">
+                Anmelden
+            </button>
+
+            <button
+                class="secondary"
+                onclick="adminModusOeffnen()"
+            >
+                Verwaltung öffnen
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 
 <!-- HOME -->
 
-<div id="home" class="page active">
+<div id="home" class="page">
 
-    <div class="card">
-        <h2>👋 Willkommen</h2>
-        <p>E-M Cleaning Service Verwaltung</p>
-        <span class="stat">App bereit</span>
-    </div>
+    <div class="card employee-only">
 
-    <div class="card">
-        <h2>💰 Preisrechner</h2>
-        <button onclick="openPage('preisrechner')">
-            Preis berechnen
-        </button>
-    </div>
+        <h2 id="employeeWelcome">
+            Willkommen
+        </h2>
 
-    <div class="card">
-        <h2>📐 Fenster-Aufmaß</h2>
-        <button onclick="openPage('foto')">
-            Fenster messen
-        </button>
-    </div>
+        <p>
+            Hier kannst du deine Arbeitszeiten eintragen und speichern.
+        </p>
 
-    <div class="card">
-        <h2>🧹 Aufträge</h2>
-        <button onclick="openPage('auftraege')">
-            Aufträge öffnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>👥 Mitarbeiter</h2>
-        <button onclick="openPage('mitarbeiter')">
-            Mitarbeiter öffnen
-        </button>
-    </div>
-
-    <div class="card">
-        <h2>⏱ Stundenzettel</h2>
         <button onclick="openPage('stundenzettel')">
-            Stundenzettel öffnen
+            ⏱ Meine Stunden
         </button>
+
+        <button class="secondary" onclick="logoutEmployee()">
+            Abmelden
+        </button>
+
     </div>
 
-    <div class="card">
-        <h2>📋 Kunden</h2>
-        <button onclick="openPage('kunden')">
-            Kunden öffnen
-        </button>
-    </div>
 
-    <div class="card">
-        <h2>📄 Rechnungen</h2>
-        <button onclick="openPage('rechnungen')">
-            Rechnungen öffnen
-        </button>
+    <div class="admin-only">
+
+        <div class="card">
+            <h2>👋 Willkommen</h2>
+            <p>E-M Cleaning Service Verwaltung</p>
+            <span class="stat">App bereit</span>
+        </div>
+
+        <div class="card">
+            <h2>💰 Preisrechner</h2>
+            <button onclick="openPage('preisrechner')">
+                Preis berechnen
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>📐 Fenster-Aufmaß</h2>
+            <button onclick="openPage('foto')">
+                Fenster messen
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>🧹 Aufträge</h2>
+            <button onclick="openPage('auftraege')">
+                Aufträge öffnen
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>👥 Mitarbeiter</h2>
+            <button onclick="openPage('mitarbeiter')">
+                Mitarbeiter öffnen
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>⏱ Stundenzettel</h2>
+            <button onclick="openPage('stundenzettel')">
+                Stundenzettel öffnen
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>📋 Kunden</h2>
+            <button onclick="openPage('kunden')">
+                Kunden öffnen
+            </button>
+        </div>
+
+        <div class="card">
+            <h2>📄 Rechnungen</h2>
+            <button onclick="openPage('rechnungen')">
+                Rechnungen öffnen
+            </button>
+        </div>
+
+        <div class="card">
+            <button class="secondary" onclick="logoutAdmin()">
+                Zurück zum Mitarbeiter-Login
+            </button>
+        </div>
+
     </div>
 
 </div>
@@ -354,7 +450,7 @@ footer{
 
 <!-- PREISRECHNER -->
 
-<div id="preisrechner" class="page">
+<div id="preisrechner" class="page admin-only">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
@@ -467,7 +563,7 @@ footer{
 
 <!-- FENSTER -->
 
-<div id="foto" class="page">
+<div id="foto" class="page admin-only">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
@@ -537,7 +633,7 @@ footer{
 
 <!-- MITARBEITER -->
 
-<div id="mitarbeiter" class="page">
+<div id="mitarbeiter" class="page admin-only">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
@@ -564,6 +660,18 @@ footer{
             step="0.01"
             placeholder="Stundenlohn €"
         >
+
+        <input
+            id="mitarbeiterPin"
+            type="password"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="4-stellige Mitarbeiter-PIN"
+        >
+
+        <div class="info">
+            Die PIN wird für den Mitarbeiter-Login verwendet.
+        </div>
 
         <button onclick="mitarbeiterSpeichern()">
             Mitarbeiter speichern
@@ -592,7 +700,7 @@ footer{
 
     <h1 class="section-title">⏱ Stundenzettel</h1>
 
-    <div class="card">
+    <div class="card admin-only">
 
         <label>Mitarbeiter</label>
 
@@ -600,6 +708,22 @@ footer{
             id="zeitMitarbeiter"
             onchange="mitarbeiterWechsel()"
         ></select>
+
+    </div>
+
+    <div class="card employee-only">
+
+        <strong>Mitarbeiter:</strong>
+
+        <div
+            id="employeeTimesheetName"
+            class="big"
+            style="font-size:22px"
+        ></div>
+
+    </div>
+
+    <div class="card">
 
         <div id="stundenCloudStatus"></div>
 
@@ -613,77 +737,80 @@ footer{
             onchange="gespeichertenZettelLaden()"
         >
 
-        <div class="info">
-            Die Standardwerte werden verwendet, wenn ein neuer Monat erstellt
-            wird. Danach kann jeder Arbeitstag einzeln geändert werden.
+        <div class="admin-only">
+
+            <div class="info">
+                Die Standardwerte werden verwendet, wenn ein neuer Monat erstellt wird.
+            </div>
+
+            <label>Standard-Arbeitsbeginn</label>
+            <input id="zeitStart" type="time" value="22:00">
+
+            <label>Standard-Arbeitsende</label>
+            <input id="zeitEnde" type="time" value="23:30">
+
+            <label>Standard-Pause in Minuten</label>
+            <input id="zeitPause" type="number" value="0" min="0">
+
+            <label>Standard-Objekt / Kunde</label>
+            <input id="zeitObjekt" placeholder="Objekt / Kunde">
+
+            <label>Arbeitstage</label>
+
+            <div class="days">
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="1" checked>
+                    <label>Montag</label>
+                </div>
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="2" checked>
+                    <label>Dienstag</label>
+                </div>
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="3" checked>
+                    <label>Mittwoch</label>
+                </div>
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="4" checked>
+                    <label>Donnerstag</label>
+                </div>
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="5" checked>
+                    <label>Freitag</label>
+                </div>
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="6">
+                    <label>Samstag</label>
+                </div>
+
+                <div class="day">
+                    <input type="checkbox" class="tag" value="0">
+                    <label>Sonntag</label>
+                </div>
+
+            </div>
+
+            <button onclick="monatErstellen()">
+                📅 Neuen Monat automatisch erstellen
+            </button>
+
         </div>
-
-        <label>Standard-Arbeitsbeginn</label>
-        <input id="zeitStart" type="time" value="22:00">
-
-        <label>Standard-Arbeitsende</label>
-        <input id="zeitEnde" type="time" value="23:30">
-
-        <label>Standard-Pause in Minuten</label>
-        <input id="zeitPause" type="number" value="0" min="0">
-
-        <label>Standard-Objekt / Kunde</label>
-        <input id="zeitObjekt" placeholder="Objekt / Kunde">
-
-        <label>Arbeitstage</label>
-
-        <div class="days">
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="1" checked>
-                <label>Montag</label>
-            </div>
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="2" checked>
-                <label>Dienstag</label>
-            </div>
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="3" checked>
-                <label>Mittwoch</label>
-            </div>
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="4" checked>
-                <label>Donnerstag</label>
-            </div>
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="5" checked>
-                <label>Freitag</label>
-            </div>
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="6">
-                <label>Samstag</label>
-            </div>
-
-            <div class="day">
-                <input type="checkbox" class="tag" value="0">
-                <label>Sonntag</label>
-            </div>
-
-        </div>
-
-        <button onclick="monatErstellen()">
-            📅 Neuen Monat automatisch erstellen
-        </button>
 
     </div>
+
 
     <div class="card">
 
         <h2>Arbeitszeiten</h2>
 
         <div class="info">
-            ✏️ Arbeit/Frei, Beginn, Ende, Pause und Objekt können direkt
-            geändert werden. Danach bitte speichern.
+            Arbeit/Frei, Beginn, Ende, Pause und Objekt können direkt geändert werden.
         </div>
 
         <div id="stundenKopf"></div>
@@ -693,7 +820,6 @@ footer{
             <table>
 
                 <thead>
-
                     <tr>
                         <th>Datum</th>
                         <th>Status</th>
@@ -703,7 +829,6 @@ footer{
                         <th>Std.</th>
                         <th>Objekt</th>
                     </tr>
-
                 </thead>
 
                 <tbody id="stundenTabelle"></tbody>
@@ -718,7 +843,7 @@ footer{
             💾 Stundenzettel speichern
         </button>
 
-        <button onclick="pdfErstellen()">
+        <button class="admin-only" onclick="pdfErstellen()">
             📄 PDF herunterladen / speichern
         </button>
 
@@ -729,7 +854,7 @@ footer{
 
 <!-- KUNDEN -->
 
-<div id="kunden" class="page">
+<div id="kunden" class="page admin-only">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
@@ -762,7 +887,7 @@ footer{
 
 <!-- AUFTRÄGE -->
 
-<div id="auftraege" class="page">
+<div id="auftraege" class="page admin-only">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
@@ -792,10 +917,7 @@ footer{
             placeholder="Preis €"
         >
 
-        <textarea
-            id="auftragNotiz"
-            placeholder="Beschreibung"
-        ></textarea>
+        <textarea id="auftragNotiz" placeholder="Beschreibung"></textarea>
 
         <button onclick="auftragSpeichern()">
             Auftrag speichern
@@ -818,7 +940,7 @@ footer{
 
 <!-- RECHNUNGEN -->
 
-<div id="rechnungen" class="page">
+<div id="rechnungen" class="page admin-only">
 
     <button class="secondary" onclick="openPage('home')">
         ← Zurück
@@ -871,6 +993,10 @@ let arFlaeche = 0;
 
 let aktuellerZettel = [];
 
+let aktuellerMitarbeiter = null;
+let employeeMode = false;
+let adminMode = false;
+
 
 /* =====================================================
    HILFSFUNKTIONEN
@@ -879,7 +1005,6 @@ let aktuellerZettel = [];
 function el(id){
     return document.getElementById(id);
 }
-
 
 function laden(key){
 
@@ -895,7 +1020,6 @@ function laden(key){
     }
 }
 
-
 function speichern(key,daten){
 
     localStorage.setItem(
@@ -904,13 +1028,10 @@ function speichern(key,daten){
     );
 }
 
-
 function esc(text){
 
     return String(
-        text == null
-            ? ''
-            : text
+        text == null ? '' : text
     )
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
@@ -921,27 +1042,295 @@ function esc(text){
 
 
 /* =====================================================
+   LOGIN / MODUS
+   ===================================================== */
+
+function loginListeAktualisieren(){
+
+    const select =
+        el('loginMitarbeiter');
+
+    if(!select){
+        return;
+    }
+
+    const daten =
+        laden('mitarbeiter');
+
+    select.innerHTML =
+        '';
+
+    if(
+        daten.length === 0
+    ){
+
+        select.innerHTML =
+            '<option value="">Keine Mitarbeiter gefunden</option>';
+
+        return;
+    }
+
+    daten.forEach(
+        function(m){
+
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+            option.value =
+                String(
+                    m.id
+                );
+
+            option.textContent =
+                m.name;
+
+            select.appendChild(
+                option
+            );
+        }
+    );
+}
+
+
+function mitarbeiterLogin(){
+
+    const employeeId =
+        el('loginMitarbeiter').value;
+
+    const pin =
+        el('loginPin').value.trim();
+
+    if(!employeeId){
+
+        alert(
+            'Bitte Mitarbeiter auswählen.'
+        );
+
+        return;
+    }
+
+    if(
+        !/^\d{4}$/.test(
+            pin
+        )
+    ){
+
+        alert(
+            'Bitte eine 4-stellige PIN eingeben.'
+        );
+
+        return;
+    }
+
+    if(
+        !window.Android ||
+        typeof Android.loginEmployee !== 'function'
+    ){
+
+        alert(
+            'Login ist nur in der Android-App verfügbar.'
+        );
+
+        return;
+    }
+
+    el('loginStatus').innerHTML =
+        '🔐 Anmeldung wird geprüft...';
+
+    Android.loginEmployee(
+        String(employeeId),
+        pin
+    );
+}
+
+
+window.receiveEmployeeLogin =
+function(result){
+
+    try{
+
+        if(
+            typeof result === 'string'
+        ){
+
+            result =
+                JSON.parse(result);
+        }
+
+        if(
+            !result ||
+            !result.success
+        ){
+
+            el('loginStatus').innerHTML =
+                '❌ ' +
+                esc(
+                    result && result.message
+                        ? result.message
+                        : 'Anmeldung fehlgeschlagen.'
+                );
+
+            el('loginPin').value =
+                '';
+
+            return;
+        }
+
+        aktuellerMitarbeiter =
+            result.employee;
+
+        employeeMode =
+            true;
+
+        adminMode =
+            false;
+
+        document.body.classList.add(
+            'employee-mode'
+        );
+
+        el('employeeWelcome').textContent =
+            'Willkommen, ' +
+            aktuellerMitarbeiter.name;
+
+        el('employeeTimesheetName').textContent =
+            aktuellerMitarbeiter.name;
+
+        /*
+         * Mitarbeiter-Auswahl intern auf eigene ID setzen.
+         */
+
+        mitarbeiterAuswahl();
+
+        el('zeitMitarbeiter').value =
+            String(
+                aktuellerMitarbeiter.id
+            );
+
+        el('loginPin').value =
+            '';
+
+        openPage(
+            'home'
+        );
+
+        stundenzettelAusFirestoreLaden();
+
+
+    }catch(e){
+
+        console.error(e);
+
+        alert(
+            'Login konnte nicht verarbeitet werden.'
+        );
+    }
+};
+
+
+function adminModusOeffnen(){
+
+    /*
+     * Für den schnellen MVP derzeit ohne Admin-PIN.
+     * Mitarbeiter bekommen die App normalerweise direkt
+     * im Mitarbeiter-Modus.
+     */
+
+    employeeMode =
+        false;
+
+    adminMode =
+        true;
+
+    aktuellerMitarbeiter =
+        null;
+
+    document.body.classList.remove(
+        'employee-mode'
+    );
+
+    openPage(
+        'home'
+    );
+}
+
+
+function logoutEmployee(){
+
+    aktuellerMitarbeiter =
+        null;
+
+    employeeMode =
+        false;
+
+    adminMode =
+        false;
+
+    aktuellerZettel =
+        [];
+
+    document.body.classList.remove(
+        'employee-mode'
+    );
+
+    openPage(
+        'login'
+    );
+}
+
+
+function logoutAdmin(){
+
+    adminMode =
+        false;
+
+    openPage(
+        'login'
+    );
+}
+
+
+/* =====================================================
    SEITEN
    ===================================================== */
 
 function openPage(id){
 
+    if(
+        employeeMode
+        &&
+        ![
+            'home',
+            'stundenzettel',
+            'login'
+        ].includes(id)
+    ){
+
+        id =
+            'home';
+    }
+
     document
         .querySelectorAll('.page')
-        .forEach(function(page){
+        .forEach(
+            function(page){
 
-            page.classList.remove('active');
-
-        });
-
+                page.classList.remove(
+                    'active'
+                );
+            }
+        );
 
     const page =
         el(id);
 
-
     if(page){
 
-        page.classList.add('active');
+        page.classList.add(
+            'active'
+        );
     }
 
 
@@ -957,9 +1346,19 @@ function openPage(id){
 
         mitarbeiterAuswahl();
 
-        mitarbeiterStundenzettelAnzeigen();
+        if(
+            employeeMode
+            &&
+            aktuellerMitarbeiter
+        ){
 
-        mitarbeiterAusFirestoreLaden();
+            el('zeitMitarbeiter').value =
+                String(
+                    aktuellerMitarbeiter.id
+                );
+        }
+
+        mitarbeiterStundenzettelAnzeigen();
 
         stundenzettelAusFirestoreLaden();
     }
@@ -993,20 +1392,6 @@ function mitarbeiterAusFirestoreLaden(){
         typeof Android.loadEmployeesFromFirestore === 'function'
     ){
 
-        const status =
-            el('mitarbeiterCloudStatus');
-
-
-        if(status){
-
-            status.className =
-                'info';
-
-            status.innerHTML =
-                '☁️ Mitarbeiter werden geladen...';
-        }
-
-
         try{
 
             Android.loadEmployeesFromFirestore();
@@ -1036,14 +1421,12 @@ function(daten){
                 JSON.parse(daten);
         }
 
-
         if(
             !Array.isArray(daten)
         ){
 
             return;
         }
-
 
         const sauber =
             daten.filter(
@@ -1058,212 +1441,31 @@ function(daten){
                 }
             );
 
-
-        /*
-         * Wenn Firebase schon Mitarbeiter enthält,
-         * ist Firebase die Quelle.
-         *
-         * Wenn die Sammlung noch leer ist, behalten
-         * wir vorhandene lokale Mitarbeiter.
-         */
-
-        if(
-            sauber.length > 0
-        ){
-
-            speichern(
-                'mitarbeiter',
-                sauber
-            );
-        }
-
-
-        /*
-         * Falls employees noch leer ist, können ältere
-         * Stundenzettel den Mitarbeiter wiederherstellen.
-         */
-
-        mitarbeiterAusStundenzettelnWiederherstellen();
-
+        speichern(
+            'mitarbeiter',
+            sauber
+        );
 
         mitarbeiterAnzeigen();
 
         mitarbeiterAuswahl();
 
+        loginListeAktualisieren();
 
         const status =
-            el('mitarbeiterCloudStatus');
-
+            el('loginStatus');
 
         if(status){
 
-            status.className =
-                'info';
-
             status.innerHTML =
-
-                '☁️ ' +
-
-                laden('mitarbeiter').length +
-
-                ' Mitarbeiter aus Firebase / Cloud verfügbar.';
+                '✅ Mitarbeiter geladen';
         }
-
-
-        /*
-         * Falls wir gerade auf der Stundenzettel-Seite sind,
-         * Monatsanzeige ebenfalls aktualisieren.
-         */
-
-        mitarbeiterStundenzettelAnzeigen();
-
-        gespeichertenZettelLaden();
-
 
     }catch(e){
 
-        console.error(
-            'Mitarbeiter konnten nicht verarbeitet werden',
-            e
-        );
+        console.error(e);
     }
 };
-
-
-/*
- * Migration alter Daten:
- * Wenn bereits ein Stundenzettel in Firebase liegt,
- * aber der Mitarbeiter noch nicht in "employees" liegt,
- * wird er automatisch aus dem Stundenzettel erstellt.
- */
-
-function mitarbeiterAusStundenzettelnWiederherstellen(){
-
-    const mitarbeiter =
-        laden('mitarbeiter');
-
-
-    const zettel =
-        laden('stundenzettel');
-
-
-    let geaendert =
-        false;
-
-
-    zettel.forEach(
-        function(x){
-
-            const id =
-                String(
-                    x.mitarbeiterId || ''
-                ).trim();
-
-
-            const name =
-                String(
-                    x.mitarbeiter || ''
-                ).trim();
-
-
-            if(
-                !id ||
-                !name
-            ){
-
-                return;
-            }
-
-
-            const vorhanden =
-                mitarbeiter.some(
-                    function(m){
-
-                        return (
-                            String(
-                                m.id
-                            ) ===
-                            id
-                        );
-                    }
-                );
-
-
-            if(!vorhanden){
-
-                const neu = {
-
-                    id:
-                        id,
-
-                    name:
-                        name,
-
-                    telefon:
-                        '',
-
-                    art:
-                        'Teilzeit',
-
-                    lohn:
-                        ''
-                };
-
-
-                mitarbeiter.push(
-                    neu
-                );
-
-
-                geaendert =
-                    true;
-
-
-                /*
-                 * Gleichzeitig dauerhaft in Firebase nachtragen.
-                 */
-
-                if(
-                    window.Android &&
-                    typeof Android.saveEmployeeToFirestore === 'function'
-                ){
-
-                    try{
-
-                        Android.saveEmployeeToFirestore(
-
-                            neu.id,
-
-                            neu.name,
-
-                            neu.telefon,
-
-                            neu.art,
-
-                            neu.lohn
-                        );
-
-                    }catch(e){
-
-                        console.error(
-                            'Mitarbeiter-Migration fehlgeschlagen',
-                            e
-                        );
-                    }
-                }
-            }
-        }
-    );
-
-
-    if(geaendert){
-
-        speichern(
-            'mitarbeiter',
-            mitarbeiter
-        );
-    }
-}
 
 
 /* =====================================================
@@ -1276,20 +1478,6 @@ function auftraegeAusFirestoreLaden(){
         window.Android &&
         typeof Android.loadOrdersFromFirestore === 'function'
     ){
-
-        const status =
-            el('auftragStatus');
-
-
-        if(status){
-
-            status.style.display =
-                'block';
-
-            status.innerHTML =
-                '☁️ Aufträge werden geladen...';
-        }
-
 
         try{
 
@@ -1317,7 +1505,6 @@ function(daten){
                 JSON.parse(daten);
         }
 
-
         if(
             !Array.isArray(daten)
         ){
@@ -1325,22 +1512,18 @@ function(daten){
             return;
         }
 
-
         const sauber =
             daten.filter(
                 function(auftrag){
 
                     if(!auftrag){
-
                         return false;
                     }
-
 
                     const kunde =
                         String(
                             auftrag.kunde || ''
                         ).trim();
-
 
                     return (
                         kunde !== '' &&
@@ -1349,34 +1532,12 @@ function(daten){
                 }
             );
 
-
         speichern(
             'auftraege',
             sauber
         );
 
-
         auftraegeAnzeigen();
-
-
-        const status =
-            el('auftragStatus');
-
-
-        if(status){
-
-            status.style.display =
-                'block';
-
-            status.innerHTML =
-
-                '☁️ ' +
-
-                sauber.length +
-
-                ' Auftrag/Aufträge aus Firebase geladen.';
-        }
-
 
     }catch(e){
 
@@ -1396,20 +1557,6 @@ function stundenzettelAusFirestoreLaden(){
         typeof Android.loadTimesheetsFromFirestore === 'function'
     ){
 
-        const status =
-            el('stundenCloudStatus');
-
-
-        if(status){
-
-            status.className =
-                'info';
-
-            status.innerHTML =
-                '☁️ Stundenzettel werden geladen...';
-        }
-
-
         try{
 
             Android.loadTimesheetsFromFirestore();
@@ -1417,7 +1564,6 @@ function stundenzettelAusFirestoreLaden(){
         }catch(e){
 
             console.error(
-                'Stundenzettel laden fehlgeschlagen',
                 e
             );
         }
@@ -1439,7 +1585,6 @@ function(daten){
                 JSON.parse(daten);
         }
 
-
         if(
             !Array.isArray(daten)
         ){
@@ -1447,33 +1592,17 @@ function(daten){
             return;
         }
 
-
         speichern(
             'stundenzettel',
             daten
         );
 
-
-        /*
-         * Jetzt können wir eventuell alte Mitarbeiter
-         * automatisch aus dem Stundenzettel rekonstruieren.
-         */
-
-        mitarbeiterAusStundenzettelnWiederherstellen();
-
-
-        mitarbeiterAnzeigen();
-
-        mitarbeiterAuswahl();
-
         mitarbeiterStundenzettelAnzeigen();
 
         gespeichertenZettelLaden();
 
-
         const status =
             el('stundenCloudStatus');
-
 
         if(status){
 
@@ -1481,21 +1610,14 @@ function(daten){
                 'info';
 
             status.innerHTML =
-
                 '☁️ ' +
-
                 daten.length +
-
                 ' Stundenzettel aus Firebase geladen.';
         }
 
-
     }catch(e){
 
-        console.error(
-            'Stundenzettel konnten nicht verarbeitet werden',
-            e
-        );
+        console.error(e);
     }
 };
 
@@ -1538,13 +1660,11 @@ function(
     arFlaeche =
         parseFloat(flaeche) || 0;
 
-
     if(el('fensterBreite')){
 
         el('fensterBreite').value =
             arBreite.toFixed(2);
     }
-
 
     if(el('fensterHoehe')){
 
@@ -1552,168 +1672,56 @@ function(
             arHoehe.toFixed(2);
     }
 
-
-    openPage(
-        'foto'
-    );
-
-
-    const box =
-        el('arErgebnis');
-
-
-    box.style.display =
-        'block';
-
-
-    box.innerHTML =
-
-        '<strong>✅ Fenster gemessen</strong><br><br>' +
-
-        'Breite: ' +
-
-        arBreite.toFixed(2) +
-
-        ' m<br>' +
-
-        'Höhe: ' +
-
-        arHoehe.toFixed(2) +
-
-        ' m<br>' +
-
-        '<div class="big">' +
-
-        arFlaeche.toFixed(2) +
-
-        ' m²</div>';
-
-
-    fensterKlasseVorschau();
+    openPage('foto');
 };
 
 
 /* =====================================================
-   FENSTER
+   FENSTER / PREISRECHNER
    ===================================================== */
 
-function getFensterKlasse(
-    flaeche
-){
+function getFensterKlasse(flaeche){
 
-    if(
-        flaeche <= 1
-    ){
+    if(flaeche <= 1){
 
         return {
-
-            name:
-                'Kleines Fenster',
-
-            preis:
-                parseFloat(
-                    el('preisKlein').value || 0
-                )
+            name:'Kleines Fenster',
+            preis:parseFloat(
+                el('preisKlein').value || 0
+            )
         };
     }
 
-
-    if(
-        flaeche <= 2
-    ){
+    if(flaeche <= 2){
 
         return {
-
-            name:
-                'Mittleres Fenster',
-
-            preis:
-                parseFloat(
-                    el('preisMittel').value || 0
-                )
+            name:'Mittleres Fenster',
+            preis:parseFloat(
+                el('preisMittel').value || 0
+            )
         };
     }
 
-
-    if(
-        flaeche <= 3.5
-    ){
+    if(flaeche <= 3.5){
 
         return {
-
-            name:
-                'Großes Fenster',
-
-            preis:
-                parseFloat(
-                    el('preisGross').value || 0
-                )
+            name:'Großes Fenster',
+            preis:parseFloat(
+                el('preisGross').value || 0
+            )
         };
     }
-
 
     return {
-
-        name:
-            'Sehr großes Fenster',
-
-        preis:
-            parseFloat(
-                el('preisSehrGross').value || 0
-            )
+        name:'Sehr großes Fenster',
+        preis:parseFloat(
+            el('preisSehrGross').value || 0
+        )
     };
 }
 
 
-function fensterKlasseVorschau(){
-
-    if(
-        arFlaeche <= 0 ||
-        !el('fensterKlasseErgebnis')
-    ){
-
-        return;
-    }
-
-
-    const klasse =
-        getFensterKlasse(
-            arFlaeche
-        );
-
-
-    const box =
-        el('fensterKlasseErgebnis');
-
-
-    box.style.display =
-        'block';
-
-
-    box.innerHTML =
-
-        '<div class="price-class">' +
-
-        '<div class="name">' +
-
-        klasse.name +
-
-        '</div>' +
-
-        '<div>' +
-
-        arFlaeche.toFixed(2) +
-
-        ' m²</div>' +
-
-        '<div class="price">' +
-
-        klasse.preis.toFixed(2) +
-
-        ' € pro Fenster</div>' +
-
-        '</div>';
-}
+function fensterKlasseVorschau(){}
 
 
 function fensterPreisArtChanged(){
@@ -1721,31 +1729,21 @@ function fensterPreisArtChanged(){
     const art =
         el('fotoPreisArt').value;
 
-
     el('manuellerFensterPreisBlock').style.display =
-
         art === 'manuell'
-        ?
-        'block'
-        :
-        'none';
-
+            ? 'block'
+            : 'none';
 
     el('qmFensterPreisBlock').style.display =
-
         art === 'qm'
-        ?
-        'block'
-        :
-        'none';
+            ? 'block'
+            : 'none';
 }
 
 
 function fensterPreisBerechnen(){
 
-    if(
-        arFlaeche <= 0
-    ){
+    if(arFlaeche <= 0){
 
         alert(
             'Bitte zuerst das Fenster messen.'
@@ -1753,7 +1751,6 @@ function fensterPreisBerechnen(){
 
         return;
     }
-
 
     const anzahl =
         Math.max(
@@ -1763,67 +1760,46 @@ function fensterPreisBerechnen(){
             )
         );
 
-
     const art =
         el('fotoPreisArt').value;
 
+    let preis = 0;
 
-    let preis =
-        0;
-
-
-    if(
-        art ===
-        'automatisch'
-    ){
+    if(art === 'automatisch'){
 
         preis =
             getFensterKlasse(
                 arFlaeche
             ).preis;
 
-
-    }else if(
-        art ===
-        'manuell'
-    ){
+    }else if(art === 'manuell'){
 
         preis =
             Number(
                 el('manuellerFensterPreis').value || 0
             );
 
-
     }else{
 
         preis =
-
             arFlaeche *
-
             Number(
                 el('fotoPreisQm').value || 0
-            )
-
-            *
-
+            ) *
             Number(
                 el('fotoSeiten').value || 1
             );
     }
 
-
     const gesamt =
         preis *
         anzahl;
 
-
     const box =
         el('fotoErgebnis');
 
-
     box.style.display =
         'block';
-
 
     box.innerHTML =
 
@@ -1837,56 +1813,25 @@ function fensterPreisBerechnen(){
 }
 
 
-/* =====================================================
-   PREISRECHNER
-   ===================================================== */
-
 function serviceChanged(){
 
     const service =
         el('service').value;
 
-
     el('fensterBlock').style.display =
-
-        service ===
-        'fenster'
-
-        ?
-
-        'block'
-
-        :
-
-        'none';
-
+        service === 'fenster'
+            ? 'block'
+            : 'none';
 
     el('flaechenBlock').style.display =
-
-        service ===
-        'fenster'
-
-        ?
-
-        'none'
-
-        :
-
-        'block';
-
+        service === 'fenster'
+            ? 'none'
+            : 'block';
 
     el('unterhaltBlock').style.display =
-
-        service ===
-        'unterhalt'
-
-        ?
-
-        'block'
-
-        :
-
-        'none';
+        service === 'unterhalt'
+            ? 'block'
+            : 'none';
 }
 
 
@@ -1897,121 +1842,81 @@ function preisBerechnen(){
             el('stunden').value || 0
         );
 
-
     const stundensatz =
         Number(
             el('stundensatz').value || 0
         );
-
 
     const qm =
         Number(
             el('qm').value || 0
         );
 
-
     const qmPreis =
         Number(
             el('qmPreis').value || 0
         );
-
 
     const anfahrt =
         Number(
             el('anfahrt').value || 0
         );
 
-
     const material =
         Number(
             el('material').value || 0
         );
-
 
     const zuschlag =
         Number(
             el('zuschlag').value || 0
         );
 
-
     const mwst =
         Number(
             el('mwst').value || 0
         );
 
-
     let netto =
-
-        stunden *
-        stundensatz
-
-        +
-
-        qm *
-        qmPreis
-
-        +
-
-        anfahrt
-
-        +
-
+        stunden * stundensatz +
+        qm * qmPreis +
+        anfahrt +
         material;
 
-
     netto +=
-
         netto *
-
         zuschlag /
-
         100;
-
 
     const steuer =
-
         netto *
-
         mwst /
-
         100;
 
-
     const brutto =
-
         netto +
-
         steuer;
-
 
     const box =
         el('preisErgebnis');
 
-
     box.style.display =
         'block';
-
 
     box.innerHTML =
 
         '<strong>Berechnung</strong><br><br>' +
 
         'Netto: ' +
-
         netto.toFixed(2) +
-
         ' €<br>' +
 
         'MwSt.: ' +
-
         steuer.toFixed(2) +
-
         ' €<br>' +
 
         '<div class="big">' +
-
         brutto.toFixed(2) +
-
         ' €</div>';
 }
 
@@ -2025,6 +1930,8 @@ function mitarbeiterSpeichern(){
     const name =
         el('mitarbeiterName').value.trim();
 
+    const pin =
+        el('mitarbeiterPin').value.trim();
 
     if(!name){
 
@@ -2035,20 +1942,29 @@ function mitarbeiterSpeichern(){
         return;
     }
 
+    if(
+        !/^\d{4}$/.test(
+            pin
+        )
+    ){
+
+        alert(
+            'Bitte eine 4-stellige PIN eingeben.'
+        );
+
+        return;
+    }
 
     const id =
         String(
             Date.now()
         );
 
-
     const mitarbeiter = {
 
-        id:
-            id,
+        id:id,
 
-        name:
-            name,
+        name:name,
 
         telefon:
             el('mitarbeiterTelefon').value,
@@ -2060,70 +1976,49 @@ function mitarbeiterSpeichern(){
             el('mitarbeiterLohn').value
     };
 
-
     const daten =
         laden('mitarbeiter');
-
 
     daten.push(
         mitarbeiter
     );
-
 
     speichern(
         'mitarbeiter',
         daten
     );
 
-
-    /*
-     * Zusätzlich Firebase.
-     */
-
     if(
         window.Android &&
         typeof Android.saveEmployeeToFirestore === 'function'
     ){
 
-        try{
+        Android.saveEmployeeToFirestore(
 
-            Android.saveEmployeeToFirestore(
+            mitarbeiter.id,
 
-                mitarbeiter.id,
+            mitarbeiter.name,
 
-                mitarbeiter.name,
+            mitarbeiter.telefon,
 
-                mitarbeiter.telefon,
+            mitarbeiter.art,
 
-                mitarbeiter.art,
+            mitarbeiter.lohn,
 
-                mitarbeiter.lohn
-            );
-
-        }catch(e){
-
-            console.error(
-                'Firebase Mitarbeiter speichern fehlgeschlagen',
-                e
-            );
-        }
+            pin
+        );
     }
 
-
-    el('mitarbeiterName').value =
-        '';
-
-    el('mitarbeiterTelefon').value =
-        '';
-
-    el('mitarbeiterLohn').value =
-        '';
-
+    el('mitarbeiterName').value = '';
+    el('mitarbeiterTelefon').value = '';
+    el('mitarbeiterLohn').value = '';
+    el('mitarbeiterPin').value = '';
 
     mitarbeiterAnzeigen();
 
     mitarbeiterAuswahl();
 
+    loginListeAktualisieren();
 
     alert(
         'Mitarbeiter gespeichert. ✅'
@@ -2136,37 +2031,15 @@ function mitarbeiterAnzeigen(){
     const box =
         el('mitarbeiterListe');
 
-
     if(!box){
-
         return;
     }
-
 
     const daten =
         laden('mitarbeiter');
 
-
-    if(
-        daten.length ===
-        0
-    ){
-
-        box.innerHTML =
-
-            '<div class="info">' +
-
-            'Noch keine Mitarbeiter gespeichert.' +
-
-            '</div>';
-
-        return;
-    }
-
-
     box.innerHTML =
         '';
-
 
     daten.forEach(
         function(
@@ -2179,40 +2052,16 @@ function mitarbeiterAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-
-                esc(
-                    m.name
-                ) +
-
+                esc(m.name) +
                 '</strong><br>' +
 
-                esc(
-                    m.art
-                ) +
-
+                esc(m.art) +
                 '<br>' +
 
-                esc(
-                    m.telefon
-                ) +
-
-                '<br>' +
-
-                (
-                    m.lohn
-                    ?
-                    esc(
-                        m.lohn
-                    ) +
-                    ' €/Std.'
-                    :
-                    ''
-                ) +
+                esc(m.telefon) +
 
                 '<button onclick="mitarbeiterOeffnen(' +
-
                 index +
-
                 ')">' +
 
                 '📋 Stundenzettel öffnen' +
@@ -2225,24 +2074,18 @@ function mitarbeiterAnzeigen(){
 }
 
 
-function mitarbeiterOeffnen(
-    index
-){
+function mitarbeiterOeffnen(index){
 
     const m =
         laden('mitarbeiter')[index];
 
-
     if(!m){
-
         return;
     }
-
 
     openPage(
         'stundenzettel'
     );
-
 
     setTimeout(
         function(){
@@ -2252,11 +2095,10 @@ function mitarbeiterOeffnen(
                     m.id
                 );
 
-
             mitarbeiterWechsel();
 
         },
-        100
+        50
     );
 }
 
@@ -2266,41 +2108,18 @@ function mitarbeiterAuswahl(){
     const select =
         el('zeitMitarbeiter');
 
-
     if(!select){
-
         return;
     }
-
 
     const vorher =
         select.value;
 
-
     const daten =
         laden('mitarbeiter');
 
-
     select.innerHTML =
         '';
-
-
-    if(
-        daten.length ===
-        0
-    ){
-
-        select.innerHTML =
-
-            '<option value="">' +
-
-            'Mitarbeiter werden geladen...' +
-
-            '</option>';
-
-        return;
-    }
-
 
     daten.forEach(
         function(m){
@@ -2310,16 +2129,13 @@ function mitarbeiterAuswahl(){
                     'option'
                 );
 
-
             option.value =
                 String(
                     m.id
                 );
 
-
             option.textContent =
                 m.name;
-
 
             select.appendChild(
                 option
@@ -2327,30 +2143,23 @@ function mitarbeiterAuswahl(){
         }
     );
 
+    if(
+        employeeMode &&
+        aktuellerMitarbeiter
+    ){
+
+        select.value =
+            String(
+                aktuellerMitarbeiter.id
+            );
+
+        return;
+    }
 
     if(vorher){
 
-        const vorhanden =
-            daten.some(
-                function(m){
-
-                    return (
-                        String(
-                            m.id
-                        ) ===
-                        String(
-                            vorher
-                        )
-                    );
-                }
-            );
-
-
-        if(vorhanden){
-
-            select.value =
-                vorher;
-        }
+        select.value =
+            vorher;
     }
 }
 
@@ -2360,24 +2169,11 @@ function mitarbeiterWechsel(){
     aktuellerZettel =
         [];
 
+    el('stundenTabelle').innerHTML =
+        '';
 
-    if(
-        el('stundenTabelle')
-    ){
-
-        el('stundenTabelle').innerHTML =
-            '';
-    }
-
-
-    if(
-        el('stundenGesamt')
-    ){
-
-        el('stundenGesamt').style.display =
-            'none';
-    }
-
+    el('stundenGesamt').style.display =
+        'none';
 
     mitarbeiterStundenzettelAnzeigen();
 
@@ -2387,19 +2183,24 @@ function mitarbeiterWechsel(){
 
 function getMitarbeiterName(){
 
+    if(
+        employeeMode &&
+        aktuellerMitarbeiter
+    ){
+
+        return aktuellerMitarbeiter.name;
+    }
+
     const select =
         el('zeitMitarbeiter');
 
-
     if(
         !select ||
-        select.selectedIndex < 0 ||
-        !select.value
+        select.selectedIndex < 0
     ){
 
         return '';
     }
-
 
     return select
         .options[
@@ -2409,26 +2210,36 @@ function getMitarbeiterName(){
 }
 
 
+function getMitarbeiterId(){
+
+    if(
+        employeeMode &&
+        aktuellerMitarbeiter
+    ){
+
+        return String(
+            aktuellerMitarbeiter.id
+        );
+    }
+
+    return el('zeitMitarbeiter').value;
+}
+
+
 /* =====================================================
    STUNDENZETTEL
    ===================================================== */
 
-function monatName(
-    monat
-){
+function monatName(monat){
 
     if(!monat){
-
         return '';
     }
-
 
     const teile =
         monat.split('-');
 
-
     const namen = [
-
         '',
         'Januar',
         'Februar',
@@ -2444,21 +2255,13 @@ function monatName(
         'Dezember'
     ];
 
-
     return (
-
         namen[
             Number(
                 teile[1]
             )
-        ]
-
-        +
-
-        ' '
-
-        +
-
+        ] +
+        ' ' +
         teile[0]
     );
 }
@@ -2466,42 +2269,19 @@ function monatName(
 
 function mitarbeiterStundenzettelAnzeigen(){
 
-    const select =
-        el('zeitMitarbeiter');
-
+    const mitarbeiterId =
+        getMitarbeiterId();
 
     const box =
         el('gespeicherteMonate');
 
-
     if(
-        !select ||
+        !mitarbeiterId ||
         !box
     ){
 
         return;
     }
-
-
-    const mitarbeiterId =
-        select.value;
-
-
-    if(
-        !mitarbeiterId
-    ){
-
-        box.innerHTML =
-
-            '<div class="info">' +
-
-            'Mitarbeiter werden aus Firebase geladen...' +
-
-            '</div>';
-
-        return;
-    }
-
 
     const liste =
         laden('stundenzettel')
@@ -2510,13 +2290,9 @@ function mitarbeiterStundenzettelAnzeigen(){
             function(x){
 
                 return (
-
                     String(
                         x.mitarbeiterId
-                    )
-
-                    ===
-
+                    ) ===
                     String(
                         mitarbeiterId
                     )
@@ -2525,10 +2301,7 @@ function mitarbeiterStundenzettelAnzeigen(){
         )
 
         .sort(
-            function(
-                a,
-                b
-            ){
+            function(a,b){
 
                 return String(
                     b.monat
@@ -2540,32 +2313,20 @@ function mitarbeiterStundenzettelAnzeigen(){
             }
         );
 
-
     if(
-        liste.length ===
-        0
+        liste.length === 0
     ){
 
         box.innerHTML =
-
             '<div class="info">' +
-
-            'Noch kein gespeicherter Stundenzettel für diesen Mitarbeiter.' +
-
+            'Noch kein gespeicherter Stundenzettel.' +
             '</div>';
 
         return;
     }
 
-
     let html =
-
-        '<h3 style="margin-top:18px">' +
-
-        'Gespeicherte Monate' +
-
-        '</h3>';
-
+        '<h3 style="margin-top:18px">Gespeicherte Monate</h3>';
 
     liste.forEach(
         function(zettel){
@@ -2573,50 +2334,37 @@ function mitarbeiterStundenzettelAnzeigen(){
             let gesamt =
                 0;
 
-
             (
-                zettel.tage ||
-                []
+                zettel.tage || []
             )
             .forEach(
                 function(tag){
 
                     gesamt +=
-
                         Number(
-                            tag.stunden ||
-                            0
+                            tag.stunden || 0
                         );
                 }
             );
-
 
             html +=
 
                 '<div class="item">' +
 
                 '<strong>' +
-
                 monatName(
                     zettel.monat
                 ) +
-
                 '</strong><br>' +
 
                 'Gesamt: ' +
-
                 gesamt
                     .toFixed(2)
-                    .replace('.',',')
-
-                +
-
+                    .replace('.',',') +
                 ' Std.' +
 
                 '<button onclick="gespeichertenMonatOeffnen(\'' +
-
                 zettel.monat +
-
                 '\')">' +
 
                 'Öffnen' +
@@ -2627,72 +2375,34 @@ function mitarbeiterStundenzettelAnzeigen(){
         }
     );
 
-
     box.innerHTML =
         html;
 }
 
 
-function gespeichertenMonatOeffnen(
-    monat
-){
+function gespeichertenMonatOeffnen(monat){
 
     el('zeitMonat').value =
         monat;
 
-
     gespeichertenZettelLaden();
-
-
-    setTimeout(
-        function(){
-
-            if(
-                el('stundenKopf')
-            ){
-
-                el('stundenKopf').scrollIntoView({
-
-                    behavior:
-                        'smooth',
-
-                    block:
-                        'start'
-                });
-            }
-
-        },
-        100
-    );
 }
 
 
-function zeitInMinuten(
-    zeit
-){
+function zeitInMinuten(zeit){
 
     if(!zeit){
-
         return 0;
     }
-
 
     const teile =
         zeit.split(':');
 
-
     return (
-
         Number(
             teile[0]
-        )
-
-        *
-
-        60
-
-        +
-
+        ) *
+        60 +
         Number(
             teile[1]
         )
@@ -2714,18 +2424,15 @@ function stundenBerechnen(
         return 0;
     }
 
-
     let startMin =
         zeitInMinuten(
             start
         );
 
-
     let endeMin =
         zeitInMinuten(
             ende
         );
-
 
     if(
         endeMin <
@@ -2736,66 +2443,37 @@ function stundenBerechnen(
             1440;
     }
 
-
     return Math.max(
-
         0,
-
         (
-
-            endeMin
-
-            -
-
-            startMin
-
-            -
-
+            endeMin -
+            startMin -
             Number(
-                pause ||
-                0
+                pause || 0
             )
-        )
-
-        /
-
+        ) /
         60
     );
 }
 
 
-function formatDatum(
-    datum
-){
+function formatDatum(datum){
 
     return (
-
         String(
             datum.getDate()
         ).padStart(
             2,
             '0'
-        )
-
-        +
-
-        '.'
-
-        +
-
+        ) +
+        '.' +
         String(
             datum.getMonth() + 1
         ).padStart(
             2,
             '0'
-        )
-
-        +
-
-        '.'
-
-        +
-
+        ) +
+        '.' +
         datum.getFullYear()
     );
 }
@@ -2803,99 +2481,49 @@ function formatDatum(
 
 function monatErstellen(){
 
-    const mitarbeiterId =
-        el('zeitMitarbeiter').value;
+    if(employeeMode){
 
+        alert(
+            'Neue Monate werden von der Verwaltung erstellt.'
+        );
+
+        return;
+    }
+
+    const mitarbeiterId =
+        getMitarbeiterId();
 
     const monat =
         el('zeitMonat').value;
 
-
     if(
-        !mitarbeiterId
-    ){
-
-        alert(
-            'Bitte zuerst einen Mitarbeiter auswählen.'
-        );
-
-        return;
-    }
-
-
-    if(
+        !mitarbeiterId ||
         !monat
     ){
 
         alert(
-            'Bitte einen Monat auswählen.'
+            'Bitte Mitarbeiter und Monat auswählen.'
         );
 
         return;
     }
 
-
-    const vorhanden =
-        laden('stundenzettel')
-        .find(
-            function(x){
-
-                return (
-
-                    String(
-                        x.mitarbeiterId
-                    )
-
-                    ===
-
-                    String(
-                        mitarbeiterId
-                    )
-
-                    &&
-
-                    x.monat ===
-                    monat
-                );
-            }
-        );
-
-
-    if(vorhanden){
-
-        if(
-            !confirm(
-                'Für diesen Monat existiert bereits ein Stundenzettel. Wirklich neu erstellen?'
-            )
-        ){
-
-            return;
-        }
-    }
-
-
     const start =
         el('zeitStart').value;
-
 
     const ende =
         el('zeitEnde').value;
 
-
     const pause =
         Number(
-            el('zeitPause').value ||
-            0
+            el('zeitPause').value || 0
         );
-
 
     const objekt =
         el('zeitObjekt').value;
 
-
     const arbeitstage =
         [];
-
 
     document
         .querySelectorAll(
@@ -2912,35 +2540,18 @@ function monatErstellen(){
             }
         );
 
-
-    if(
-        arbeitstage.length ===
-        0
-    ){
-
-        alert(
-            'Bitte mindestens einen Arbeitstag auswählen.'
-        );
-
-        return;
-    }
-
-
     const teile =
         monat.split('-');
-
 
     const jahr =
         Number(
             teile[0]
         );
 
-
     const mon =
         Number(
             teile[1]
         );
-
 
     const letzterTag =
         new Date(
@@ -2949,10 +2560,8 @@ function monatErstellen(){
             0
         ).getDate();
 
-
     aktuellerZettel =
         [];
-
 
     for(
         let tag = 1;
@@ -2967,12 +2576,10 @@ function monatErstellen(){
                 tag
             );
 
-
         const arbeitet =
             arbeitstage.includes(
                 datum.getDay()
             );
-
 
         aktuellerZettel.push({
 
@@ -2983,52 +2590,41 @@ function monatErstellen(){
 
             status:
                 arbeitet
-                ?
-                'Arbeit'
-                :
-                'Frei',
+                    ? 'Arbeit'
+                    : 'Frei',
 
             start:
                 arbeitet
-                ?
-                start
-                :
-                '',
+                    ? start
+                    : '',
 
             ende:
                 arbeitet
-                ?
-                ende
-                :
-                '',
+                    ? ende
+                    : '',
 
             pause:
                 arbeitet
-                ?
-                pause
-                :
-                0,
+                    ? pause
+                    : 0,
 
             stunden:
                 arbeitet
-                ?
-                stundenBerechnen(
-                    start,
-                    ende,
-                    pause
-                )
-                :
-                0,
+                    ?
+                    stundenBerechnen(
+                        start,
+                        ende,
+                        pause
+                    )
+                    :
+                    0,
 
             objekt:
                 arbeitet
-                ?
-                objekt
-                :
-                ''
+                    ? objekt
+                    : ''
         });
     }
-
 
     zettelAnzeigen();
 }
@@ -3039,10 +2635,8 @@ function zettelAnzeigen(){
     const tbody =
         el('stundenTabelle');
 
-
     tbody.innerHTML =
         '';
-
 
     aktuellerZettel.forEach(
         function(
@@ -3051,207 +2645,133 @@ function zettelAnzeigen(){
         ){
 
             const arbeitet =
-
-                zettel.status ===
-                'Arbeit';
-
+                zettel.status === 'Arbeit';
 
             const tr =
                 document.createElement(
                     'tr'
                 );
 
-
             tr.className =
-
                 arbeitet
-                ?
-                'arbeit'
-                :
-                'frei';
-
+                    ? 'arbeit'
+                    : 'frei';
 
             tr.innerHTML =
 
                 '<td>' +
-
                 esc(
                     zettel.datum
                 ) +
-
                 '</td>' +
-
 
                 '<td>' +
 
                 '<select class="table-select" onchange="zettelStatusAendern(' +
-
                 index +
-
                 ',this.value)">' +
 
                 '<option value="Arbeit"' +
-
                 (
                     arbeitet
-                    ?
-                    ' selected'
-                    :
-                    ''
-                )
-
-                +
-
+                        ? ' selected'
+                        : ''
+                ) +
                 '>Arbeit</option>' +
 
                 '<option value="Frei"' +
-
                 (
                     !arbeitet
-                    ?
-                    ' selected'
-                    :
-                    ''
-                )
-
-                +
-
+                        ? ' selected'
+                        : ''
+                ) +
                 '>Frei</option>' +
 
                 '</select>' +
 
                 '</td>' +
 
-
                 '<td>' +
 
                 '<input class="table-input" type="time" value="' +
-
                 esc(
                     zettel.start
                 ) +
-
                 '" ' +
-
                 (
                     arbeitet
-                    ?
-                    ''
-                    :
-                    'disabled '
-                )
-
-                +
-
+                        ? ''
+                        : 'disabled '
+                ) +
                 'onchange="zettelWertAendern(' +
-
                 index +
-
                 ',\'start\',this.value)">' +
 
                 '</td>' +
 
-
                 '<td>' +
 
                 '<input class="table-input" type="time" value="' +
-
                 esc(
                     zettel.ende
                 ) +
-
                 '" ' +
-
                 (
                     arbeitet
-                    ?
-                    ''
-                    :
-                    'disabled '
-                )
-
-                +
-
+                        ? ''
+                        : 'disabled '
+                ) +
                 'onchange="zettelWertAendern(' +
-
                 index +
-
                 ',\'ende\',this.value)">' +
 
                 '</td>' +
 
-
                 '<td>' +
 
                 '<input class="table-input table-pause" type="number" min="0" value="' +
-
                 esc(
                     zettel.pause
                 ) +
-
                 '" ' +
-
                 (
                     arbeitet
-                    ?
-                    ''
-                    :
-                    'disabled '
-                )
-
-                +
-
+                        ? ''
+                        : 'disabled '
+                ) +
                 'onchange="zettelWertAendern(' +
-
                 index +
-
                 ',\'pause\',this.value)">' +
 
                 '</td>' +
 
-
                 '<td id="stundenWert_' +
-
                 index +
-
                 '">' +
 
                 Number(
-                    zettel.stunden ||
-                    0
+                    zettel.stunden || 0
                 ).toFixed(2) +
 
                 '</td>' +
 
-
                 '<td>' +
 
                 '<input class="table-input table-objekt" type="text" value="' +
-
                 esc(
                     zettel.objekt
                 ) +
-
                 '" ' +
-
                 (
                     arbeitet
-                    ?
-                    ''
-                    :
-                    'disabled '
-                )
-
-                +
-
+                        ? ''
+                        : 'disabled '
+                ) +
                 'onchange="zettelWertAendern(' +
-
                 index +
-
                 ',\'objekt\',this.value)">' +
 
                 '</td>';
-
 
             tbody.appendChild(
                 tr
@@ -3259,31 +2779,17 @@ function zettelAnzeigen(){
         }
     );
 
-
     el('stundenKopf').innerHTML =
 
-        '<br><strong>Mitarbeiter:</strong> '
-
-        +
-
+        '<br><strong>Mitarbeiter:</strong> ' +
         esc(
             getMitarbeiterName()
-        )
-
-        +
-
-        '<br>'
-
-        +
-
-        '<strong>Monat:</strong> '
-
-        +
-
+        ) +
+        '<br>' +
+        '<strong>Monat:</strong> ' +
         esc(
             el('zeitMonat').value
         );
-
 
     stundenGesamtAktualisieren();
 }
@@ -3297,53 +2803,24 @@ function zettelStatusAendern(
     const zettel =
         aktuellerZettel[index];
 
-
     if(!zettel){
-
         return;
     }
-
 
     zettel.status =
         status;
 
-
     if(
-        status ===
-        'Arbeit'
+        status === 'Arbeit'
     ){
 
         if(!zettel.start){
-
-            zettel.start =
-                el('zeitStart').value ||
-                '08:00';
+            zettel.start = '08:00';
         }
-
 
         if(!zettel.ende){
-
-            zettel.ende =
-                el('zeitEnde').value ||
-                '16:00';
+            zettel.ende = '16:00';
         }
-
-
-        zettel.pause =
-            Number(
-                zettel.pause ||
-                el('zeitPause').value ||
-                0
-            );
-
-
-        if(!zettel.objekt){
-
-            zettel.objekt =
-                el('zeitObjekt').value ||
-                '';
-        }
-
 
         zettel.stunden =
             stundenBerechnen(
@@ -3352,13 +2829,11 @@ function zettelStatusAendern(
                 zettel.pause
             );
 
-
     }else{
 
         zettel.stunden =
             0;
     }
-
 
     zettelAnzeigen();
 }
@@ -3373,27 +2848,19 @@ function zettelWertAendern(
     const zettel =
         aktuellerZettel[index];
 
-
     if(!zettel){
-
         return;
     }
 
-
-    if(
-        feld ===
-        'pause'
-    ){
+    if(feld === 'pause'){
 
         zettel.pause =
             Math.max(
                 0,
                 Number(
-                    wert ||
-                    0
+                    wert || 0
                 )
             );
-
 
     }else{
 
@@ -3401,10 +2868,8 @@ function zettelWertAendern(
             wert;
     }
 
-
     if(
-        zettel.status ===
-        'Arbeit'
+        zettel.status === 'Arbeit'
     ){
 
         zettel.stunden =
@@ -3414,30 +2879,25 @@ function zettelWertAendern(
                 zettel.pause
             );
 
-
     }else{
 
         zettel.stunden =
             0;
     }
 
-
-    const feldStunden =
+    const stundenFeld =
         el(
             'stundenWert_' +
             index
         );
 
+    if(stundenFeld){
 
-    if(feldStunden){
-
-        feldStunden.textContent =
+        stundenFeld.textContent =
             Number(
-                zettel.stunden ||
-                0
+                zettel.stunden || 0
             ).toFixed(2);
     }
-
 
     stundenGesamtAktualisieren();
 }
@@ -3448,33 +2908,26 @@ function stundenGesamtAktualisieren(){
     let gesamt =
         0;
 
-
     aktuellerZettel.forEach(
         function(zettel){
 
             if(
-                zettel.status ===
-                'Arbeit'
+                zettel.status === 'Arbeit'
             ){
 
                 gesamt +=
-
                     Number(
-                        zettel.stunden ||
-                        0
+                        zettel.stunden || 0
                     );
             }
         }
     );
 
-
     const box =
         el('stundenGesamt');
 
-
     if(
-        aktuellerZettel.length ===
-        0
+        aktuellerZettel.length === 0
     ){
 
         box.style.display =
@@ -3483,10 +2936,8 @@ function stundenGesamtAktualisieren(){
         return;
     }
 
-
     box.style.display =
         'block';
-
 
     box.innerHTML =
 
@@ -3496,9 +2947,7 @@ function stundenGesamtAktualisieren(){
 
         gesamt
             .toFixed(2)
-            .replace('.',',')
-
-        +
+            .replace('.',',') +
 
         ' Stunden</div>';
 }
@@ -3507,25 +2956,21 @@ function stundenGesamtAktualisieren(){
 function stundenzettelSpeichern(){
 
     if(
-        aktuellerZettel.length ===
-        0
+        aktuellerZettel.length === 0
     ){
 
         alert(
-            'Bitte zuerst einen Monat öffnen oder erstellen.'
+            'Bitte zuerst einen Monat öffnen.'
         );
 
         return;
     }
 
-
     const mitarbeiterId =
-        el('zeitMitarbeiter').value;
-
+        getMitarbeiterId();
 
     const monat =
         el('zeitMonat').value;
-
 
     if(
         !mitarbeiterId ||
@@ -3533,19 +2978,17 @@ function stundenzettelSpeichern(){
     ){
 
         alert(
-            'Bitte Mitarbeiter und Monat auswählen.'
+            'Mitarbeiter oder Monat fehlt.'
         );
 
         return;
     }
 
-
     aktuellerZettel.forEach(
         function(zettel){
 
             if(
-                zettel.status ===
-                'Arbeit'
+                zettel.status === 'Arbeit'
             ){
 
                 zettel.stunden =
@@ -3555,7 +2998,6 @@ function stundenzettelSpeichern(){
                         zettel.pause
                     );
 
-
             }else{
 
                 zettel.stunden =
@@ -3564,32 +3006,21 @@ function stundenzettelSpeichern(){
         }
     );
 
-
     const alle =
         laden(
             'stundenzettel'
         );
 
-
     const key =
-
         String(
             mitarbeiterId
-        )
-
-        +
-
-        '_'
-
-        +
-
+        ) +
+        '_' +
         monat;
-
 
     const zettel = {
 
-        key:
-            key,
+        key:key,
 
         mitarbeiterId:
             String(
@@ -3606,26 +3037,20 @@ function stundenzettelSpeichern(){
             aktuellerZettel
     };
 
-
     const index =
         alle.findIndex(
             function(x){
 
                 return (
-                    x.key ===
-                    key
+                    x.key === key
                 );
             }
         );
 
-
-    if(
-        index >= 0
-    ){
+    if(index >= 0){
 
         alle[index] =
             zettel;
-
 
     }else{
 
@@ -3634,76 +3059,47 @@ function stundenzettelSpeichern(){
         );
     }
 
-
     speichern(
         'stundenzettel',
         alle
     );
-
 
     if(
         window.Android &&
         typeof Android.saveTimesheetToFirestore === 'function'
     ){
 
-        try{
+        Android.saveTimesheetToFirestore(
 
-            Android.saveTimesheetToFirestore(
+            String(
+                mitarbeiterId
+            ),
 
-                String(
-                    mitarbeiterId
-                ),
+            getMitarbeiterName(),
 
-                getMitarbeiterName(),
+            monat,
 
-                monat,
-
-                JSON.stringify(
-                    aktuellerZettel
-                )
-            );
-
-
-        }catch(e){
-
-            console.error(
-                'Firebase Stundenzettel speichern fehlgeschlagen',
-                e
-            );
-        }
+            JSON.stringify(
+                aktuellerZettel
+            )
+        );
     }
-
-
-    mitarbeiterStundenzettelAnzeigen();
-
-    stundenGesamtAktualisieren();
-
 
     alert(
         'Stundenzettel gespeichert. ✅'
     );
+
+    mitarbeiterStundenzettelAnzeigen();
 }
 
 
 function gespeichertenZettelLaden(){
 
-    const select =
-        el('zeitMitarbeiter');
-
-
-    if(!select){
-
-        return;
-    }
-
-
     const mitarbeiterId =
-        select.value;
-
+        getMitarbeiterId();
 
     const monat =
         el('zeitMonat').value;
-
 
     if(
         !mitarbeiterId ||
@@ -3713,47 +3109,33 @@ function gespeichertenZettelLaden(){
         return;
     }
 
-
     const zettel =
         laden('stundenzettel')
-
         .find(
             function(x){
 
                 return (
-
                     String(
                         x.mitarbeiterId
-                    )
-
-                    ===
-
+                    ) ===
                     String(
                         mitarbeiterId
-                    )
-
-                    &&
-
-                    x.monat ===
-                    monat
+                    ) &&
+                    x.monat === monat
                 );
             }
         );
-
 
     if(!zettel){
 
         aktuellerZettel =
             [];
 
-
         el('stundenTabelle').innerHTML =
             '';
 
-
         el('stundenGesamt').style.display =
             'none';
-
 
         el('stundenKopf').innerHTML =
 
@@ -3763,69 +3145,15 @@ function gespeichertenZettelLaden(){
 
             '</div>';
 
-
         return;
     }
-
 
     aktuellerZettel =
         JSON.parse(
             JSON.stringify(
-                zettel.tage ||
-                []
+                zettel.tage || []
             )
         );
-
-
-    aktuellerZettel.forEach(
-        function(tag){
-
-            tag.status =
-                tag.status ||
-                'Frei';
-
-
-            tag.start =
-                tag.start ||
-                '';
-
-
-            tag.ende =
-                tag.ende ||
-                '';
-
-
-            tag.pause =
-                Number(
-                    tag.pause ||
-                    0
-                );
-
-
-            tag.objekt =
-                tag.objekt ||
-                '';
-
-
-            tag.stunden =
-
-                tag.status ===
-                'Arbeit'
-
-                ?
-
-                stundenBerechnen(
-                    tag.start,
-                    tag.ende,
-                    tag.pause
-                )
-
-                :
-
-                0;
-        }
-    );
-
 
     zettelAnzeigen();
 }
@@ -3834,8 +3162,14 @@ function gespeichertenZettelLaden(){
 function pdfErstellen(){
 
     if(
-        aktuellerZettel.length ===
-        0
+        employeeMode
+    ){
+
+        return;
+    }
+
+    if(
+        aktuellerZettel.length === 0
     ){
 
         alert(
@@ -3844,7 +3178,6 @@ function pdfErstellen(){
 
         return;
     }
-
 
     if(
         window.Android &&
@@ -3861,13 +3194,6 @@ function pdfErstellen(){
                 aktuellerZettel
             )
         );
-
-
-    }else{
-
-        alert(
-            'PDF-Erstellung ist nur in der Android-App verfügbar.'
-        );
     }
 }
 
@@ -3881,7 +3207,6 @@ function kundeSpeichern(){
     const name =
         el('kundeName').value.trim();
 
-
     if(!name){
 
         alert(
@@ -3891,15 +3216,12 @@ function kundeSpeichern(){
         return;
     }
 
-
     const daten =
         laden('kunden');
 
-
     daten.push({
 
-        name:
-            name,
+        name:name,
 
         adresse:
             el('kundeAdresse').value,
@@ -3914,12 +3236,10 @@ function kundeSpeichern(){
             el('kundeNotiz').value
     });
 
-
     speichern(
         'kunden',
         daten
     );
-
 
     kundenAnzeigen();
 }
@@ -3930,20 +3250,15 @@ function kundenAnzeigen(){
     const box =
         el('kundenListe');
 
-
     if(!box){
-
         return;
     }
-
 
     const daten =
         laden('kunden');
 
-
     box.innerHTML =
         '';
-
 
     daten.forEach(
         function(
@@ -3956,38 +3271,16 @@ function kundenAnzeigen(){
                 '<div class="item">' +
 
                 '<strong>' +
-
-                esc(
-                    kunde.name
-                ) +
-
+                esc(kunde.name) +
                 '</strong><br>' +
 
-                esc(
-                    kunde.adresse
-                ) +
-
+                esc(kunde.adresse) +
                 '<br>' +
 
-                esc(
-                    kunde.telefon
-                ) +
-
+                esc(kunde.telefon) +
                 '<br>' +
 
-                esc(
-                    kunde.email
-                ) +
-
-                '<button class="danger" onclick="loeschen(\'kunden\',' +
-
-                index +
-
-                ')">' +
-
-                'Löschen' +
-
-                '</button>' +
+                esc(kunde.email) +
 
                 '</div>';
         }
@@ -4004,7 +3297,6 @@ function auftragSpeichern(){
     const kunde =
         el('auftragKunde').value.trim();
 
-
     if(!kunde){
 
         alert(
@@ -4014,11 +3306,9 @@ function auftragSpeichern(){
         return;
     }
 
-
     const auftrag = {
 
-        kunde:
-            kunde,
+        kunde:kunde,
 
         ort:
             el('auftragOrt').value,
@@ -4036,24 +3326,19 @@ function auftragSpeichern(){
             el('auftragNotiz').value
     };
 
-
     const daten =
         laden('auftraege');
-
 
     daten.push(
         auftrag
     );
-
 
     speichern(
         'auftraege',
         daten
     );
 
-
     auftraegeAnzeigen();
-
 
     if(
         window.Android &&
@@ -4076,7 +3361,6 @@ function auftragSpeichern(){
         );
     }
 
-
     alert(
         'Auftrag gespeichert. ✅'
     );
@@ -4088,76 +3372,40 @@ function auftraegeAnzeigen(){
     const box =
         el('auftragListe');
 
-
     if(!box){
-
         return;
     }
-
 
     const daten =
         laden('auftraege');
 
-
     box.innerHTML =
         '';
 
-
     daten.forEach(
-        function(
-            auftrag,
-            index
-        ){
+        function(auftrag){
 
             box.innerHTML +=
 
                 '<div class="item">' +
 
                 '<strong>' +
-
-                esc(
-                    auftrag.kunde
-                ) +
-
+                esc(auftrag.kunde) +
                 '</strong><br>' +
 
-                esc(
-                    auftrag.art
-                ) +
-
+                esc(auftrag.art) +
                 '<br>' +
 
-                esc(
-                    auftrag.ort
-                ) +
-
+                esc(auftrag.ort) +
                 '<br>' +
 
-                esc(
-                    auftrag.datum
-                ) +
-
+                esc(auftrag.datum) +
                 '<br>' +
 
-                esc(
-                    auftrag.preis
-                ) +
-
+                esc(auftrag.preis) +
                 ' €<br>' +
 
-                esc(
-                    auftrag.notiz
-                ) +
-
-                '<button class="danger" onclick="loeschen(\'auftraege\',' +
-
-                index +
-
-                ')">' +
-
-                'Löschen' +
-
-                '</button>' +
+                esc(auftrag.notiz) +
 
                 '</div>';
         }
@@ -4174,7 +3422,6 @@ function rechnungSpeichern(){
     const kunde =
         el('rechnungKunde').value.trim();
 
-
     if(!kunde){
 
         alert(
@@ -4184,15 +3431,12 @@ function rechnungSpeichern(){
         return;
     }
 
-
     const daten =
         laden('rechnungen');
 
-
     daten.push({
 
-        kunde:
-            kunde,
+        kunde:kunde,
 
         nummer:
             el('rechnungNummer').value,
@@ -4207,12 +3451,10 @@ function rechnungSpeichern(){
             el('rechnungStatus').value
     });
 
-
     speichern(
         'rechnungen',
         daten
     );
-
 
     rechnungenAnzeigen();
 }
@@ -4223,115 +3465,42 @@ function rechnungenAnzeigen(){
     const box =
         el('rechnungListe');
 
-
     if(!box){
-
         return;
     }
-
 
     const daten =
         laden('rechnungen');
 
-
     box.innerHTML =
         '';
 
-
     daten.forEach(
-        function(
-            r,
-            index
-        ){
+        function(r){
 
             box.innerHTML +=
 
                 '<div class="item">' +
 
                 '<strong>' +
-
-                esc(
-                    r.kunde
-                ) +
-
+                esc(r.kunde) +
                 '</strong><br>' +
 
                 'Nr.: ' +
-
-                esc(
-                    r.nummer
-                ) +
-
+                esc(r.nummer) +
                 '<br>' +
 
-                esc(
-                    r.betrag
-                ) +
-
+                esc(r.betrag) +
                 ' €<br>' +
 
-                esc(
-                    r.datum
-                ) +
-
+                esc(r.datum) +
                 '<br>' +
 
-                esc(
-                    r.status
-                ) +
-
-                '<button class="danger" onclick="loeschen(\'rechnungen\',' +
-
-                index +
-
-                ')">' +
-
-                'Löschen' +
-
-                '</button>' +
+                esc(r.status) +
 
                 '</div>';
         }
     );
-}
-
-
-/* =====================================================
-   LÖSCHEN
-   ===================================================== */
-
-function loeschen(
-    key,
-    index
-){
-
-    if(
-        !confirm(
-            'Eintrag wirklich löschen?'
-        )
-    ){
-
-        return;
-    }
-
-
-    const daten =
-        laden(key);
-
-
-    daten.splice(
-        index,
-        1
-    );
-
-
-    speichern(
-        key,
-        daten
-    );
-
-
-    aktualisieren();
 }
 
 
@@ -4342,11 +3511,8 @@ function loeschen(
 function aktualisieren(){
 
     mitarbeiterAnzeigen();
-
     kundenAnzeigen();
-
     auftraegeAnzeigen();
-
     rechnungenAnzeigen();
 }
 
@@ -4363,20 +3529,34 @@ function(){
             '.page.active'
         );
 
-
     if(
         page &&
-        page.id !==
-        'home'
+        page.id !== 'login'
     ){
 
-        openPage(
-            'home'
-        );
+        if(
+            page.id !== 'home'
+        ){
 
-        return true;
+            openPage(
+                'home'
+            );
+
+            return true;
+        }
+
+        if(
+            employeeMode ||
+            adminMode
+        ){
+
+            openPage(
+                'login'
+            );
+
+            return true;
+        }
     }
-
 
     return false;
 };
@@ -4391,16 +3571,11 @@ function(){
     const heute =
         new Date();
 
-
     el('zeitMonat').value =
 
-        heute.getFullYear()
+        heute.getFullYear() +
 
-        +
-
-        '-'
-
-        +
+        '-' +
 
         String(
             heute.getMonth() + 1
@@ -4408,7 +3583,6 @@ function(){
             2,
             '0'
         );
-
 
     serviceChanged();
 
@@ -4418,21 +3592,14 @@ function(){
 
     mitarbeiterAuswahl();
 
+    loginListeAktualisieren();
+
     kundenAnzeigen();
 
     auftraegeAnzeigen();
 
     rechnungenAnzeigen();
 
-
-    /*
-     * Reihenfolge wichtig:
-     *
-     * 1. Mitarbeiter laden
-     * 2. Stundenzettel laden
-     * 3. Falls nötig Mitarbeiter aus alten
-     *    Stundenzetteln rekonstruieren
-     */
 
     setTimeout(
         function(){
@@ -4452,7 +3619,7 @@ function(){
             stundenzettelAusFirestoreLaden();
 
         },
-        900
+        800
     );
 
 })();
