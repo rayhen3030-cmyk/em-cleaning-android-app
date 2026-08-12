@@ -3753,8 +3753,14 @@ function auftragSpeichern(){
         'auftraege',
         daten
         );
-        Android.saveOrderToFirestore(daten.kunde, daten.ort, daten.art, daten.datum, daten.preis, daten.notiz);
-
+       Android.saveOrderToFirestore(
+    kunde,
+    el('auftragOrt').value,
+    el('auftragArt').value,
+    el('auftragDatum').value,
+    el('auftragPreis').value,
+    el('auftragNotiz').value
+); 
 
 
     auftraegeAnzeigen();
