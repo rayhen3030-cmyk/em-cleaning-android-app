@@ -13,8 +13,6 @@
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
 
-        <!-- ARCore ist optional:
-             Die App funktioniert auch auf Geräten ohne ARCore. -->
         <meta-data
             android:name="com.google.ar.core"
             android:value="optional" />
