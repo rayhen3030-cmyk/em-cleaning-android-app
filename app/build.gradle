@@ -13,8 +13,8 @@ android {
         minSdk 24
         targetSdk 35
 
-        versionCode 2
-        versionName "2.0"
+        versionCode 3
+        versionName "3.0"
     }
 
     compileOptions {
@@ -29,8 +29,11 @@ dependencies {
     implementation 'com.google.ar:core:1.54.0'
 
     // Firebase
-    implementation platform('com.google.firebase:firebase-bom:34.2.0')
+    implementation platform('com.google.firebase:firebase-bom:34.0.0')
 
-    implementation 'com.google.firebase:firebase-firestore'
+    // Firebase Authentication
     implementation 'com.google.firebase:firebase-auth'
+
+    // Cloud Firestore
+    implementation 'com.google.firebase:firebase-firestore'
 }
