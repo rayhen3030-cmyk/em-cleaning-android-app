@@ -1,12 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Internet für Firebase -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Kamera für Fenster-/AR-Messung -->
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!-- Kamera ist hilfreich, aber App kann grundsätzlich auch ohne installiert werden -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -17,23 +13,24 @@
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
 
-        <!-- Haupt-App -->
+        <!-- ARCore ist optional:
+             Die App funktioniert auch auf Geräten ohne ARCore. -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="optional" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait">
 
             <intent-filter>
-
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
-
             </intent-filter>
 
         </activity>
 
-        <!-- Fenster-/Kamera-Messung -->
         <activity
             android:name=".MeasureActivity"
             android:exported="false"
