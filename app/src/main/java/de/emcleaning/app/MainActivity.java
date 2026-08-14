@@ -1,4 +1,4 @@
-package de.emcleaning.app;
+   package de.emcleaning.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -34,107 +34,51 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-
 public class MainActivity extends Activity {
 
-
-    /* =====================================================
-       WEBVIEW
-    ===================================================== */
-
     private WebView webView;
-
     private ValueCallback<Uri[]> filePathCallback;
 
-
     private static final int FILE_CHOOSER_REQUEST = 1001;
-
     private static final int AR_MEASURE_REQUEST = 2001;
-
     private static final int PDF_CREATE_REQUEST = 3001;
-
-
-    /* =====================================================
-       ADMIN
-    ===================================================== */
 
     private static final String ADMIN_PIN = "2012";
 
-
     private boolean adminLoggedIn = false;
-
-
-    /* =====================================================
-       EMPLOYEE LOGIN
-    ===================================================== */
-
-    private String loggedEmployeeId = "";
-
-    private String loggedEmployeeName = "";
-
-
-    /* =====================================================
-       AR
-    ===================================================== */
-
     private boolean arMeasurementRunning = false;
 
-
-    /* =====================================================
-       PDF
-    ===================================================== */
+    private String loggedEmployeeId = "";
+    private String loggedEmployeeName = "";
 
     private String pendingPdfEmployee = "";
-
     private String pendingPdfMonth = "";
-
     private String pendingPdfJson = "[]";
-
     private Uri lastSavedPdfUri = null;
-
-
-    /* =====================================================
-       ON CREATE
-    ===================================================== */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-
 
         ensureFirebaseAuth(null);
 
-
         webView = new WebView(this);
-
         setContentView(webView);
 
-
-        WebSettings settings =
-                webView.getSettings();
-
+        WebSettings settings = webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
-
         settings.setDomStorageEnabled(true);
-
         settings.setAllowFileAccess(true);
-
         settings.setAllowContentAccess(true);
-
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
-
         settings.setSupportMultipleWindows(false);
-
 
         webView.setWebViewClient(
                 new WebViewClient()
         );
 
-
         webView.setWebChromeClient(
-
                 new WebChromeClient() {
 
                     @Override
@@ -145,50 +89,36 @@ public class MainActivity extends Activity {
                     ) {
 
                         if (filePathCallback != null) {
-
                             filePathCallback.onReceiveValue(null);
                         }
 
-
                         filePathCallback = callback;
-
 
                         try {
 
                             Intent intent =
                                     params.createIntent();
 
-
-                            intent.setType(
-                                    "image/*"
-                            );
-
-
                             startActivityForResult(
                                     intent,
                                     FILE_CHOOSER_REQUEST
                             );
 
-
                             return true;
-
 
                         } catch (Exception e) {
 
                             filePathCallback = null;
-
                             return false;
                         }
                     }
                 }
         );
 
-
         webView.addJavascriptInterface(
                 new AndroidBridge(),
                 "Android"
         );
-
 
         if (savedInstanceState != null) {
 
@@ -216,17 +146,14 @@ public class MainActivity extends Activity {
         FirebaseAuth auth =
                 FirebaseAuth.getInstance();
 
-
         if (auth.getCurrentUser() != null) {
 
             if (action != null) {
-
                 action.run();
             }
 
             return;
         }
-
 
         auth.signInAnonymously()
 
@@ -234,7 +161,6 @@ public class MainActivity extends Activity {
                         result -> {
 
                             if (action != null) {
-
                                 action.run();
                             }
                         }
@@ -243,33 +169,28 @@ public class MainActivity extends Activity {
                 .addOnFailureListener(
                         e -> toast(
                                 "Firebase-Anmeldung fehlgeschlagen: "
-                                        +
-                                        e.getMessage()
+                                        + e.getMessage()
                         )
                 );
     }
 
 
     private FirebaseFirestore db() {
-
         return FirebaseFirestore.getInstance();
     }
 
-
-    /* =====================================================
-       HELPERS
-    ===================================================== */
 
     private void toast(
             String text
     ) {
 
         runOnUiThread(
-                () -> Toast.makeText(
-                        MainActivity.this,
-                        text,
-                        Toast.LENGTH_LONG
-                ).show()
+                () ->
+                        Toast.makeText(
+                                MainActivity.this,
+                                text,
+                                Toast.LENGTH_LONG
+                        ).show()
         );
     }
 
@@ -279,10 +200,8 @@ public class MainActivity extends Activity {
     ) {
 
         return value == null
-                ?
-                ""
-                :
-                value;
+                ? ""
+                : value;
     }
 
 
@@ -295,17 +214,13 @@ public class MainActivity extends Activity {
 
             String value =
                     safe(employeeId)
-                            +
-                            ":"
-                            +
-                            safe(pin);
-
+                            + ":"
+                            + safe(pin);
 
             MessageDigest digest =
                     MessageDigest.getInstance(
                             "SHA-256"
                     );
-
 
             byte[] bytes =
                     digest.digest(
@@ -314,15 +229,12 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
             StringBuilder result =
                     new StringBuilder();
-
 
             for (byte b : bytes) {
 
                 result.append(
-
                         String.format(
                                 Locale.US,
                                 "%02x",
@@ -331,9 +243,7 @@ public class MainActivity extends Activity {
                 );
             }
 
-
             return result.toString();
-
 
         } catch (Exception e) {
 
@@ -354,17 +264,13 @@ public class MainActivity extends Activity {
                             field
                     );
 
-
             if (timestamp == null) {
-
                 return 0;
             }
-
 
             return timestamp
                     .toDate()
                     .getTime();
-
 
         } catch (Exception e) {
 
@@ -373,43 +279,31 @@ public class MainActivity extends Activity {
     }
 
 
-    /* =====================================================
-       JAVASCRIPT CALLBACK
-    ===================================================== */
-
     private void sendJs(
             String function,
             Object json
     ) {
 
         if (webView == null) {
-
             return;
         }
-
 
         String javascript =
 
                 "if(typeof window."
-                        +
-                        function
-                        +
-                        "==='function'){window."
-                        +
-                        function
-                        +
-                        "("
-                        +
-                        json.toString()
-                        +
-                        ");}";
-
+                        + function
+                        + "==='function'){window."
+                        + function
+                        + "("
+                        + json.toString()
+                        + ");}";
 
         webView.post(
-                () -> webView.evaluateJavascript(
-                        javascript,
-                        null
-                )
+                () ->
+                        webView.evaluateJavascript(
+                                javascript,
+                                null
+                        )
         );
     }
 
@@ -430,51 +324,40 @@ public class MainActivity extends Activity {
                 String pin
         ) {
 
-            String clean =
-                    safe(pin).trim();
-
-
             JSONObject result =
                     new JSONObject();
-
 
             try {
 
                 if (
                         ADMIN_PIN.equals(
-                                clean
+                                safe(pin).trim()
                         )
                 ) {
 
                     adminLoggedIn = true;
 
                     loggedEmployeeId = "";
-
                     loggedEmployeeName = "";
-
 
                     result.put(
                             "success",
                             true
                     );
 
-
                     result.put(
                             "message",
                             "Verwaltung geöffnet."
                     );
 
-
                 } else {
 
                     adminLoggedIn = false;
-
 
                     result.put(
                             "success",
                             false
                     );
-
 
                     result.put(
                             "message",
@@ -482,12 +365,10 @@ public class MainActivity extends Activity {
                     );
                 }
 
-
                 sendJs(
                         "receiveAdminLogin",
                         result
                 );
-
 
             } catch (Exception e) {
 
@@ -504,7 +385,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           MITARBEITER SPEICHERN
+           MITARBEITER
         ================================================= */
 
         @JavascriptInterface
@@ -526,14 +407,11 @@ public class MainActivity extends Activity {
                 return;
             }
 
-
             ensureFirebaseAuth(
                     () -> {
 
-
                         String employeeId =
                                 safe(id).trim();
-
 
                         if (employeeId.isEmpty()) {
 
@@ -543,14 +421,11 @@ public class MainActivity extends Activity {
                                     );
                         }
 
-
                         String employeeName =
                                 safe(name).trim();
 
-
                         String cleanPin =
                                 safe(pin).trim();
-
 
                         if (employeeName.isEmpty()) {
 
@@ -561,7 +436,6 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         if (
                                 !cleanPin.isEmpty()
                                         &&
@@ -571,19 +445,16 @@ public class MainActivity extends Activity {
                         ) {
 
                             toast(
-                                    "PIN muss aus genau vier Ziffern bestehen."
+                                    "PIN muss aus genau 4 Ziffern bestehen."
                             );
 
                             return;
                         }
 
-
                         final String finalId =
                                 employeeId;
 
-
                         DocumentReference ref =
-
                                 db()
                                         .collection(
                                                 "employees"
@@ -592,49 +463,40 @@ public class MainActivity extends Activity {
                                                 finalId
                                         );
 
-
                         ref.get()
 
                                 .addOnSuccessListener(
                                         snapshot -> {
 
-
                                             Map<String, Object> map =
                                                     new HashMap<>();
-
 
                                             map.put(
                                                     "id",
                                                     finalId
                                             );
 
-
                                             map.put(
                                                     "name",
                                                     employeeName
                                             );
-
 
                                             map.put(
                                                     "telefon",
                                                     safe(telefon)
                                             );
 
-
                                             map.put(
                                                     "art",
                                                     safe(art)
                                             );
-
 
                                             map.put(
                                                     "lohn",
                                                     safe(lohn)
                                             );
 
-
                                             if (!cleanPin.isEmpty()) {
-
 
                                                 map.put(
                                                         "pinHash",
@@ -644,39 +506,31 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
-
                                                 map.put(
                                                         "pinSet",
                                                         true
                                                 );
 
-
                                             } else {
-
 
                                                 Object oldHash =
                                                         snapshot.get(
                                                                 "pinHash"
                                                         );
 
-
                                                 if (oldHash != null) {
-
 
                                                     map.put(
                                                             "pinHash",
                                                             oldHash
                                                     );
 
-
                                                     map.put(
                                                             "pinSet",
                                                             true
                                                     );
 
-
                                                 } else {
-
 
                                                     map.put(
                                                             "pinSet",
@@ -685,12 +539,10 @@ public class MainActivity extends Activity {
                                                 }
                                             }
 
-
                                             map.put(
                                                     "updatedAt",
                                                     FieldValue.serverTimestamp()
                                             );
-
 
                                             ref.set(
                                                     map
@@ -716,10 +568,6 @@ public class MainActivity extends Activity {
         }
 
 
-        /* =================================================
-           MITARBEITER LADEN
-        ================================================= */
-
         @JavascriptInterface
         public void loadEmployeesFromFirestore() {
 
@@ -735,23 +583,18 @@ public class MainActivity extends Activity {
                                     .addOnSuccessListener(
                                             snapshots -> {
 
-
                                                 JSONArray result =
                                                         new JSONArray();
-
 
                                                 for (
                                                         QueryDocumentSnapshot doc :
                                                         snapshots
                                                 ) {
 
-
                                                     try {
-
 
                                                         JSONObject item =
                                                                 new JSONObject();
-
 
                                                         String id =
                                                                 safe(
@@ -760,19 +603,16 @@ public class MainActivity extends Activity {
                                                                         )
                                                                 );
 
-
                                                         if (id.isEmpty()) {
 
                                                             id =
                                                                     doc.getId();
                                                         }
 
-
                                                         item.put(
                                                                 "id",
                                                                 id
                                                         );
-
 
                                                         item.put(
                                                                 "name",
@@ -783,12 +623,10 @@ public class MainActivity extends Activity {
                                                                 )
                                                         );
 
-
                                                         Boolean pinSet =
                                                                 doc.getBoolean(
                                                                         "pinSet"
                                                                 );
-
 
                                                         item.put(
                                                                 "pinSet",
@@ -797,9 +635,7 @@ public class MainActivity extends Activity {
                                                                         pinSet
                                                         );
 
-
                                                         if (adminLoggedIn) {
-
 
                                                             item.put(
                                                                     "telefon",
@@ -810,7 +646,6 @@ public class MainActivity extends Activity {
                                                                     )
                                                             );
 
-
                                                             item.put(
                                                                     "art",
                                                                     safe(
@@ -819,7 +654,6 @@ public class MainActivity extends Activity {
                                                                             )
                                                                     )
                                                             );
-
 
                                                             item.put(
                                                                     "lohn",
@@ -831,18 +665,15 @@ public class MainActivity extends Activity {
                                                             );
                                                         }
 
-
                                                         result.put(
                                                                 item
                                                         );
-
 
                                                     } catch (Exception e) {
 
                                                         e.printStackTrace();
                                                     }
                                                 }
-
 
                                                 sendJs(
                                                         "receiveEmployeesFromFirestore",
@@ -855,7 +686,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           EMPLOYEE LOGIN
+           MITARBEITER LOGIN
         ================================================= */
 
         @JavascriptInterface
@@ -867,14 +698,11 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
-
                         String id =
                                 safe(employeeId).trim();
 
-
                         String cleanPin =
                                 safe(pin).trim();
-
 
                         if (
                                 id.isEmpty()
@@ -893,7 +721,6 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         db()
                                 .collection(
                                         "employees"
@@ -906,9 +733,7 @@ public class MainActivity extends Activity {
                                 .addOnSuccessListener(
                                         snapshot -> {
 
-
                                             if (!snapshot.exists()) {
-
 
                                                 sendEmployeeLogin(
                                                         false,
@@ -919,19 +744,16 @@ public class MainActivity extends Activity {
                                                 return;
                                             }
 
-
                                             String stored =
                                                     snapshot.getString(
                                                             "pinHash"
                                                     );
-
 
                                             if (
                                                     stored == null
                                                             ||
                                                             stored.trim().isEmpty()
                                             ) {
-
 
                                                 sendEmployeeLogin(
                                                         false,
@@ -942,20 +764,17 @@ public class MainActivity extends Activity {
                                                 return;
                                             }
 
-
                                             String entered =
                                                     pinHash(
                                                             id,
                                                             cleanPin
                                                     );
 
-
                                             if (
                                                     !stored.equals(
                                                             entered
                                                     )
                                             ) {
-
 
                                                 sendEmployeeLogin(
                                                         false,
@@ -966,19 +785,15 @@ public class MainActivity extends Activity {
                                                 return;
                                             }
 
-
                                             try {
-
 
                                                 JSONObject employee =
                                                         new JSONObject();
-
 
                                                 employee.put(
                                                         "id",
                                                         id
                                                 );
-
 
                                                 employee.put(
                                                         "name",
@@ -989,7 +804,6 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
-
                                                 employee.put(
                                                         "telefon",
                                                         safe(
@@ -998,7 +812,6 @@ public class MainActivity extends Activity {
                                                                 )
                                                         )
                                                 );
-
 
                                                 employee.put(
                                                         "art",
@@ -1009,7 +822,6 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
-
                                                 employee.put(
                                                         "lohn",
                                                         safe(
@@ -1019,10 +831,8 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
-
                                                 loggedEmployeeId =
                                                         id;
-
 
                                                 loggedEmployeeName =
                                                         safe(
@@ -1031,9 +841,8 @@ public class MainActivity extends Activity {
                                                                 )
                                                         );
 
-
-                                                adminLoggedIn = false;
-
+                                                adminLoggedIn =
+                                                        false;
 
                                                 sendEmployeeLogin(
                                                         true,
@@ -1041,9 +850,7 @@ public class MainActivity extends Activity {
                                                         "Anmeldung erfolgreich."
                                                 );
 
-
                                             } catch (Exception e) {
-
 
                                                 sendEmployeeLogin(
                                                         false,
@@ -1075,25 +882,20 @@ public class MainActivity extends Activity {
 
             try {
 
-
                 JSONObject result =
                         new JSONObject();
-
 
                 result.put(
                         "success",
                         success
                 );
 
-
                 result.put(
                         "message",
                         message
                 );
 
-
                 if (employee != null) {
-
 
                     result.put(
                             "employee",
@@ -1101,12 +903,10 @@ public class MainActivity extends Activity {
                     );
                 }
 
-
                 sendJs(
                         "receiveEmployeeLogin",
                         result
                 );
-
 
             } catch (Exception e) {
 
@@ -1125,7 +925,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           STUNDENZETTEL SPEICHERN
+           STUNDENZETTEL
         ================================================= */
 
         @JavascriptInterface
@@ -1139,41 +939,25 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
+                        String finalId =
+                                adminLoggedIn
+                                        ?
+                                        safe(employeeId).trim()
+                                        :
+                                        loggedEmployeeId;
 
-                        String finalId;
-
-                        String finalName;
-
-
-                        if (adminLoggedIn) {
-
-
-                            finalId =
-                                    safe(employeeId).trim();
-
-
-                            finalName =
-                                    safe(employeeName).trim();
-
-
-                        } else {
-
-
-                            finalId =
-                                    loggedEmployeeId;
-
-
-                            finalName =
-                                    loggedEmployeeName;
-                        }
-
+                        String finalName =
+                                adminLoggedIn
+                                        ?
+                                        safe(employeeName).trim()
+                                        :
+                                        loggedEmployeeName;
 
                         if (
-                                finalId.trim().isEmpty()
+                                finalId.isEmpty()
                                         ||
                                         safe(month).trim().isEmpty()
                         ) {
-
 
                             toast(
                                     "Mitarbeiter oder Monat fehlt."
@@ -1182,7 +966,6 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         String documentId =
                                 finalId
                                         +
@@ -1190,34 +973,28 @@ public class MainActivity extends Activity {
                                         +
                                         safe(month);
 
-
                         Map<String, Object> map =
                                 new HashMap<>();
-
 
                         map.put(
                                 "key",
                                 documentId
                         );
 
-
                         map.put(
                                 "mitarbeiterId",
                                 finalId
                         );
-
 
                         map.put(
                                 "mitarbeiter",
                                 finalName
                         );
 
-
                         map.put(
                                 "monat",
                                 safe(month)
                         );
-
 
                         map.put(
                                 "tageJson",
@@ -1228,12 +1005,10 @@ public class MainActivity extends Activity {
                                         json
                         );
 
-
                         map.put(
                                 "updatedAt",
                                 FieldValue.serverTimestamp()
                         );
-
 
                         db()
                                 .collection(
@@ -1268,16 +1043,11 @@ public class MainActivity extends Activity {
         }
 
 
-        /* =================================================
-           STUNDENZETTEL LADEN
-        ================================================= */
-
         @JavascriptInterface
         public void loadTimesheetsFromFirestore() {
 
             ensureFirebaseAuth(
                     () -> {
-
 
                         if (
                                 !adminLoggedIn
@@ -1288,9 +1058,7 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         if (adminLoggedIn) {
-
 
                             db()
                                     .collection(
@@ -1300,18 +1068,9 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTimesheets
-                                    )
-
-                                    .addOnFailureListener(
-                                            e ->
-                                                    toast(
-                                                            "Stundenzettel konnten nicht geladen werden."
-                                                    )
                                     );
 
-
                         } else {
-
 
                             db()
                                     .collection(
@@ -1325,13 +1084,6 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTimesheets
-                                    )
-
-                                    .addOnFailureListener(
-                                            e ->
-                                                    toast(
-                                                            "Stundenzettel konnten nicht geladen werden."
-                                                    )
                                     );
                         }
                     }
@@ -1343,23 +1095,18 @@ public class MainActivity extends Activity {
                 QuerySnapshot snapshots
         ) {
 
-
             JSONArray result =
                     new JSONArray();
-
 
             for (
                     QueryDocumentSnapshot doc :
                     snapshots
             ) {
 
-
                 try {
-
 
                     JSONObject item =
                             new JSONObject();
-
 
                     item.put(
                             "key",
@@ -1370,7 +1117,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "mitarbeiterId",
                             safe(
@@ -1379,7 +1125,6 @@ public class MainActivity extends Activity {
                                     )
                             )
                     );
-
 
                     item.put(
                             "mitarbeiter",
@@ -1390,7 +1135,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "monat",
                             safe(
@@ -1400,12 +1144,10 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     String tageJson =
                             doc.getString(
                                     "tageJson"
                             );
-
 
                     if (
                             tageJson == null
@@ -1413,18 +1155,14 @@ public class MainActivity extends Activity {
                                     tageJson.trim().isEmpty()
                     ) {
 
-
                         item.put(
                                 "tage",
                                 new JSONArray()
                         );
 
-
                     } else {
 
-
                         try {
-
 
                             item.put(
                                     "tage",
@@ -1433,9 +1171,7 @@ public class MainActivity extends Activity {
                                     )
                             );
 
-
                         } catch (Exception e) {
-
 
                             item.put(
                                     "tage",
@@ -1444,18 +1180,15 @@ public class MainActivity extends Activity {
                         }
                     }
 
-
                     result.put(
                             item
                     );
-
 
                 } catch (Exception e) {
 
                     e.printStackTrace();
                 }
             }
-
 
             sendJs(
                     "receiveTimesheetsFromFirestore",
@@ -1478,94 +1211,73 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
-
                         String text =
                                 safe(message).trim();
-
 
                         if (text.isEmpty()) {
 
                             return;
                         }
 
-
                         String finalEmployeeId;
-
                         String finalEmployeeName;
-
                         String sender;
 
-
                         if (adminLoggedIn) {
-
 
                             finalEmployeeId =
                                     safe(employeeId);
 
-
                             finalEmployeeName =
                                     safe(employeeName);
-
 
                             sender =
                                     "admin";
 
-
                         } else {
-
 
                             finalEmployeeId =
                                     loggedEmployeeId;
 
-
                             finalEmployeeName =
                                     loggedEmployeeName;
-
 
                             sender =
                                     "employee";
                         }
-
 
                         if (finalEmployeeId.isEmpty()) {
 
                             return;
                         }
 
-
                         Map<String, Object> map =
                                 new HashMap<>();
-
 
                         map.put(
                                 "employeeId",
                                 finalEmployeeId
                         );
 
-
                         map.put(
                                 "employeeName",
                                 finalEmployeeName
                         );
-
 
                         map.put(
                                 "sender",
                                 sender
                         );
 
-
                         map.put(
                                 "message",
                                 text
                         );
 
-
                         map.put(
                                 "createdAt",
                                 FieldValue.serverTimestamp()
                         );
-
 
                         db()
                                 .collection(
@@ -1579,13 +1291,6 @@ public class MainActivity extends Activity {
                                         unused ->
                                                 loadChatMessages(
                                                         finalEmployeeId
-                                                )
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Nachricht konnte nicht gesendet werden."
                                                 )
                                 );
                     }
@@ -1601,7 +1306,6 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
-
                         String finalId =
                                 adminLoggedIn
                                         ?
@@ -1609,12 +1313,10 @@ public class MainActivity extends Activity {
                                         :
                                         loggedEmployeeId;
 
-
                         if (finalId.isEmpty()) {
 
                             return;
                         }
-
 
                         db()
                                 .collection(
@@ -1629,29 +1331,23 @@ public class MainActivity extends Activity {
                                 .addOnSuccessListener(
                                         snapshots -> {
 
-
                                             JSONArray result =
                                                     new JSONArray();
-
 
                                             for (
                                                     QueryDocumentSnapshot doc :
                                                     snapshots
                                             ) {
 
-
                                                 try {
-
 
                                                     JSONObject item =
                                                             new JSONObject();
-
 
                                                     item.put(
                                                             "id",
                                                             doc.getId()
                                                     );
-
 
                                                     item.put(
                                                             "employeeId",
@@ -1662,7 +1358,6 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
-
                                                     item.put(
                                                             "employeeName",
                                                             safe(
@@ -1671,7 +1366,6 @@ public class MainActivity extends Activity {
                                                                     )
                                                             )
                                                     );
-
 
                                                     item.put(
                                                             "sender",
@@ -1682,7 +1376,6 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
-
                                                     item.put(
                                                             "message",
                                                             safe(
@@ -1692,7 +1385,6 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
-
                                                     item.put(
                                                             "createdAt",
                                                             timestampMillis(
@@ -1701,18 +1393,15 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
-
                                                     result.put(
                                                             item
                                                     );
-
 
                                                 } catch (Exception e) {
 
                                                     e.printStackTrace();
                                                 }
                                             }
-
 
                                             sendJs(
                                                     "receiveChatMessagesFromFirestore",
@@ -1741,41 +1430,25 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
+                        String finalId =
+                                adminLoggedIn
+                                        ?
+                                        safe(employeeId)
+                                        :
+                                        loggedEmployeeId;
 
-                        String finalId;
-
-                        String finalName;
-
-
-                        if (adminLoggedIn) {
-
-
-                            finalId =
-                                    safe(employeeId);
-
-
-                            finalName =
-                                    safe(employeeName);
-
-
-                        } else {
-
-
-                            finalId =
-                                    loggedEmployeeId;
-
-
-                            finalName =
-                                    loggedEmployeeName;
-                        }
-
+                        String finalName =
+                                adminLoggedIn
+                                        ?
+                                        safe(employeeName)
+                                        :
+                                        loggedEmployeeName;
 
                         if (
                                 finalId.isEmpty()
                                         ||
                                         safe(subject).trim().isEmpty()
                         ) {
-
 
                             toast(
                                     "Bitte Betreff eingeben."
@@ -1784,52 +1457,43 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         Map<String, Object> map =
                                 new HashMap<>();
-
 
                         map.put(
                                 "employeeId",
                                 finalId
                         );
 
-
                         map.put(
                                 "employeeName",
                                 finalName
                         );
-
 
                         map.put(
                                 "type",
                                 safe(type)
                         );
 
-
                         map.put(
                                 "subject",
                                 safe(subject)
                         );
-
 
                         map.put(
                                 "description",
                                 safe(description)
                         );
 
-
                         map.put(
                                 "status",
                                 "Offen"
                         );
 
-
                         map.put(
                                 "createdAt",
                                 FieldValue.serverTimestamp()
                         );
-
 
                         db()
                                 .collection(
@@ -1850,13 +1514,6 @@ public class MainActivity extends Activity {
                                                     finalId
                                             );
                                         }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Ticket konnte nicht gesendet werden."
-                                                )
                                 );
                     }
             );
@@ -1871,9 +1528,7 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
-
                         if (adminLoggedIn) {
-
 
                             db()
                                     .collection(
@@ -1885,15 +1540,12 @@ public class MainActivity extends Activity {
                                             this::sendTickets
                                     );
 
-
                         } else {
-
 
                             if (loggedEmployeeId.isEmpty()) {
 
                                 return;
                             }
-
 
                             db()
                                     .collection(
@@ -1918,29 +1570,23 @@ public class MainActivity extends Activity {
                 QuerySnapshot snapshots
         ) {
 
-
             JSONArray result =
                     new JSONArray();
-
 
             for (
                     QueryDocumentSnapshot doc :
                     snapshots
             ) {
 
-
                 try {
-
 
                     JSONObject item =
                             new JSONObject();
-
 
                     item.put(
                             "id",
                             doc.getId()
                     );
-
 
                     item.put(
                             "employeeId",
@@ -1951,7 +1597,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "employeeName",
                             safe(
@@ -1960,7 +1605,6 @@ public class MainActivity extends Activity {
                                     )
                             )
                     );
-
 
                     item.put(
                             "type",
@@ -1971,7 +1615,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "subject",
                             safe(
@@ -1980,7 +1623,6 @@ public class MainActivity extends Activity {
                                     )
                             )
                     );
-
 
                     item.put(
                             "description",
@@ -1991,7 +1633,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "status",
                             safe(
@@ -2001,7 +1642,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "createdAt",
                             timestampMillis(
@@ -2010,18 +1650,15 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     result.put(
                             item
                     );
-
 
                 } catch (Exception e) {
 
                     e.printStackTrace();
                 }
             }
-
 
             sendJs(
                     "receiveTicketsFromFirestore",
@@ -2040,7 +1677,6 @@ public class MainActivity extends Activity {
 
                 return;
             }
-
 
             db()
                     .collection(
@@ -2085,34 +1721,19 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
+                        String finalId =
+                                adminLoggedIn
+                                        ?
+                                        safe(employeeId)
+                                        :
+                                        loggedEmployeeId;
 
-                        String finalId;
-
-                        String finalName;
-
-
-                        if (adminLoggedIn) {
-
-
-                            finalId =
-                                    safe(employeeId);
-
-
-                            finalName =
-                                    safe(employeeName);
-
-
-                        } else {
-
-
-                            finalId =
-                                    loggedEmployeeId;
-
-
-                            finalName =
-                                    loggedEmployeeName;
-                        }
-
+                        String finalName =
+                                adminLoggedIn
+                                        ?
+                                        safe(employeeName)
+                                        :
+                                        loggedEmployeeName;
 
                         if (
                                 finalId.isEmpty()
@@ -2122,7 +1743,6 @@ public class MainActivity extends Activity {
                                         safe(to).isEmpty()
                         ) {
 
-
                             toast(
                                     "Bitte Zeitraum auswählen."
                             );
@@ -2130,52 +1750,43 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         Map<String, Object> map =
                                 new HashMap<>();
-
 
                         map.put(
                                 "employeeId",
                                 finalId
                         );
 
-
                         map.put(
                                 "employeeName",
                                 finalName
                         );
-
 
                         map.put(
                                 "from",
                                 safe(from)
                         );
 
-
                         map.put(
                                 "to",
                                 safe(to)
                         );
-
 
                         map.put(
                                 "note",
                                 safe(note)
                         );
 
-
                         map.put(
                                 "status",
                                 "Offen"
                         );
 
-
                         map.put(
                                 "createdAt",
                                 FieldValue.serverTimestamp()
                         );
-
 
                         db()
                                 .collection(
@@ -2196,13 +1807,6 @@ public class MainActivity extends Activity {
                                                     finalId
                                             );
                                         }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Urlaubsantrag konnte nicht gesendet werden."
-                                                )
                                 );
                     }
             );
@@ -2217,9 +1821,7 @@ public class MainActivity extends Activity {
             ensureFirebaseAuth(
                     () -> {
 
-
                         if (adminLoggedIn) {
-
 
                             db()
                                     .collection(
@@ -2231,15 +1833,12 @@ public class MainActivity extends Activity {
                                             this::sendLeaveRequests
                                     );
 
-
                         } else {
-
 
                             if (loggedEmployeeId.isEmpty()) {
 
                                 return;
                             }
-
 
                             db()
                                     .collection(
@@ -2264,29 +1863,23 @@ public class MainActivity extends Activity {
                 QuerySnapshot snapshots
         ) {
 
-
             JSONArray result =
                     new JSONArray();
-
 
             for (
                     QueryDocumentSnapshot doc :
                     snapshots
             ) {
 
-
                 try {
-
 
                     JSONObject item =
                             new JSONObject();
-
 
                     item.put(
                             "id",
                             doc.getId()
                     );
-
 
                     item.put(
                             "employeeId",
@@ -2297,7 +1890,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "employeeName",
                             safe(
@@ -2306,7 +1898,6 @@ public class MainActivity extends Activity {
                                     )
                             )
                     );
-
 
                     item.put(
                             "from",
@@ -2317,7 +1908,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "to",
                             safe(
@@ -2326,7 +1916,6 @@ public class MainActivity extends Activity {
                                     )
                             )
                     );
-
 
                     item.put(
                             "note",
@@ -2337,7 +1926,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "status",
                             safe(
@@ -2347,7 +1935,6 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     item.put(
                             "createdAt",
                             timestampMillis(
@@ -2356,18 +1943,15 @@ public class MainActivity extends Activity {
                             )
                     );
 
-
                     result.put(
                             item
                     );
-
 
                 } catch (Exception e) {
 
                     e.printStackTrace();
                 }
             }
-
 
             sendJs(
                     "receiveLeaveRequestsFromFirestore",
@@ -2386,7 +1970,6 @@ public class MainActivity extends Activity {
 
                 return;
             }
-
 
             db()
                     .collection(
@@ -2434,52 +2017,43 @@ public class MainActivity extends Activity {
                 return;
             }
 
-
             Map<String, Object> map =
                     new HashMap<>();
-
 
             map.put(
                     "customer",
                     safe(customer)
             );
 
-
             map.put(
                     "address",
                     safe(address)
             );
-
 
             map.put(
                     "service",
                     safe(service)
             );
 
-
             map.put(
                     "date",
                     safe(date)
             );
-
 
             map.put(
                     "price",
                     safe(price)
             );
 
-
             map.put(
                     "description",
                     safe(description)
             );
 
-
             map.put(
                     "createdAt",
                     FieldValue.serverTimestamp()
             );
-
 
             db()
                     .collection(
@@ -2492,13 +2066,6 @@ public class MainActivity extends Activity {
                     .addOnSuccessListener(
                             unused ->
                                     loadOrdersFromFirestore()
-                    )
-
-                    .addOnFailureListener(
-                            e ->
-                                    toast(
-                                            "Auftrag konnte nicht gespeichert werden."
-                                    )
                     );
         }
 
@@ -2511,7 +2078,6 @@ public class MainActivity extends Activity {
                 return;
             }
 
-
             db()
                     .collection(
                             "orders"
@@ -2521,23 +2087,18 @@ public class MainActivity extends Activity {
                     .addOnSuccessListener(
                             snapshots -> {
 
-
                                 JSONArray result =
                                         new JSONArray();
-
 
                                 for (
                                         QueryDocumentSnapshot doc :
                                         snapshots
                                 ) {
 
-
                                     try {
-
 
                                         JSONObject item =
                                                 new JSONObject();
-
 
                                         item.put(
                                                 "kunde",
@@ -2548,7 +2109,6 @@ public class MainActivity extends Activity {
                                                 )
                                         );
 
-
                                         item.put(
                                                 "ort",
                                                 safe(
@@ -2557,7 +2117,6 @@ public class MainActivity extends Activity {
                                                         )
                                                 )
                                         );
-
 
                                         item.put(
                                                 "art",
@@ -2568,7 +2127,6 @@ public class MainActivity extends Activity {
                                                 )
                                         );
 
-
                                         item.put(
                                                 "datum",
                                                 safe(
@@ -2577,7 +2135,6 @@ public class MainActivity extends Activity {
                                                         )
                                                 )
                                         );
-
 
                                         item.put(
                                                 "preis",
@@ -2588,7 +2145,6 @@ public class MainActivity extends Activity {
                                                 )
                                         );
 
-
                                         item.put(
                                                 "notiz",
                                                 safe(
@@ -2598,11 +2154,9 @@ public class MainActivity extends Activity {
                                                 )
                                         );
 
-
                                         result.put(
                                                 item
                                         );
-
 
                                     } catch (Exception e) {
 
@@ -2610,13 +2164,711 @@ public class MainActivity extends Activity {
                                     }
                                 }
 
-
                                 sendJs(
                                         "receiveOrdersFromFirestore",
                                         result
                                 );
                             }
                     );
+        }
+
+
+        /* =================================================
+           MATERIALIEN
+        ================================================= */
+
+        @JavascriptInterface
+        public void saveMaterialToFirestore(
+                String id,
+                String name,
+                String manufacturer,
+                String category,
+                String use,
+                String productUrl,
+                String safetyUrl
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            String finalId =
+                    safe(id).trim();
+
+            if (finalId.isEmpty()) {
+
+                finalId =
+                        String.valueOf(
+                                System.currentTimeMillis()
+                        );
+            }
+
+            Map<String, Object> map =
+                    new HashMap<>();
+
+            map.put(
+                    "id",
+                    finalId
+            );
+
+            map.put(
+                    "name",
+                    safe(name)
+            );
+
+            map.put(
+                    "manufacturer",
+                    safe(manufacturer)
+            );
+
+            map.put(
+                    "category",
+                    safe(category)
+            );
+
+            map.put(
+                    "use",
+                    safe(use)
+            );
+
+            map.put(
+                    "productUrl",
+                    safe(productUrl)
+            );
+
+            map.put(
+                    "safetyUrl",
+                    safe(safetyUrl)
+            );
+
+            map.put(
+                    "updatedAt",
+                    FieldValue.serverTimestamp()
+            );
+
+            db()
+                    .collection(
+                            "materials"
+                    )
+                    .document(
+                            finalId
+                    )
+                    .set(
+                            map
+                    )
+
+                    .addOnSuccessListener(
+                            unused -> {
+
+                                toast(
+                                        "Material gespeichert ✅"
+                                );
+
+                                loadMaterialsFromFirestore();
+                            }
+                    );
+        }
+
+
+        @JavascriptInterface
+        public void loadMaterialsFromFirestore() {
+
+            ensureFirebaseAuth(
+                    () ->
+
+                            db()
+                                    .collection(
+                                            "materials"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            snapshots -> {
+
+                                                JSONArray result =
+                                                        new JSONArray();
+
+                                                for (
+                                                        QueryDocumentSnapshot doc :
+                                                        snapshots
+                                                ) {
+
+                                                    try {
+
+                                                        JSONObject item =
+                                                                new JSONObject();
+
+                                                        String id =
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "id"
+                                                                        )
+                                                                );
+
+                                                        if (id.isEmpty()) {
+
+                                                            id =
+                                                                    doc.getId();
+                                                        }
+
+                                                        item.put(
+                                                                "id",
+                                                                id
+                                                        );
+
+                                                        item.put(
+                                                                "name",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "name"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "manufacturer",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "manufacturer"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "category",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "category"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "use",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "use"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "productUrl",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "productUrl"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "safetyUrl",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "safetyUrl"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        result.put(
+                                                                item
+                                                        );
+
+                                                    } catch (Exception e) {
+
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+
+                                                sendJs(
+                                                        "receiveMaterialsFromFirestore",
+                                                        result
+                                                );
+                                            }
+                                    )
+            );
+        }
+
+
+        @JavascriptInterface
+        public void deleteMaterialFromFirestore(
+                String id
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            db()
+                    .collection(
+                            "materials"
+                    )
+                    .document(
+                            safe(id)
+                    )
+                    .delete()
+
+                    .addOnSuccessListener(
+                            unused -> {
+
+                                toast(
+                                        "Material gelöscht."
+                                );
+
+                                loadMaterialsFromFirestore();
+                            }
+                    );
+        }
+
+
+        /* =================================================
+           DOKUMENTE
+        ================================================= */
+
+        @JavascriptInterface
+        public void saveDocumentToFirestore(
+                String id,
+                String title,
+                String type,
+                String employeeId,
+                String employeeName,
+                String url,
+                String note
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            String finalId =
+                    safe(id).trim();
+
+            if (finalId.isEmpty()) {
+
+                finalId =
+                        String.valueOf(
+                                System.currentTimeMillis()
+                        );
+            }
+
+            Map<String, Object> map =
+                    new HashMap<>();
+
+            map.put(
+                    "id",
+                    finalId
+            );
+
+            map.put(
+                    "title",
+                    safe(title)
+            );
+
+            map.put(
+                    "type",
+                    safe(type)
+            );
+
+            map.put(
+                    "employeeId",
+                    safe(employeeId)
+            );
+
+            map.put(
+                    "employeeName",
+                    safe(employeeName)
+            );
+
+            map.put(
+                    "url",
+                    safe(url)
+            );
+
+            map.put(
+                    "note",
+                    safe(note)
+            );
+
+            map.put(
+                    "updatedAt",
+                    FieldValue.serverTimestamp()
+            );
+
+            db()
+                    .collection(
+                            "companyDocuments"
+                    )
+                    .document(
+                            finalId
+                    )
+                    .set(
+                            map
+                    )
+
+                    .addOnSuccessListener(
+                            unused -> {
+
+                                toast(
+                                        "Dokument gespeichert ✅"
+                                );
+
+                                loadDocumentsFromFirestore(
+                                        ""
+                                );
+                            }
+                    );
+        }
+
+
+        @JavascriptInterface
+        public void loadDocumentsFromFirestore(
+                String employeeId
+        ) {
+
+            ensureFirebaseAuth(
+                    () -> {
+
+                        if (adminLoggedIn) {
+
+                            db()
+                                    .collection(
+                                            "companyDocuments"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            this::sendDocuments
+                                    );
+
+                        } else {
+
+                            if (loggedEmployeeId.isEmpty()) {
+
+                                return;
+                            }
+
+                            db()
+                                    .collection(
+                                            "companyDocuments"
+                                    )
+                                    .get()
+
+                                    .addOnSuccessListener(
+                                            snapshots -> {
+
+                                                JSONArray result =
+                                                        new JSONArray();
+
+                                                for (
+                                                        QueryDocumentSnapshot doc :
+                                                        snapshots
+                                                ) {
+
+                                                    String assigned =
+                                                            safe(
+                                                                    doc.getString(
+                                                                            "employeeId"
+                                                                    )
+                                                            );
+
+                                                    if (
+                                                            !assigned.isEmpty()
+                                                                    &&
+                                                                    !assigned.equals(
+                                                                            loggedEmployeeId
+                                                                    )
+                                                    ) {
+
+                                                        continue;
+                                                    }
+
+                                                    try {
+
+                                                        JSONObject item =
+                                                                new JSONObject();
+
+                                                        String id =
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "id"
+                                                                        )
+                                                                );
+
+                                                        if (id.isEmpty()) {
+
+                                                            id =
+                                                                    doc.getId();
+                                                        }
+
+                                                        item.put(
+                                                                "id",
+                                                                id
+                                                        );
+
+                                                        item.put(
+                                                                "title",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "title"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "type",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "type"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "employeeId",
+                                                                assigned
+                                                        );
+
+                                                        item.put(
+                                                                "employeeName",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "employeeName"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "url",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "url"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        item.put(
+                                                                "note",
+                                                                safe(
+                                                                        doc.getString(
+                                                                                "note"
+                                                                        )
+                                                                )
+                                                        );
+
+                                                        result.put(
+                                                                item
+                                                        );
+
+                                                    } catch (Exception e) {
+
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+
+                                                sendJs(
+                                                        "receiveDocumentsFromFirestore",
+                                                        result
+                                                );
+                                            }
+                                    );
+                        }
+                    }
+            );
+        }
+
+
+        private void sendDocuments(
+                QuerySnapshot snapshots
+        ) {
+
+            JSONArray result =
+                    new JSONArray();
+
+            for (
+                    QueryDocumentSnapshot doc :
+                    snapshots
+            ) {
+
+                try {
+
+                    JSONObject item =
+                            new JSONObject();
+
+                    String id =
+                            safe(
+                                    doc.getString(
+                                            "id"
+                                    )
+                            );
+
+                    if (id.isEmpty()) {
+
+                        id =
+                                doc.getId();
+                    }
+
+                    item.put(
+                            "id",
+                            id
+                    );
+
+                    item.put(
+                            "title",
+                            safe(
+                                    doc.getString(
+                                            "title"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "type",
+                            safe(
+                                    doc.getString(
+                                            "type"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "employeeId",
+                            safe(
+                                    doc.getString(
+                                            "employeeId"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "employeeName",
+                            safe(
+                                    doc.getString(
+                                            "employeeName"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "url",
+                            safe(
+                                    doc.getString(
+                                            "url"
+                                    )
+                            )
+                    );
+
+                    item.put(
+                            "note",
+                            safe(
+                                    doc.getString(
+                                            "note"
+                                    )
+                            )
+                    );
+
+                    result.put(
+                            item
+                    );
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                }
+            }
+
+            sendJs(
+                    "receiveDocumentsFromFirestore",
+                    result
+            );
+        }
+
+
+        @JavascriptInterface
+        public void deleteDocumentFromFirestore(
+                String id
+        ) {
+
+            if (!adminLoggedIn) {
+
+                return;
+            }
+
+            db()
+                    .collection(
+                            "companyDocuments"
+                    )
+                    .document(
+                            safe(id)
+                    )
+                    .delete()
+
+                    .addOnSuccessListener(
+                            unused -> {
+
+                                toast(
+                                        "Dokument gelöscht."
+                                );
+
+                                loadDocumentsFromFirestore(
+                                        ""
+                                );
+                            }
+                    );
+        }
+
+
+        /* =================================================
+           EXTERNE LINKS
+        ================================================= */
+
+        @JavascriptInterface
+        public void openExternalUrl(
+                String url
+        ) {
+
+            String value =
+                    safe(url).trim();
+
+            if (value.isEmpty()) {
+
+                toast(
+                        "Kein Link hinterlegt."
+                );
+
+                return;
+            }
+
+            runOnUiThread(
+                    () -> {
+
+                        try {
+
+                            Uri uri =
+                                    Uri.parse(
+                                            value
+                                    );
+
+                            Intent intent =
+                                    new Intent(
+                                            Intent.ACTION_VIEW,
+                                            uri
+                                    );
+
+                            startActivity(
+                                    intent
+                            );
+
+                        } catch (Exception e) {
+
+                            toast(
+                                    "Link konnte nicht geöffnet werden."
+                            );
+                        }
+                    }
+            );
         }
 
 
@@ -2632,17 +2884,13 @@ public class MainActivity extends Activity {
                 return;
             }
 
-
             runOnUiThread(
                     () -> {
 
-
                         try {
-
 
                             arMeasurementRunning =
                                     true;
-
 
                             Intent intent =
                                     new Intent(
@@ -2650,19 +2898,15 @@ public class MainActivity extends Activity {
                                             MeasureActivity.class
                                     );
 
-
                             startActivityForResult(
                                     intent,
                                     AR_MEASURE_REQUEST
                             );
 
-
                         } catch (Exception e) {
-
 
                             arMeasurementRunning =
                                     false;
-
 
                             toast(
                                     "AR-Messung konnte nicht geöffnet werden."
@@ -2674,8 +2918,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           PDF ERSTELLEN
-           ADMIN + MITARBEITER
+           PDF
         ================================================= */
 
         @JavascriptInterface
@@ -2685,13 +2928,11 @@ public class MainActivity extends Activity {
                 String jsonData
         ) {
 
-
             if (
                     !adminLoggedIn
                             &&
                             loggedEmployeeId.isEmpty()
             ) {
-
 
                 toast(
                         "Bitte zuerst anmelden."
@@ -2700,52 +2941,30 @@ public class MainActivity extends Activity {
                 return;
             }
 
-
             runOnUiThread(
                     () -> {
 
-
-                        /*
-                         * Admin darf ausgewählten Mitarbeiter nehmen.
-                         * Mitarbeiter bekommt automatisch seinen
-                         * eigenen Namen.
-                         */
-
-                        if (adminLoggedIn) {
-
-
-                            pendingPdfEmployee =
-                                    safe(employee).trim();
-
-
-                        } else {
-
-
-                            pendingPdfEmployee =
-                                    safe(
-                                            loggedEmployeeName
-                                    ).trim();
-                        }
-
+                        pendingPdfEmployee =
+                                adminLoggedIn
+                                        ?
+                                        safe(employee).trim()
+                                        :
+                                        safe(loggedEmployeeName).trim();
 
                         if (
                                 pendingPdfEmployee.isEmpty()
                         ) {
 
-
                             pendingPdfEmployee =
                                     "Mitarbeiter";
                         }
 
-
                         pendingPdfMonth =
                                 safe(month).trim();
-
 
                         if (
                                 pendingPdfMonth.isEmpty()
                         ) {
-
 
                             toast(
                                     "Bitte zuerst einen Monat auswählen."
@@ -2754,7 +2973,6 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         pendingPdfJson =
                                 jsonData == null
                                         ?
@@ -2762,20 +2980,16 @@ public class MainActivity extends Activity {
                                         :
                                         jsonData;
 
-
                         try {
-
 
                             JSONArray test =
                                     new JSONArray(
                                             pendingPdfJson
                                     );
 
-
                             if (
                                     test.length() == 0
                             ) {
-
 
                                 toast(
                                         "Der Stundenzettel enthält keine Einträge."
@@ -2784,9 +2998,7 @@ public class MainActivity extends Activity {
                                 return;
                             }
 
-
                         } catch (Exception e) {
-
 
                             toast(
                                     "Stundenzettel konnte nicht gelesen werden."
@@ -2795,14 +3007,12 @@ public class MainActivity extends Activity {
                             return;
                         }
 
-
                         String safeEmployee =
                                 pendingPdfEmployee
                                         .replaceAll(
                                                 "[^a-zA-Z0-9ÄÖÜäöüß_-]",
                                                 "_"
                                         );
-
 
                         String safeMonth =
                                 pendingPdfMonth
@@ -2811,22 +3021,18 @@ public class MainActivity extends Activity {
                                                 "_"
                                         );
 
-
                         Intent intent =
                                 new Intent(
                                         Intent.ACTION_CREATE_DOCUMENT
                                 );
 
-
                         intent.addCategory(
                                 Intent.CATEGORY_OPENABLE
                         );
 
-
                         intent.setType(
                                 "application/pdf"
                         );
-
 
                         intent.putExtra(
                                 Intent.EXTRA_TITLE,
@@ -2842,18 +3048,14 @@ public class MainActivity extends Activity {
                                         ".pdf"
                         );
 
-
                         try {
-
 
                             startActivityForResult(
                                     intent,
                                     PDF_CREATE_REQUEST
                             );
 
-
                         } catch (Exception e) {
-
 
                             toast(
                                     "PDF-Datei konnte nicht erstellt werden."
@@ -2864,18 +3066,12 @@ public class MainActivity extends Activity {
         }
 
 
-        /*
-         * Diese Methode wird von deinem neuen index.html
-         * zuerst aufgerufen.
-         */
-
         @JavascriptInterface
         public void shareTimesheetPdf(
                 String employee,
                 String month,
                 String jsonData
         ) {
-
 
             createTimesheetPdf(
                     employee,
@@ -2885,13 +3081,8 @@ public class MainActivity extends Activity {
         }
 
 
-        /*
-         * Bereits gespeicherte PDF erneut teilen.
-         */
-
         @JavascriptInterface
         public void shareLastPdf() {
-
 
             if (
                     !adminLoggedIn
@@ -2899,23 +3090,15 @@ public class MainActivity extends Activity {
                             loggedEmployeeId.isEmpty()
             ) {
 
-
-                toast(
-                        "Bitte zuerst anmelden."
-                );
-
                 return;
             }
-
 
             runOnUiThread(
                     () -> {
 
-
                         if (
                                 lastSavedPdfUri == null
                         ) {
-
 
                             toast(
                                     "Es wurde noch keine PDF erstellt."
@@ -2923,7 +3106,6 @@ public class MainActivity extends Activity {
 
                             return;
                         }
-
 
                         sharePdf(
                                 lastSavedPdfUri
@@ -2952,30 +3134,23 @@ public class MainActivity extends Activity {
         );
 
 
-        /* FILE CHOOSER */
-
         if (
                 requestCode
                         ==
                         FILE_CHOOSER_REQUEST
         ) {
 
-
             if (filePathCallback == null) {
 
                 return;
             }
 
-
             Uri[] results =
                     null;
 
-
             if (resultCode == RESULT_OK) {
 
-
                 results =
-
                         WebChromeClient
                                 .FileChooserParams
                                 .parseResult(
@@ -2984,28 +3159,22 @@ public class MainActivity extends Activity {
                                 );
             }
 
-
             filePathCallback.onReceiveValue(
                     results
             );
 
-
             filePathCallback =
                     null;
-
 
             return;
         }
 
-
-        /* PDF */
 
         if (
                 requestCode
                         ==
                         PDF_CREATE_REQUEST
         ) {
-
 
             if (
                     resultCode == RESULT_OK
@@ -3015,22 +3184,17 @@ public class MainActivity extends Activity {
                             data.getData() != null
             ) {
 
-
                 lastSavedPdfUri =
                         data.getData();
-
 
                 createPdfFile(
                         lastSavedPdfUri
                 );
             }
 
-
             return;
         }
 
-
-        /* AR */
 
         if (
                 requestCode
@@ -3038,10 +3202,8 @@ public class MainActivity extends Activity {
                         AR_MEASURE_REQUEST
         ) {
 
-
             arMeasurementRunning =
                     false;
-
 
             if (
                     resultCode == RESULT_OK
@@ -3049,13 +3211,11 @@ public class MainActivity extends Activity {
                             data != null
             ) {
 
-
                 double width =
                         data.getDoubleExtra(
                                 "width",
                                 0
                         );
-
 
                 double height =
                         data.getDoubleExtra(
@@ -3063,13 +3223,11 @@ public class MainActivity extends Activity {
                                 0
                         );
 
-
                 double area =
                         data.getDoubleExtra(
                                 "area",
                                 0
                         );
-
 
                 String javascript =
 
@@ -3091,9 +3249,7 @@ public class MainActivity extends Activity {
                                 +
                                 "}";
 
-
                 if (webView != null) {
-
 
                     webView.postDelayed(
                             () ->
@@ -3117,43 +3273,33 @@ public class MainActivity extends Activity {
             Uri uri
     ) {
 
-
         PdfDocument document =
                 new PdfDocument();
-
 
         OutputStream outputStream =
                 null;
 
-
         try {
-
 
             JSONArray rows =
                     new JSONArray(
                             pendingPdfJson
                     );
 
-
             final int pageWidth =
                     595;
 
-
             final int pageHeight =
                     842;
-
 
             final int margin =
                     28;
 
 
-            /* HEADER */
-
             Paint green =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
-
 
             green.setColor(
                     Color.rgb(
@@ -3163,78 +3309,61 @@ public class MainActivity extends Activity {
                     )
             );
 
-
             green.setTextSize(
                     21f
             );
-
 
             green.setFakeBoldText(
                     true
             );
 
 
-            /* BOLD */
-
             Paint bold =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             bold.setColor(
                     Color.BLACK
             );
 
-
             bold.setTextSize(
                     9f
             );
-
 
             bold.setFakeBoldText(
                     true
             );
 
 
-            /* NORMAL */
-
             Paint normal =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
 
-
             normal.setColor(
                     Color.BLACK
             );
-
 
             normal.setTextSize(
                     8f
             );
 
 
-            /* LINE */
-
             Paint line =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
-
 
             line.setColor(
                     Color.LTGRAY
             );
 
 
-            /* TOTAL */
-
             Paint totalPaint =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
                     );
-
 
             totalPaint.setColor(
                     Color.rgb(
@@ -3244,11 +3373,9 @@ public class MainActivity extends Activity {
                     )
             );
 
-
             totalPaint.setTextSize(
                     16f
             );
-
 
             totalPaint.setFakeBoldText(
                     true
@@ -3265,12 +3392,10 @@ public class MainActivity extends Activity {
                     i++
             ) {
 
-
                 JSONObject row =
                         rows.getJSONObject(
                                 i
                         );
-
 
                 if (
                         "Arbeit".equalsIgnoreCase(
@@ -3279,7 +3404,6 @@ public class MainActivity extends Activity {
                                 )
                         )
                 ) {
-
 
                     total +=
                             row.optDouble(
@@ -3293,10 +3417,8 @@ public class MainActivity extends Activity {
             int pageNo =
                     1;
 
-
             int index =
                     0;
-
 
             boolean first =
                     true;
@@ -3308,13 +3430,10 @@ public class MainActivity extends Activity {
                             first
             ) {
 
-
                 first =
                         false;
 
-
                 PdfDocument.Page page =
-
                         document.startPage(
 
                                 new PdfDocument
@@ -3327,10 +3446,8 @@ public class MainActivity extends Activity {
                                         .create()
                         );
 
-
                 Canvas canvas =
                         page.getCanvas();
-
 
                 float y =
                         38;
@@ -3343,7 +3460,6 @@ public class MainActivity extends Activity {
                         green
                 );
 
-
                 y +=
                         25;
 
@@ -3354,7 +3470,6 @@ public class MainActivity extends Activity {
                         y,
                         bold
                 );
-
 
                 y +=
                         15;
@@ -3369,7 +3484,6 @@ public class MainActivity extends Activity {
                         bold
                 );
 
-
                 y +=
                         15;
 
@@ -3383,7 +3497,6 @@ public class MainActivity extends Activity {
                         bold
                 );
 
-
                 y +=
                         25;
 
@@ -3391,26 +3504,20 @@ public class MainActivity extends Activity {
                 float xDate =
                         margin;
 
-
                 float xStatus =
                         92;
-
 
                 float xStart =
                         155;
 
-
                 float xEnd =
                         205;
-
 
                 float xPause =
                         255;
 
-
                 float xHours =
                         305;
-
 
                 float xObject =
                         355;
@@ -3423,14 +3530,12 @@ public class MainActivity extends Activity {
                         bold
                 );
 
-
                 canvas.drawText(
                         "Status",
                         xStatus,
                         y,
                         bold
                 );
-
 
                 canvas.drawText(
                         "Start",
@@ -3439,14 +3544,12 @@ public class MainActivity extends Activity {
                         bold
                 );
 
-
                 canvas.drawText(
                         "Ende",
                         xEnd,
                         y,
                         bold
                 );
-
 
                 canvas.drawText(
                         "Pause",
@@ -3455,14 +3558,12 @@ public class MainActivity extends Activity {
                         bold
                 );
 
-
                 canvas.drawText(
                         "Std.",
                         xHours,
                         y,
                         bold
                 );
-
 
                 canvas.drawText(
                         "Objekt / Kunde",
@@ -3495,36 +3596,30 @@ public class MainActivity extends Activity {
                                 y < 720
                 ) {
 
-
                     JSONObject row =
                             rows.getJSONObject(
                                     index
                             );
-
 
                     String datum =
                             row.optString(
                                     "datum"
                             );
 
-
                     String status =
                             row.optString(
                                     "status"
                             );
-
 
                     String start =
                             row.optString(
                                     "start"
                             );
 
-
                     String ende =
                             row.optString(
                                     "ende"
                             );
-
 
                     String pause =
                             String.valueOf(
@@ -3534,13 +3629,11 @@ public class MainActivity extends Activity {
                                     )
                             );
 
-
                     double hours =
                             row.optDouble(
                                     "stunden",
                                     0
                             );
-
 
                     String object =
                             row.optString(
@@ -3558,7 +3651,6 @@ public class MainActivity extends Activity {
                             normal
                     );
 
-
                     canvas.drawText(
                             shorten(
                                     status,
@@ -3568,7 +3660,6 @@ public class MainActivity extends Activity {
                             y,
                             normal
                     );
-
 
                     canvas.drawText(
                             shorten(
@@ -3580,7 +3671,6 @@ public class MainActivity extends Activity {
                             normal
                     );
 
-
                     canvas.drawText(
                             shorten(
                                     ende,
@@ -3591,14 +3681,12 @@ public class MainActivity extends Activity {
                             normal
                     );
 
-
                     canvas.drawText(
                             pause,
                             xPause,
                             y,
                             normal
                     );
-
 
                     canvas.drawText(
                             String.format(
@@ -3610,7 +3698,6 @@ public class MainActivity extends Activity {
                             y,
                             normal
                     );
-
 
                     canvas.drawText(
                             shorten(
@@ -3643,7 +3730,6 @@ public class MainActivity extends Activity {
                 if (
                         index >= rows.length()
                 ) {
-
 
                     y +=
                             24;
@@ -3686,7 +3772,6 @@ public class MainActivity extends Activity {
 
 
             outputStream =
-
                     getContentResolver()
                             .openOutputStream(
                                     uri
@@ -3694,7 +3779,6 @@ public class MainActivity extends Activity {
 
 
             if (outputStream == null) {
-
 
                 throw new Exception(
                         "PDF-Datei konnte nicht geöffnet werden."
@@ -3722,7 +3806,6 @@ public class MainActivity extends Activity {
 
         } catch (Exception e) {
 
-
             toast(
                     "PDF-Fehler: "
                             +
@@ -3734,36 +3817,25 @@ public class MainActivity extends Activity {
 
         } finally {
 
-
             try {
 
-
                 if (outputStream != null) {
-
 
                     outputStream.close();
                 }
 
-
             } catch (Exception ignored) {
 
-
             }
-
 
             document.close();
         }
     }
 
 
-    /* =====================================================
-       SHARE DIALOG
-    ===================================================== */
-
     private void showShareDialog(
             Uri uri
     ) {
-
 
         runOnUiThread(
                 () ->
@@ -3798,17 +3870,11 @@ public class MainActivity extends Activity {
     }
 
 
-    /* =====================================================
-       SHARE PDF
-    ===================================================== */
-
     private void sharePdf(
             Uri uri
     ) {
 
-
         if (uri == null) {
-
 
             toast(
                     "Keine PDF zum Teilen vorhanden."
@@ -3819,7 +3885,6 @@ public class MainActivity extends Activity {
 
 
         try {
-
 
             Intent intent =
                     new Intent(
@@ -3840,6 +3905,7 @@ public class MainActivity extends Activity {
 
             intent.putExtra(
                     Intent.EXTRA_SUBJECT,
+
                     "Stundenzettel "
                             +
                             pendingPdfEmployee
@@ -3852,6 +3918,7 @@ public class MainActivity extends Activity {
 
             intent.putExtra(
                     Intent.EXTRA_TEXT,
+
                     "Stundenzettel von "
                             +
                             pendingPdfEmployee
@@ -3868,7 +3935,6 @@ public class MainActivity extends Activity {
 
 
             startActivity(
-
                     Intent.createChooser(
                             intent,
                             "Stundenzettel teilen"
@@ -3878,7 +3944,6 @@ public class MainActivity extends Activity {
 
         } catch (Exception e) {
 
-
             toast(
                     "PDF konnte nicht geteilt werden."
             );
@@ -3886,18 +3951,12 @@ public class MainActivity extends Activity {
     }
 
 
-    /* =====================================================
-       TEXT KÜRZEN
-    ===================================================== */
-
     private String shorten(
             String value,
             int max
     ) {
 
-
         if (value == null) {
-
 
             return "";
         }
@@ -3908,7 +3967,6 @@ public class MainActivity extends Activity {
                         <=
                         max
         ) {
-
 
             return value;
         }
@@ -3926,24 +3984,17 @@ public class MainActivity extends Activity {
     }
 
 
-    /* =====================================================
-       SAVE WEBVIEW
-    ===================================================== */
-
     @Override
     protected void onSaveInstanceState(
             Bundle outState
     ) {
 
-
         if (webView != null) {
-
 
             webView.saveState(
                     outState
             );
         }
-
 
         super.onSaveInstanceState(
                 outState
@@ -3951,16 +4002,10 @@ public class MainActivity extends Activity {
     }
 
 
-    /* =====================================================
-       BACK BUTTON
-    ===================================================== */
-
     @Override
     public void onBackPressed() {
 
-
         if (webView == null) {
-
 
             super.onBackPressed();
 
@@ -3969,7 +4014,6 @@ public class MainActivity extends Activity {
 
 
         if (arMeasurementRunning) {
-
 
             super.onBackPressed();
 
@@ -3983,7 +4027,6 @@ public class MainActivity extends Activity {
 
                 value -> {
 
-
                     boolean handled =
 
                             value != null
@@ -3995,19 +4038,15 @@ public class MainActivity extends Activity {
 
                     if (handled) {
 
-
                         return;
                     }
 
 
                     if (webView.canGoBack()) {
 
-
                         webView.goBack();
 
-
                     } else {
-
 
                         MainActivity.super.onBackPressed();
                     }
@@ -4016,32 +4055,22 @@ public class MainActivity extends Activity {
     }
 
 
-    /* =====================================================
-       DESTROY
-    ===================================================== */
-
     @Override
     protected void onDestroy() {
 
-
         if (webView != null) {
-
 
             webView.removeJavascriptInterface(
                     "Android"
             );
 
-
             webView.stopLoading();
 
-
             webView.destroy();
-
 
             webView = null;
         }
 
-
         super.onDestroy();
     }
-}
+}    
