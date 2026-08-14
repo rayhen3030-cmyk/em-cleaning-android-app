@@ -1,28 +1,23 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f7f8">
-
 <title>E-M Cleaning Service</title>
 
 <style>
-
 :root{
     --green:#078a65;
     --green-dark:#066f52;
-    --green-light:#ecfdf3;
     --bg:#f3f7f8;
-    --white:#fff;
     --text:#202938;
     --muted:#707887;
     --border:#d8dde3;
     --red:#d92d20;
-    --orange:#b54708;
     --blue:#175cd3;
-    --shadow:0 12px 32px rgba(26,40,50,.08);
+    --orange:#b54708;
+    --shadow:0 10px 28px rgba(26,40,50,.08);
 }
 
 *{
@@ -32,40 +27,22 @@
     -webkit-tap-highlight-color:transparent;
 }
 
-html{
-    background:var(--bg);
-    scroll-behavior:smooth;
-}
-
 body{
-    min-height:100vh;
+    font-family:Arial,Helvetica,sans-serif;
     background:var(--bg);
     color:var(--text);
-    font-family:Arial,Helvetica,sans-serif;
     padding-bottom:20px;
 }
 
 body.employee-mode{
-    padding-bottom:105px;
-}
-
-button,
-input,
-select,
-textarea{
-    font-family:inherit;
-}
-
-button{
-    cursor:pointer;
+    padding-bottom:95px;
 }
 
 .page{
     display:none;
     max-width:760px;
-    width:100%;
     margin:auto;
-    padding:18px 16px 35px;
+    padding:18px 16px 34px;
 }
 
 .page.active{
@@ -73,36 +50,33 @@ button{
 }
 
 .card{
-    background:white;
-    border-radius:30px;
-    padding:25px 21px;
-    margin-bottom:20px;
+    background:#fff;
+    border-radius:26px;
+    padding:22px 20px;
+    margin-bottom:18px;
     box-shadow:var(--shadow);
 }
 
 .section-title{
-    font-size:31px;
+    font-size:30px;
     font-weight:900;
-    margin:10px 0 22px;
+    margin:8px 0 20px;
 }
 
 .card-title{
-    font-size:27px;
+    font-size:25px;
     font-weight:900;
-    line-height:1.2;
 }
 
 .card-subtitle{
     color:var(--muted);
-    font-size:17px;
-    margin-top:8px;
+    margin-top:7px;
     line-height:1.5;
 }
 
 label{
     display:block;
-    margin-top:16px;
-    margin-bottom:7px;
+    margin:15px 0 7px;
     font-weight:800;
     font-size:15px;
 }
@@ -112,12 +86,17 @@ select,
 textarea{
     width:100%;
     border:1px solid #ccd3da;
-    background:white;
-    color:var(--text);
-    border-radius:15px;
-    padding:14px;
+    border-radius:14px;
+    padding:13px;
     font-size:16px;
+    background:#fff;
+    color:var(--text);
     outline:none;
+}
+
+textarea{
+    min-height:100px;
+    resize:vertical;
 }
 
 input:focus,
@@ -127,9 +106,9 @@ textarea:focus{
     box-shadow:0 0 0 3px rgba(7,138,101,.1);
 }
 
-textarea{
-    resize:vertical;
-    min-height:110px;
+button{
+    cursor:pointer;
+    font-family:inherit;
 }
 
 .main-button,
@@ -137,17 +116,17 @@ textarea{
 .danger-button{
     width:100%;
     border:0;
-    border-radius:17px;
-    min-height:58px;
-    padding:14px;
-    margin-top:12px;
+    border-radius:16px;
+    min-height:56px;
+    padding:13px;
+    margin-top:11px;
     font-size:17px;
     font-weight:850;
+    color:#fff;
 }
 
 .main-button{
     background:var(--green);
-    color:white;
 }
 
 .main-button:active{
@@ -156,12 +135,10 @@ textarea{
 
 .secondary-button{
     background:#536176;
-    color:white;
 }
 
 .danger-button{
     background:var(--red);
-    color:white;
 }
 
 .small-button{
@@ -169,20 +146,19 @@ textarea{
     border:0;
     border-radius:11px;
     background:var(--green);
-    color:white;
-    padding:10px 14px;
-    margin:8px 6px 0 0;
+    color:#fff;
+    padding:9px 12px;
+    margin:7px 6px 0 0;
     font-weight:800;
 }
 
 .info,
 .success,
-.warning,
-.error-box{
-    padding:14px;
+.warning{
+    padding:13px;
     border-radius:14px;
-    margin-top:13px;
-    line-height:1.5;
+    margin-top:12px;
+    line-height:1.45;
 }
 
 .info{
@@ -203,12 +179,6 @@ textarea{
     color:var(--orange);
 }
 
-.error-box{
-    background:#fff1f0;
-    border:1px solid #fda29b;
-    color:#b42318;
-}
-
 .admin-only,
 .employee-only{
     display:none !important;
@@ -222,156 +192,113 @@ body.employee-mode .employee-only{
     display:block !important;
 }
 
-/* LOGIN */
+.item{
+    background:#f8fafb;
+    border:1px solid #dfe4e8;
+    border-radius:16px;
+    padding:15px;
+    margin-top:11px;
+    line-height:1.5;
+}
 
 .login-logo{
     text-align:center;
-    margin-top:24px;
-    margin-bottom:28px;
+    margin:24px 0 28px;
 }
 
 .logo-circle{
-    width:94px;
-    height:94px;
-    border-radius:29px;
+    width:92px;
+    height:92px;
+    border-radius:28px;
     background:var(--green);
-    color:white;
+    color:#fff;
     margin:auto;
     display:flex;
-    justify-content:center;
     align-items:center;
-    font-size:31px;
+    justify-content:center;
     font-weight:900;
-    box-shadow:0 15px 32px rgba(7,138,101,.25);
+    font-size:30px;
 }
 
 .login-logo h1{
-    margin-top:15px;
-    font-size:32px;
+    font-size:31px;
+    margin-top:14px;
 }
 
 .login-logo p{
     color:var(--muted);
-    margin-top:7px;
-}
-
-/* HOME */
-
-.welcome-name{
-    font-size:31px;
-    font-weight:900;
-}
-
-.welcome-sub{
-    margin-top:15px;
-    color:var(--muted);
-    font-size:18px;
-}
-
-.work-title-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-}
-
-.refresh-button{
-    width:auto;
-    border:none;
-    background:none;
-    font-size:29px;
-    padding:5px;
-}
-
-.workday{
-    display:flex;
-    align-items:center;
-    gap:16px;
-    margin-top:20px;
-}
-
-.day-box{
-    width:98px;
-    min-width:98px;
-    height:102px;
-    border:1px solid #ccd3d9;
-    border-radius:21px;
-    background:white;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-}
-
-.day-box strong{
-    font-size:33px;
-}
-
-.day-box span{
-    font-size:20px;
-    margin-top:5px;
-}
-
-.work-info{
-    flex:1;
-    border-left:8px solid var(--green);
-    padding-left:18px;
-}
-
-.work-info strong{
-    display:block;
-    font-size:21px;
-}
-
-.work-info .time{
-    font-size:19px;
-    margin-top:5px;
-}
-
-.work-info .hours{
-    font-size:17px;
-    margin-top:4px;
+    margin-top:6px;
 }
 
 .home-menu-button{
     width:100%;
     border:0;
-    border-radius:19px;
+    border-radius:18px;
     background:var(--green);
-    color:white;
-    padding:18px 12px;
-    min-height:76px;
-    margin-top:13px;
-    font-size:19px;
+    color:#fff;
+    padding:17px 12px;
+    margin-top:12px;
+    font-size:18px;
     font-weight:850;
 }
 
-.home-footer{
-    text-align:center;
-    color:#a4abb6;
-    padding:50px 10px 25px;
-    font-size:18px;
+.workday{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:18px;
 }
 
-/* NAV */
+.day-box{
+    width:88px;
+    min-width:88px;
+    height:95px;
+    border:1px solid #ccd3d9;
+    border-radius:20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:#fff;
+}
+
+.day-box strong{
+    font-size:31px;
+}
+
+.day-box span{
+    font-size:19px;
+}
+
+.work-info{
+    flex:1;
+    border-left:7px solid var(--green);
+    padding-left:16px;
+}
+
+.work-info strong{
+    font-size:20px;
+}
+
+.work-info .time{
+    font-size:18px;
+    margin-top:4px;
+}
 
 .bottom-nav{
     display:none;
+    position:fixed;
+    z-index:9999;
+    left:0;
+    right:0;
+    bottom:0;
+    height:84px;
+    background:#fff;
+    border-top:1px solid #d7dde3;
 }
 
 body.employee-mode .bottom-nav{
     display:flex;
-}
-
-.bottom-nav{
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    height:86px;
-    z-index:9999;
-    background:rgba(255,255,255,.98);
-    border-top:1px solid #d7dde3;
-    padding-bottom:env(safe-area-inset-bottom);
 }
 
 .nav-btn{
@@ -386,86 +313,36 @@ body.employee-mode .bottom-nav{
     gap:3px;
 }
 
-.nav-icon{
-    font-size:22px;
-}
-
 .nav-btn.active{
     color:var(--green);
 }
 
-/* GENERAL ITEMS */
-
-.item{
-    background:#f8fafb;
-    border:1px solid #dfe4e8;
-    border-radius:16px;
-    padding:16px;
-    margin-top:11px;
-    line-height:1.5;
+.nav-icon{
+    font-size:22px;
 }
 
-/* TIMES */
-
-.saved-month-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin-top:10px;
-}
-
-.timesheet-day{
-    border:1px solid #d8dee3;
-    border-left:6px solid #d8dee3;
-    background:#f8fafb;
-    border-radius:17px;
-    padding:15px;
-    margin-top:12px;
-}
-
-.timesheet-day.work{
-    border-left-color:var(--green);
-    background:#effbf6;
-}
-
-.timesheet-head{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    margin-bottom:12px;
-}
-
-.timesheet-date{
-    width:62px;
-    min-width:62px;
-    border:1px solid #ccd3d9;
-    border-radius:12px;
-    text-align:center;
-    background:white;
-    padding:8px 3px;
-}
-
-.timesheet-date strong{
-    display:block;
-    font-size:20px;
-}
-
-.timesheet-grid{
+.admin-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:8px;
+    gap:12px;
 }
 
-.timesheet-grid input,
-.timesheet-grid select{
-    margin:0;
+.admin-tile{
+    background:#fff;
+    border-radius:18px;
+    padding:17px;
+    box-shadow:0 5px 15px rgba(0,0,0,.06);
+}
+
+.admin-tile button{
+    width:100%;
+    border:0;
+    border-radius:12px;
+    background:var(--green);
+    color:#fff;
     padding:11px;
-    font-size:14px;
-}
-
-.full{
-    grid-column:1 / -1;
+    margin-top:9px;
+    font-weight:800;
 }
 
 .days{
@@ -481,48 +358,92 @@ body.employee-mode .bottom-nav{
     gap:8px;
     border:1px solid #dfe4e8;
     background:#f8fafb;
-    border-radius:13px;
-    padding:12px;
+    border-radius:12px;
+    padding:11px;
 }
 
 .day-select input{
     width:auto;
 }
 
+.timesheet-day{
+    border:1px solid #d8dee3;
+    border-left:6px solid #d8dee3;
+    background:#f8fafb;
+    border-radius:16px;
+    padding:14px;
+    margin-top:11px;
+}
+
+.timesheet-day.work{
+    border-left-color:var(--green);
+    background:#effbf6;
+}
+
+.timesheet-head{
+    display:flex;
+    gap:11px;
+    align-items:center;
+    margin-bottom:11px;
+}
+
+.timesheet-date{
+    width:60px;
+    min-width:60px;
+    border:1px solid #ccd3d9;
+    border-radius:11px;
+    text-align:center;
+    background:#fff;
+    padding:7px 3px;
+}
+
+.timesheet-date strong{
+    display:block;
+    font-size:19px;
+}
+
+.timesheet-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.timesheet-grid input,
+.timesheet-grid select{
+    padding:10px;
+    font-size:14px;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
 .result{
-    background:var(--green-light);
+    background:#ecfdf3;
     border:1px solid #abefc6;
     border-radius:16px;
-    padding:16px;
-    margin-top:15px;
+    padding:15px;
+    margin-top:14px;
 }
 
 .big-result{
-    font-size:28px;
+    font-size:27px;
     font-weight:900;
     color:#067647;
     margin-top:5px;
 }
 
-.time-actions{
-    margin-top:14px;
-}
-
-/* CHAT */
-
 .chat-box{
-    min-height:360px;
-    max-height:55vh;
+    min-height:330px;
+    max-height:54vh;
     overflow:auto;
-    padding:5px;
 }
 
 .message{
     max-width:82%;
-    padding:12px 14px;
-    border-radius:17px;
+    padding:11px 13px;
+    border-radius:16px;
     margin:8px 0;
-    line-height:1.4;
 }
 
 .message.me{
@@ -536,17 +457,15 @@ body.employee-mode .bottom-nav{
 
 .message small{
     display:block;
-    margin-top:6px;
+    margin-top:5px;
     color:#79818e;
     font-size:11px;
 }
 
-/* STATUS */
-
 .status{
     display:inline-block;
-    border-radius:20px;
-    padding:6px 10px;
+    border-radius:18px;
+    padding:5px 9px;
     font-size:12px;
     font-weight:800;
 }
@@ -567,77 +486,25 @@ body.employee-mode .bottom-nav{
     color:#b42318;
 }
 
-/* MORE */
-
-.more-profile{
-    text-align:center;
-    padding:10px;
-}
-
-.profile-avatar{
-    width:82px;
-    height:82px;
-    border-radius:50%;
-    background:var(--green);
-    color:white;
-    margin:auto;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:32px;
-}
-
 .more-item{
     border:1px solid #dfe3e7;
-    border-radius:17px;
-    padding:18px;
+    border-radius:16px;
+    padding:17px;
     margin-top:11px;
-    background:white;
+    background:#fff;
     font-size:17px;
     font-weight:800;
 }
 
-/* DOCUMENTS */
-
-.document-entry{
-    background:#f8fafb;
-    border:1px solid #dde3e7;
-    border-radius:17px;
-    padding:17px;
-    margin-top:12px;
-}
-
-.document-entry h3{
-    margin-bottom:6px;
-}
-
-.document-entry p{
-    color:var(--muted);
-    line-height:1.5;
-}
-
-.doc-button{
-    width:100%;
-    border:0;
-    border-radius:14px;
-    background:var(--green);
-    color:white;
-    padding:14px;
-    margin-top:11px;
-    font-weight:800;
-}
-
-/* INSTRUCTIONS */
-
 .instruction-category{
     border:1px solid #dfe4e8;
-    border-radius:17px;
+    border-radius:16px;
     overflow:hidden;
-    margin-top:12px;
+    margin-top:11px;
 }
 
 .instruction-head{
-    padding:18px;
+    padding:17px;
     display:flex;
     justify-content:space-between;
     font-weight:850;
@@ -645,7 +512,7 @@ body.employee-mode .bottom-nav{
 
 .instruction-body{
     display:none;
-    padding:0 18px 18px;
+    padding:0 17px 17px;
     line-height:1.6;
     color:#475467;
 }
@@ -660,37 +527,10 @@ body.employee-mode .bottom-nav{
 }
 
 .instruction-body li{
-    margin-top:8px;
-}
-
-/* ADMIN */
-
-.admin-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-}
-
-.admin-tile{
-    background:white;
-    border-radius:19px;
-    padding:18px;
-    box-shadow:0 5px 17px rgba(0,0,0,.06);
-}
-
-.admin-tile button{
-    width:100%;
-    border:0;
-    border-radius:12px;
-    background:var(--green);
-    color:white;
-    padding:12px;
-    margin-top:10px;
-    font-weight:800;
+    margin-top:7px;
 }
 
 @media(max-width:520px){
-
     .admin-grid,
     .timesheet-grid{
         grid-template-columns:1fr;
@@ -699,41 +539,24 @@ body.employee-mode .bottom-nav{
     .full{
         grid-column:auto;
     }
-
 }
-
 </style>
-
 </head>
 
 <body>
 
-
-<!-- LOGIN -->
-
 <section id="login" class="page active">
 
     <div class="login-logo">
-
-        <div class="logo-circle">
-            E-M
-        </div>
-
+        <div class="logo-circle">E-M</div>
         <h1>E-M Cleaning</h1>
-
         <p>Mitarbeiter-App</p>
-
     </div>
-
 
     <div class="card">
 
         <div class="card-title">
             👤 Mitarbeiter-Login
-        </div>
-
-        <div class="card-subtitle">
-            Mit persönlicher PIN anmelden.
         </div>
 
         <div
@@ -746,11 +569,9 @@ body.employee-mode .bottom-nav{
         <label>Mitarbeiter</label>
 
         <select id="loginEmployee">
-
             <option value="">
                 Wird geladen...
             </option>
-
         </select>
 
         <label>PIN</label>
@@ -806,8 +627,6 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- HOME -->
-
 <section id="home" class="page">
 
     <div class="employee-only">
@@ -816,12 +635,12 @@ body.employee-mode .bottom-nav{
 
             <div
                 id="welcomeEmployee"
-                class="welcome-name"
+                class="card-title"
             >
                 Willkommen
             </div>
 
-            <div class="welcome-sub">
+            <div class="card-subtitle">
                 Dein persönlicher E-M Cleaning Bereich
             </div>
 
@@ -830,19 +649,8 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <div class="work-title-row">
-
-                <div class="card-title">
-                    Dein Arbeitstag
-                </div>
-
-                <button
-                    class="refresh-button"
-                    onclick="refreshToday()"
-                >
-                    ↻
-                </button>
-
+            <div class="card-title">
+                Dein Arbeitstag
             </div>
 
             <div id="todayWork">
@@ -869,7 +677,7 @@ body.employee-mode .bottom-nav{
                 class="home-menu-button"
                 onclick="openPage('chat')"
             >
-                💬 Chat mit E-M Cleaning
+                💬 Chat
             </button>
 
             <button
@@ -888,22 +696,25 @@ body.employee-mode .bottom-nav{
 
             <button
                 class="home-menu-button"
-                onclick="openPage('instructions')"
+                onclick="openPage('materials')"
             >
-                🧹 Reinigungsanweisungen
+                🧴 Materialien & Datenblätter
             </button>
 
             <button
                 class="home-menu-button"
                 onclick="openPage('documents')"
             >
-                📄 Dokumente & Firma
+                📄 Meine Dokumente
             </button>
 
-        </div>
+            <button
+                class="home-menu-button"
+                onclick="openPage('instructions')"
+            >
+                🧹 Reinigungsanweisungen
+            </button>
 
-        <div class="home-footer">
-            E-M Cleaning Service
         </div>
 
     </div>
@@ -918,7 +729,7 @@ body.employee-mode .bottom-nav{
             </div>
 
             <div class="card-subtitle">
-                Mitarbeiter, Arbeitszeiten und Betriebsverwaltung.
+                Komplette Betriebsverwaltung
             </div>
 
         </div>
@@ -969,7 +780,7 @@ body.employee-mode .bottom-nav{
             </div>
 
             <div class="admin-tile">
-                <h3>💰 Preisrechner</h3>
+                <h3>💰 Pauschalpreis</h3>
                 <button onclick="openPage('price')">
                     Öffnen
                 </button>
@@ -982,10 +793,27 @@ body.employee-mode .bottom-nav{
                 </button>
             </div>
 
+            <div class="admin-tile">
+                <h3>🧴 Materialien</h3>
+                <button onclick="openPage('materialsAdmin')">
+                    Öffnen
+                </button>
+            </div>
+
+            <div class="admin-tile">
+                <h3>📄 Dokumente</h3>
+                <button onclick="openPage('documentsAdmin')">
+                    Öffnen
+                </button>
+            </div>
+
         </div>
 
 
-        <div class="card" style="margin-top:18px">
+        <div
+            class="card"
+            style="margin-top:16px"
+        >
 
             <button
                 class="secondary-button"
@@ -1001,8 +829,6 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- ZEITEN -->
-
 <section id="times" class="page">
 
     <div class="section-title">
@@ -1012,7 +838,7 @@ body.employee-mode .bottom-nav{
 
     <div class="card admin-only">
 
-        <label>Mitarbeiter auswählen</label>
+        <label>Mitarbeiter</label>
 
         <select
             id="timeEmployee"
@@ -1024,18 +850,13 @@ body.employee-mode .bottom-nav{
 
     <div class="card employee-only">
 
-        <div class="card-subtitle">
-            Mitarbeiter
-        </div>
-
         <div
-            id="employeeTimeName"
             class="card-title"
-            style="margin-top:6px"
+            id="employeeTimeName"
         ></div>
 
         <div class="info">
-            Hier kannst du deine Arbeitszeiten selbst eintragen, ändern und speichern.
+            Arbeitszeiten selbst eintragen, ändern und speichern.
         </div>
 
     </div>
@@ -1058,7 +879,7 @@ body.employee-mode .bottom-nav{
     <div class="card">
 
         <div class="card-title">
-            📅 Monat auswählen
+            📅 Monat
         </div>
 
         <label>Monat</label>
@@ -1066,29 +887,16 @@ body.employee-mode .bottom-nav{
         <input
             id="timeMonth"
             type="month"
-            onchange="monthChanged()"
+            onchange="loadSelectedTimesheet()"
         >
-
-        <button
-            class="secondary-button"
-            onclick="jumpToWorkTimes()"
-        >
-            Arbeitszeiten anzeigen
-        </button>
 
     </div>
 
 
-    <!-- JETZT FÜR ADMIN UND MITARBEITER -->
-
     <div class="card">
 
         <div class="card-title">
-            ➕ Monat neu erstellen
-        </div>
-
-        <div class="card-subtitle">
-            Mit diesen Standardzeiten wird der ganze Monat vorbereitet. Danach kannst du jeden Tag einzeln ändern.
+            ➕ Monat erstellen
         </div>
 
         <label>Arbeitsbeginn</label>
@@ -1120,7 +928,7 @@ body.employee-mode .bottom-nav{
 
         <input
             id="defaultObject"
-            placeholder="z.B. Fitnessstudio Fallersleben"
+            placeholder="z.B. Bürozentrum"
         >
 
         <label>Normale Arbeitstage</label>
@@ -1168,7 +976,7 @@ body.employee-mode .bottom-nav{
             class="main-button"
             onclick="createMonth()"
         >
-            Monat erstellen
+            Monat automatisch erstellen
         </button>
 
     </div>
@@ -1183,10 +991,6 @@ body.employee-mode .bottom-nav{
             Arbeitszeiten
         </div>
 
-        <div class="card-subtitle">
-            Jeden Tag kannst du einzeln bearbeiten.
-        </div>
-
         <div id="timesheetDays"></div>
 
         <div
@@ -1195,32 +999,24 @@ body.employee-mode .bottom-nav{
             style="display:none"
         ></div>
 
-        <div class="time-actions">
+        <button
+            class="main-button"
+            onclick="saveTimesheet()"
+        >
+            💾 Stundenzettel speichern
+        </button>
 
-            <!-- JETZT FÜR ADMIN UND MITARBEITER -->
-
-            <button
-                class="main-button"
-                onclick="saveTimesheet()"
-            >
-                💾 Stundenzettel speichern
-            </button>
-
-            <button
-                class="secondary-button"
-                onclick="createAndSharePdf()"
-            >
-                📄 PDF erstellen / teilen
-            </button>
-
-        </div>
+        <button
+            class="secondary-button"
+            onclick="createAndSharePdf()"
+        >
+            📄 PDF erstellen / teilen
+        </button>
 
     </div>
 
 </section>
 
-
-<!-- CHAT -->
 
 <section id="chat" class="page">
 
@@ -1270,8 +1066,6 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- TICKETS -->
-
 <section id="tickets" class="page">
 
     <div class="section-title">
@@ -1305,10 +1099,7 @@ body.employee-mode .bottom-nav{
 
         <label>Beschreibung</label>
 
-        <textarea
-            id="ticketDescription"
-            placeholder="Bitte möglichst genau beschreiben."
-        ></textarea>
+        <textarea id="ticketDescription"></textarea>
 
         <button
             class="main-button"
@@ -1334,8 +1125,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- URLAUB -->
 
 <section id="leave" class="page">
 
@@ -1365,10 +1154,7 @@ body.employee-mode .bottom-nav{
 
         <label>Bemerkung</label>
 
-        <textarea
-            id="leaveNote"
-            placeholder="Optional"
-        ></textarea>
+        <textarea id="leaveNote"></textarea>
 
         <button
             class="main-button"
@@ -1382,7 +1168,7 @@ body.employee-mode .bottom-nav{
     <div class="card">
 
         <div class="info">
-            Urlaub gilt erst nach Genehmigung als genehmigt.
+            Urlaub gilt erst nach Genehmigung.
         </div>
 
         <button
@@ -1399,75 +1185,28 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- MEHR -->
-
-<section id="more" class="page">
+<section id="materials" class="page">
 
     <div class="employee-only">
 
         <div class="section-title">
-            Mehr
+            🧴 Materialien & Datenblätter
         </div>
 
         <div class="card">
 
-            <div class="more-profile">
-
-                <div class="profile-avatar">
-                    👤
-                </div>
-
-                <div
-                    id="moreEmployeeName"
-                    class="card-title"
-                    style="margin-top:13px"
-                >
-                    Mitarbeiter
-                </div>
-
-            </div>
-
-            <div
-                class="more-item"
-                onclick="openPage('profile')"
-            >
-                👤 Mein Profil
-            </div>
-
-            <div
-                class="more-item"
-                onclick="openPage('leave')"
-            >
-                🏖 Urlaub
-            </div>
-
-            <div
-                class="more-item"
-                onclick="openPage('documents')"
-            >
-                📄 Dokumente & Links
-            </div>
-
-            <div
-                class="more-item"
-                onclick="openPage('instructions')"
-            >
-                🧹 Reinigungsanweisungen
-            </div>
-
-            <div
-                class="more-item"
-                onclick="openPage('help')"
-            >
-                ℹ️ Hilfe & Kontakt
+            <div class="card-subtitle">
+                Hier findest du die freigegebenen Produkte und die dazugehörigen Produkt- und Sicherheitsdatenblätter.
             </div>
 
             <button
                 class="secondary-button"
-                onclick="logoutEmployee()"
+                onclick="loadMaterials()"
             >
-                Abmelden
+                ↻ Aktualisieren
             </button>
+
+            <div id="materialsList"></div>
 
         </div>
 
@@ -1475,176 +1214,29 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- PROFIL -->
-
-<section id="profile" class="page">
-
-    <div class="employee-only">
-
-        <div class="section-title">
-            👤 Mein Profil
-        </div>
-
-        <div class="card">
-
-            <div
-                id="profileName"
-                class="card-title"
-            ></div>
-
-            <div class="item">
-                <strong>Beschäftigungsart</strong><br>
-                <span id="profileType">–</span>
-            </div>
-
-            <div class="item">
-                <strong>Telefon</strong><br>
-                <span id="profilePhone">–</span>
-            </div>
-
-            <div class="item">
-                <strong>Stundenlohn</strong><br>
-                <span id="profileWage">–</span>
-            </div>
-
-            <button
-                class="secondary-button"
-                onclick="openPage('more')"
-            >
-                ← Zurück
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- DOCUMENTS -->
 
 <section id="documents" class="page">
 
     <div class="employee-only">
 
         <div class="section-title">
-            📄 Dokumente & Firma
+            📄 Meine Dokumente
         </div>
 
         <div class="card">
 
-            <div class="card-title">
-                Persönliche Dokumente
+            <div class="card-subtitle">
+                Persönliche Dokumente und allgemeine Firmendokumente.
             </div>
-
-            <div class="document-entry">
-
-                <h3>
-                    📄 Arbeitsvertrag
-                </h3>
-
-                <p>
-                    Übersicht deiner gespeicherten Vertragsdaten.
-                </p>
-
-                <button
-                    class="doc-button"
-                    onclick="showContractOverview()"
-                >
-                    Vertragsübersicht öffnen
-                </button>
-
-            </div>
-
-            <div class="document-entry">
-
-                <h3>
-                    ⏱ Stundenzettel
-                </h3>
-
-                <p>
-                    Arbeitszeiten eintragen, speichern und PDF erstellen.
-                </p>
-
-                <button
-                    class="doc-button"
-                    onclick="openPage('times')"
-                >
-                    Stundenzettel öffnen
-                </button>
-
-            </div>
-
-            <div class="document-entry">
-
-                <h3>
-                    🏖 Urlaubsanträge
-                </h3>
-
-                <button
-                    class="doc-button"
-                    onclick="openPage('leave')"
-                >
-                    Urlaub öffnen
-                </button>
-
-            </div>
-
-            <div class="document-entry">
-
-                <h3>
-                    🧹 Arbeitsanweisungen
-                </h3>
-
-                <button
-                    class="doc-button"
-                    onclick="openPage('instructions')"
-                >
-                    Anweisungen öffnen
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="card-title">
-                E-M Cleaning Service
-            </div>
-
-            <div class="item">
-                <strong>📧 E-Mail</strong><br>
-                e-m-gebaudereinigung@web.de
-            </div>
-
-            <div class="item">
-                <strong>📞 Telefon</strong><br>
-                017642787027
-            </div>
-
-            <button
-                class="main-button"
-                onclick="emailCompany()"
-            >
-                E-Mail schreiben
-            </button>
-
-            <button
-                class="main-button"
-                onclick="callCompany()"
-            >
-                Firma anrufen
-            </button>
 
             <button
                 class="secondary-button"
-                onclick="openPage('more')"
+                onclick="loadDocuments()"
             >
-                ← Zurück
+                ↻ Aktualisieren
             </button>
+
+            <div id="documentsList"></div>
 
         </div>
 
@@ -1652,58 +1244,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- CONTRACT -->
-
-<section id="contract" class="page">
-
-    <div class="employee-only">
-
-        <div class="section-title">
-            📄 Vertragsübersicht
-        </div>
-
-        <div class="card">
-
-            <div class="warning">
-                Maßgeblich ist immer der unterschriebene Arbeitsvertrag.
-            </div>
-
-            <div class="item">
-                <strong>Arbeitnehmer</strong><br>
-                <span id="contractName"></span>
-            </div>
-
-            <div class="item">
-                <strong>Arbeitgeber</strong><br>
-                E-M Cleaning Service
-            </div>
-
-            <div class="item">
-                <strong>Beschäftigungsart</strong><br>
-                <span id="contractType"></span>
-            </div>
-
-            <div class="item">
-                <strong>Stundenlohn</strong><br>
-                <span id="contractWage"></span>
-            </div>
-
-            <button
-                class="secondary-button"
-                onclick="openPage('documents')"
-            >
-                ← Zurück
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- INSTRUCTIONS -->
 
 <section id="instructions" class="page">
 
@@ -1716,9 +1256,8 @@ body.employee-mode .bottom-nav{
         <div class="card">
 
             <div class="warning">
-                Objektbezogene Vorgaben haben Vorrang. Bei Unsicherheit bitte E-M Cleaning kontaktieren.
+                Objektbezogene Vorgaben haben Vorrang.
             </div>
-
 
             <div class="instruction-category">
 
@@ -1733,12 +1272,12 @@ body.employee-mode .bottom-nav{
                 <div class="instruction-body">
 
                     <ol>
-                        <li>Arbeitsmaterial vorbereiten.</li>
-                        <li>Abfallbehälter leeren.</li>
+                        <li>Material vorbereiten.</li>
+                        <li>Abfälle leeren.</li>
                         <li>Oberflächen von oben nach unten reinigen.</li>
-                        <li>Türklinken, Schalter und Kontaktflächen reinigen.</li>
+                        <li>Kontaktflächen reinigen.</li>
                         <li>Boden saugen oder kehren.</li>
-                        <li>Boden anschließend materialgerecht wischen.</li>
+                        <li>Boden materialgerecht wischen.</li>
                         <li>Arbeitsbereich ordentlich hinterlassen.</li>
                     </ol>
 
@@ -1753,7 +1292,7 @@ body.employee-mode .bottom-nav{
                     class="instruction-head"
                     onclick="toggleInstruction(this)"
                 >
-                    🚻 Sanitärreinigung
+                    🚻 Sanitär
                     <span>▾</span>
                 </div>
 
@@ -1762,38 +1301,9 @@ body.employee-mode .bottom-nav{
                     <ol>
                         <li>Handschuhe tragen.</li>
                         <li>Separate Sanitärtücher verwenden.</li>
-                        <li>Toilette innen und außen reinigen.</li>
-                        <li>Waschbecken und Armaturen reinigen.</li>
-                        <li>Spiegel reinigen.</li>
+                        <li>Toilette, Waschbecken, Armaturen und Spiegel reinigen.</li>
                         <li>Hygieneartikel auffüllen.</li>
-                        <li>Abfall leeren.</li>
                         <li>Boden zuletzt reinigen.</li>
-                    </ol>
-
-                </div>
-
-            </div>
-
-
-            <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    ✨ Grundreinigung
-                    <span>▾</span>
-                </div>
-
-                <div class="instruction-body">
-
-                    <ol>
-                        <li>Groben Schmutz entfernen.</li>
-                        <li>Material der Oberfläche prüfen.</li>
-                        <li>Reinigungsmittel korrekt dosieren.</li>
-                        <li>Hartnäckige Verschmutzungen vorbehandeln.</li>
-                        <li>Ecken und Kanten bearbeiten.</li>
-                        <li>Flächen anschließend vollständig nachreinigen.</li>
                     </ol>
 
                 </div>
@@ -1814,37 +1324,10 @@ body.employee-mode .bottom-nav{
                 <div class="instruction-body">
 
                     <ol>
-                        <li>Rahmen grob reinigen.</li>
+                        <li>Rahmen vorreinigen.</li>
                         <li>Glas einwaschen.</li>
-                        <li>Schmutz vorsichtig lösen.</li>
-                        <li>Glas mit Abzieher abziehen.</li>
-                        <li>Ränder nachtrocknen.</li>
-                        <li>Fensterbank kontrollieren.</li>
-                    </ol>
-
-                </div>
-
-            </div>
-
-
-            <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    🪜 Treppenhaus
-                    <span>▾</span>
-                </div>
-
-                <div class="instruction-body">
-
-                    <ol>
-                        <li>Von oben nach unten arbeiten.</li>
-                        <li>Geländer und Handläufe reinigen.</li>
-                        <li>Stufen und Podeste saugen oder kehren.</li>
-                        <li>Anschließend feucht wischen.</li>
-                        <li>Eingangstür und Griffe reinigen.</li>
+                        <li>Verschmutzung vorsichtig lösen.</li>
+                        <li>Abziehen und Ränder trocknen.</li>
                     </ol>
 
                 </div>
@@ -1865,9 +1348,8 @@ body.employee-mode .bottom-nav{
                 <div class="instruction-body">
 
                     <ul>
-                        <li>Reinigungsmittel niemals miteinander mischen.</li>
+                        <li>Reinigungsmittel niemals mischen.</li>
                         <li>Dosierung beachten.</li>
-                        <li>Handschuhe verwenden, wenn erforderlich.</li>
                         <li>Nasse Böden absichern.</li>
                         <li>Defekte Geräte nicht benutzen.</li>
                         <li>Schäden sofort melden.</li>
@@ -1877,39 +1359,6 @@ body.employee-mode .bottom-nav{
 
             </div>
 
-
-            <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    🤝 Verhalten beim Kunden
-                    <span>▾</span>
-                </div>
-
-                <div class="instruction-body">
-
-                    <ul>
-                        <li>Freundlich und professionell auftreten.</li>
-                        <li>Kundeneigentum sorgfältig behandeln.</li>
-                        <li>Keine Fotos ohne Erlaubnis.</li>
-                        <li>Vertrauliche Unterlagen nicht lesen.</li>
-                        <li>Schlüssel und Zugangskarten sicher behandeln.</li>
-                    </ul>
-
-                </div>
-
-            </div>
-
-
-            <button
-                class="secondary-button"
-                onclick="openPage('more')"
-            >
-                ← Zurück
-            </button>
-
         </div>
 
     </div>
@@ -1917,46 +1366,49 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- HELP -->
-
-<section id="help" class="page">
+<section id="more" class="page">
 
     <div class="employee-only">
 
         <div class="section-title">
-            ℹ️ Hilfe
+            Mehr
         </div>
 
         <div class="card">
 
-            <div class="item">
-                <strong>Arbeitszeit falsch?</strong><br>
-                Im Bereich Zeiten kannst du den Monat öffnen und korrigieren.
+            <div
+                class="more-item"
+                onclick="openPage('documents')"
+            >
+                📄 Meine Dokumente
             </div>
 
-            <div class="item">
-                <strong>Material fehlt?</strong><br>
-                Erstelle ein Ticket mit „Material fehlt“.
+            <div
+                class="more-item"
+                onclick="openPage('materials')"
+            >
+                🧴 Materialien & Datenblätter
             </div>
 
-            <div class="item">
-                <strong>Kontakt</strong><br>
-                017642787027<br>
-                e-m-gebaudereinigung@web.de
+            <div
+                class="more-item"
+                onclick="openPage('instructions')"
+            >
+                🧹 Reinigungsanweisungen
+            </div>
+
+            <div
+                class="more-item"
+                onclick="openPage('leave')"
+            >
+                🏖 Urlaub
             </div>
 
             <button
-                class="main-button"
-                onclick="openPage('chat')"
+                class="secondary-button"
+                onclick="logoutEmployee()"
             >
-                Chat öffnen
-            </button>
-
-            <button
-                class="main-button"
-                onclick="openPage('tickets')"
-            >
-                Ticket erstellen
+                Abmelden
             </button>
 
         </div>
@@ -1965,8 +1417,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- EMPLOYEES ADMIN -->
 
 <section id="employees" class="page">
 
@@ -2045,7 +1495,190 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- ORDERS -->
+<section id="materialsAdmin" class="page">
+
+    <div class="admin-only">
+
+        <div class="section-title">
+            🧴 Materialien verwalten
+        </div>
+
+        <div class="card">
+
+            <input
+                id="materialId"
+                type="hidden"
+            >
+
+            <label>Produktname</label>
+
+            <input
+                id="materialName"
+                placeholder="z.B. Glasreiniger"
+            >
+
+            <label>Hersteller</label>
+
+            <input
+                id="materialManufacturer"
+                placeholder="Hersteller"
+            >
+
+            <label>Kategorie</label>
+
+            <select id="materialCategory">
+                <option>Unterhaltsreinigung</option>
+                <option>Sanitär</option>
+                <option>Glas</option>
+                <option>Boden</option>
+                <option>Grundreinigung</option>
+                <option>Sonstiges</option>
+            </select>
+
+            <label>Anwendung / Dosierung</label>
+
+            <textarea
+                id="materialUse"
+                placeholder="Kurze Anweisung"
+            ></textarea>
+
+            <label>Produktdatenblatt-Link</label>
+
+            <input
+                id="materialProductUrl"
+                placeholder="https://..."
+            >
+
+            <label>Sicherheitsdatenblatt-Link</label>
+
+            <input
+                id="materialSafetyUrl"
+                placeholder="https://..."
+            >
+
+            <button
+                class="main-button"
+                onclick="saveMaterial()"
+            >
+                Material speichern
+            </button>
+
+            <button
+                class="secondary-button"
+                onclick="clearMaterialForm()"
+            >
+                Formular leeren
+            </button>
+
+        </div>
+
+
+        <div class="card">
+
+            <button
+                class="secondary-button"
+                onclick="loadMaterials()"
+            >
+                ↻ Aktualisieren
+            </button>
+
+            <div id="materialsAdminList"></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section id="documentsAdmin" class="page">
+
+    <div class="admin-only">
+
+        <div class="section-title">
+            📄 Dokumente verwalten
+        </div>
+
+        <div class="card">
+
+            <input
+                id="documentId"
+                type="hidden"
+            >
+
+            <label>Titel</label>
+
+            <input
+                id="documentTitle"
+                placeholder="z.B. Arbeitsvertrag"
+            >
+
+            <label>Art</label>
+
+            <select id="documentType">
+                <option>Arbeitsvertrag</option>
+                <option>Personal-Dokument</option>
+                <option>Unterweisung</option>
+                <option>Firmendokument</option>
+                <option>Sonstiges</option>
+            </select>
+
+            <label>Für Mitarbeiter</label>
+
+            <select id="documentEmployee">
+                <option value="">
+                    Allgemein – alle Mitarbeiter
+                </option>
+            </select>
+
+            <label>Dokument-Link</label>
+
+            <input
+                id="documentUrl"
+                placeholder="https://..."
+            >
+
+            <label>Hinweis</label>
+
+            <textarea
+                id="documentNote"
+                placeholder="Optional"
+            ></textarea>
+
+            <button
+                class="main-button"
+                onclick="saveDocument()"
+            >
+                Dokument speichern
+            </button>
+
+            <button
+                class="secondary-button"
+                onclick="clearDocumentForm()"
+            >
+                Formular leeren
+            </button>
+
+        </div>
+
+
+        <div class="card">
+
+            <button
+                class="secondary-button"
+                onclick="loadDocuments()"
+            >
+                ↻ Aktualisieren
+            </button>
+
+            <div id="documentsAdminList"></div>
+
+        </div>
+
+    </div>
+
+</section>
+
 
 <section id="orders" class="page">
 
@@ -2057,7 +1690,10 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <input id="orderCustomer" placeholder="Kunde">
+            <input
+                id="orderCustomer"
+                placeholder="Kunde"
+            >
 
             <input
                 id="orderAddress"
@@ -2114,42 +1750,153 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- PRICE -->
-
 <section id="price" class="page">
 
     <div class="admin-only">
 
         <div class="section-title">
-            💰 Preisrechner
+            💰 Pauschalpreis-Rechner
         </div>
 
         <div class="card">
 
-            <label>Fläche m²</label>
-            <input id="priceArea" type="number">
+            <label>Reinigungsart</label>
 
-            <label>Arbeitsstunden</label>
-            <input id="priceHours" type="number">
+            <select
+                id="priceService"
+                onchange="suggestCleaningTime()"
+            >
+                <option>Unterhaltsreinigung</option>
+                <option>Grundreinigung</option>
+                <option>Bauendreinigung</option>
+                <option>Glasreinigung</option>
+                <option>Treppenhausreinigung</option>
+            </select>
 
-            <label>Stundensatz €</label>
-            <input id="priceHourly" type="number" value="35">
+            <label>Fläche in m²</label>
 
-            <label>Preis pro m² €</label>
-            <input id="priceSqm" type="number" value="4.50">
+            <input
+                id="priceArea"
+                type="number"
+                step="1"
+                oninput="suggestCleaningTime()"
+            >
 
-            <label>Anfahrt €</label>
-            <input id="priceTravel" type="number" value="0">
+            <label>Verschmutzungsgrad</label>
 
-            <label>Material €</label>
-            <input id="priceMaterial" type="number" value="0">
+            <select
+                id="priceDifficulty"
+                onchange="suggestCleaningTime()"
+            >
+                <option value="light">Leicht</option>
+                <option value="normal" selected>Normal</option>
+                <option value="intensive">Intensiv</option>
+            </select>
+
+            <label>Häufigkeit</label>
+
+            <select
+                id="priceFrequency"
+                onchange="calculatePackagePrice()"
+            >
+                <option value="1">
+                    1× monatlich
+                </option>
+
+                <option value="2.165">
+                    Alle 2 Wochen
+                </option>
+
+                <option
+                    value="4.33"
+                    selected
+                >
+                    1× pro Woche
+                </option>
+
+                <option value="8.66">
+                    2× pro Woche
+                </option>
+
+                <option value="12.99">
+                    3× pro Woche
+                </option>
+
+                <option value="21.65">
+                    5× pro Woche
+                </option>
+            </select>
+
+
+            <div
+                id="timeSuggestion"
+                class="info"
+            >
+                Fläche eingeben – die App schätzt automatisch die Stunden pro Einsatz.
+            </div>
+
+
+            <label>Stunden pro Einsatz</label>
+
+            <input
+                id="priceHoursPerVisit"
+                type="number"
+                step="0.1"
+                oninput="calculatePackagePrice()"
+            >
+
+
+            <label>Verkaufspreis pro Stunde €</label>
+
+            <input
+                id="priceHourly"
+                type="number"
+                step="0.5"
+                value="35"
+                oninput="calculatePackagePrice()"
+            >
+
+
+            <label>Anfahrt pro Einsatz €</label>
+
+            <input
+                id="priceTravel"
+                type="number"
+                step="0.5"
+                value="0"
+                oninput="calculatePackagePrice()"
+            >
+
+
+            <label>Material pro Monat €</label>
+
+            <input
+                id="priceMaterial"
+                type="number"
+                step="0.5"
+                value="0"
+                oninput="calculatePackagePrice()"
+            >
+
+
+            <label>Aufschlag / Reserve %</label>
+
+            <input
+                id="priceMarkup"
+                type="number"
+                step="1"
+                value="10"
+                oninput="calculatePackagePrice()"
+            >
+
 
             <button
                 class="main-button"
-                onclick="calculatePrice()"
+                onclick="calculatePackagePrice()"
             >
-                Berechnen
+                Pauschalpreis berechnen
             </button>
+
 
             <div
                 id="priceResult"
@@ -2163,8 +1910,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- WINDOWS -->
 
 <section id="windows" class="page">
 
@@ -2225,8 +1970,6 @@ body.employee-mode .bottom-nav{
 </section>
 
 
-<!-- NAV -->
-
 <nav class="bottom-nav">
 
     <div
@@ -2279,10 +2022,6 @@ body.employee-mode .bottom-nav{
 
 <script>
 
-/* =========================================================
-   STATE
-========================================================= */
-
 let adminMode=false;
 let employeeMode=false;
 
@@ -2291,203 +2030,292 @@ let currentTimesheet=[];
 
 let allEmployees=[];
 let allTimesheets=[];
+let allMaterials=[];
+let allDocuments=[];
 
 let arWidth=0;
 let arHeight=0;
 let arArea=0;
 
 
-/* HELPERS */
-
 function el(id){
     return document.getElementById(id);
 }
 
+
 function esc(value){
 
-    return String(value==null?'':value)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/'/g,'&#039;');
+    return String(
+        value==null
+        ?
+        ''
+        :
+        value
+    )
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
 }
 
-function callAndroid(method,...args){
+
+function callAndroid(
+    method,
+    ...args
+){
 
     try{
 
         if(
-            window.Android &&
+            window.Android
+            &&
             typeof Android[method]==='function'
         ){
 
-            return Android[method](...args);
+            return Android[method](
+                ...args
+            );
         }
 
-        console.log(
-            'Android-Methode fehlt:',
-            method
-        );
-
-    }catch(error){
+    }catch(e){
 
         console.error(
-            'Android Fehler:',
             method,
-            error
+            e
         );
     }
 }
+
 
 function setMode(mode){
 
-    document.body.classList.remove(
-        'admin-mode',
-        'employee-mode'
-    );
+    document.body
+        .classList
+        .remove(
+            'admin-mode',
+            'employee-mode'
+        );
 
-    adminMode=mode==='admin';
-    employeeMode=mode==='employee';
+    adminMode=
+        mode==='admin';
+
+    employeeMode=
+        mode==='employee';
 
     if(adminMode){
-        document.body.classList.add('admin-mode');
+
+        document.body
+            .classList
+            .add(
+                'admin-mode'
+            );
     }
 
     if(employeeMode){
-        document.body.classList.add('employee-mode');
+
+        document.body
+            .classList
+            .add(
+                'employee-mode'
+            );
     }
 }
 
-
-/* NAVIGATION */
 
 function openPage(id){
 
     const employeePages=[
+
         'home',
         'times',
         'chat',
         'tickets',
         'leave',
         'more',
-        'profile',
+        'materials',
         'documents',
-        'contract',
-        'instructions',
-        'help'
+        'instructions'
     ];
 
+
     if(
-        employeeMode &&
+        employeeMode
+        &&
         !employeePages.includes(id)
     ){
+
         id='home';
     }
 
+
     if(
-        !employeeMode &&
-        !adminMode &&
+        !employeeMode
+        &&
+        !adminMode
+        &&
         id!=='login'
     ){
+
         id='login';
     }
 
+
     document
         .querySelectorAll('.page')
-        .forEach(page=>{
-            page.classList.remove('active');
-        });
+        .forEach(
+            page=>
+                page.classList.remove(
+                    'active'
+                )
+        );
+
 
     if(el(id)){
-        el(id).classList.add('active');
+
+        el(id)
+            .classList
+            .add(
+                'active'
+            );
     }
+
 
     updateBottomNav(id);
 
+
     if(id==='home'){
+
         updateTodayWork();
     }
 
+
     if(id==='times'){
+
         prepareTimesPage();
     }
 
+
     if(id==='chat'){
+
         populateEmployeeSelects();
+
         loadChat();
     }
 
+
     if(id==='tickets'){
+
         loadTickets();
     }
 
+
     if(id==='leave'){
+
         loadLeaveRequests();
     }
 
-    if(id==='profile'){
-        updateProfile();
-    }
-
-    if(id==='more'){
-        updateEmployeeTexts();
-    }
 
     if(
-        id==='employees' &&
+        id==='materials'
+        ||
+        id==='materialsAdmin'
+    ){
+
+        loadMaterials();
+    }
+
+
+    if(
+        id==='documents'
+        ||
+        id==='documentsAdmin'
+    ){
+
+        populateEmployeeSelects();
+
+        loadDocuments();
+    }
+
+
+    if(
+        id==='employees'
+        &&
         adminMode
     ){
+
         callAndroid(
             'loadEmployeesFromFirestore'
         );
     }
 
+
     if(
-        id==='orders' &&
+        id==='orders'
+        &&
         adminMode
     ){
+
         callAndroid(
             'loadOrdersFromFirestore'
         );
     }
 
-    window.scrollTo(0,0);
+
+    window.scrollTo(
+        0,
+        0
+    );
 }
 
 
 function updateBottomNav(id){
 
     document
-        .querySelectorAll('.nav-btn')
-        .forEach(btn=>{
-            btn.classList.remove('active');
-        });
+        .querySelectorAll(
+            '.nav-btn'
+        )
+        .forEach(
+            button=>
+                button.classList.remove(
+                    'active'
+                )
+        );
+
 
     const map={
+
         home:'navHome',
         times:'navTimes',
         chat:'navChat',
         tickets:'navTickets',
+
         more:'navMore',
         leave:'navMore',
-        profile:'navMore',
+        materials:'navMore',
         documents:'navMore',
-        contract:'navMore',
-        instructions:'navMore',
-        help:'navMore'
+        instructions:'navMore'
     };
 
+
     if(
-        map[id] &&
+        map[id]
+        &&
         el(map[id])
     ){
-        el(map[id]).classList.add('active');
+
+        el(map[id])
+            .classList
+            .add(
+                'active'
+            );
     }
 }
 
 
-/* LOGIN EMPLOYEE */
+/* ======================================================
+   LOGIN
+====================================================== */
 
 function employeeLogin(){
 
@@ -2495,7 +2323,10 @@ function employeeLogin(){
         el('loginEmployee').value;
 
     const pin=
-        el('loginPin').value.trim();
+        el('loginPin')
+            .value
+            .trim();
+
 
     if(!employeeId){
 
@@ -2506,19 +2337,28 @@ function employeeLogin(){
         return;
     }
 
-    if(!/^\d{4}$/.test(pin)){
+
+    if(
+        !/^\d{4}$/.test(pin)
+    ){
 
         alert(
-            'Bitte eine 4-stellige PIN eingeben.'
+            'Bitte 4-stellige PIN eingeben.'
         );
 
         return;
     }
 
-    el('loginStatus').className='info';
 
-    el('loginStatus').textContent=
-        'Anmeldung wird geprüft...';
+    el('loginStatus')
+        .className=
+            'info';
+
+
+    el('loginStatus')
+        .textContent=
+            'Anmeldung wird geprüft...';
+
 
     callAndroid(
         'loginEmployee',
@@ -2531,58 +2371,79 @@ function employeeLogin(){
 window.receiveEmployeeLogin=
 function(result){
 
-    try{
+    if(
+        typeof result==='string'
+    ){
 
-        if(typeof result==='string'){
-            result=JSON.parse(result);
-        }
-
-    }catch(e){
-
-        result={
-            success:false,
-            message:'Ungültige Antwort.'
-        };
+        result=
+            JSON.parse(
+                result
+            );
     }
 
+
     if(
-        !result ||
+        !result
+        ||
         !result.success
     ){
 
-        el('loginStatus').className='warning';
+        el('loginStatus')
+            .className=
+                'warning';
 
-        el('loginStatus').textContent=
-            result?.message ||
-            'Anmeldung fehlgeschlagen.';
 
-        el('loginPin').value='';
+        el('loginStatus')
+            .textContent=
+
+                result?.message
+                ||
+                'Anmeldung fehlgeschlagen.';
 
         return;
     }
 
-    currentEmployee=result.employee;
 
-    setMode('employee');
+    currentEmployee=
+        result.employee;
 
-    updateEmployeeTexts();
 
-    el('loginPin').value='';
+    setMode(
+        'employee'
+    );
+
+
+    el('welcomeEmployee')
+        .textContent=
+
+            'Willkommen, '
+            +
+            currentEmployee.name;
+
+
+    el('employeeTimeName')
+        .textContent=
+            currentEmployee.name;
+
 
     callAndroid(
         'loadTimesheetsFromFirestore'
     );
 
-    openPage('home');
-};
 
+    openPage(
+        'home'
+    );
+}
 
-/* ADMIN LOGIN */
 
 function adminLogin(){
 
     const pin=
-        el('adminPin').value.trim();
+        el('adminPin')
+            .value
+            .trim();
+
 
     if(!pin){
 
@@ -2592,6 +2453,7 @@ function adminLogin(){
 
         return;
     }
+
 
     callAndroid(
         'loginAdmin',
@@ -2603,54 +2465,67 @@ function adminLogin(){
 window.receiveAdminLogin=
 function(result){
 
-    try{
+    if(
+        typeof result==='string'
+    ){
 
-        if(typeof result==='string'){
-            result=JSON.parse(result);
-        }
-
-    }catch(e){
-
-        result={
-            success:false
-        };
+        result=
+            JSON.parse(
+                result
+            );
     }
 
+
     if(
-        !result ||
+        !result
+        ||
         !result.success
     ){
 
-        el('adminStatus').style.display='block';
+        el('adminStatus')
+            .style.display=
+                'block';
 
-        el('adminStatus').className='warning';
 
-        el('adminStatus').textContent=
-            result?.message ||
-            'Anmeldung fehlgeschlagen.';
+        el('adminStatus')
+            .className=
+                'warning';
+
+
+        el('adminStatus')
+            .textContent=
+
+                result?.message
+                ||
+                'Anmeldung fehlgeschlagen.';
 
         return;
     }
 
+
     currentEmployee=null;
 
-    setMode('admin');
 
-    el('adminPin').value='';
+    setMode(
+        'admin'
+    );
+
 
     callAndroid(
         'loadEmployeesFromFirestore'
     );
 
+
     callAndroid(
         'loadTimesheetsFromFirestore'
     );
 
-    openPage('home');
-};
 
+    openPage(
+        'home'
+    );
+}
 
-/* LOGOUT */
 
 function logoutEmployee(){
 
@@ -2664,8 +2539,11 @@ function logoutEmployee(){
 
     setMode('');
 
-    openPage('login');
+    openPage(
+        'login'
+    );
 }
+
 
 function logoutAdmin(){
 
@@ -2677,151 +2555,29 @@ function logoutAdmin(){
 
     setMode('');
 
-    callAndroid(
-        'loadEmployeesFromFirestore'
+    openPage(
+        'login'
     );
-
-    openPage('login');
 }
 
 
-/* EMPLOYEE TEXTS */
-
-function updateEmployeeTexts(){
-
-    if(!currentEmployee){
-        return;
-    }
-
-    if(el('welcomeEmployee')){
-
-        el('welcomeEmployee').textContent=
-            'Willkommen, '+
-            currentEmployee.name;
-    }
-
-    if(el('employeeTimeName')){
-
-        el('employeeTimeName').textContent=
-            currentEmployee.name;
-    }
-
-    if(el('moreEmployeeName')){
-
-        el('moreEmployeeName').textContent=
-            currentEmployee.name;
-    }
-}
-
-
-/* PROFILE */
-
-function updateProfile(){
-
-    if(!currentEmployee){
-        return;
-    }
-
-    el('profileName').textContent=
-        currentEmployee.name ||
-        'Mitarbeiter';
-
-    el('profileType').textContent=
-        currentEmployee.art ||
-        currentEmployee.type ||
-        'Nicht hinterlegt';
-
-    el('profilePhone').textContent=
-        currentEmployee.telefon ||
-        currentEmployee.phone ||
-        'Nicht hinterlegt';
-
-    const wage=
-        currentEmployee.lohn ||
-        currentEmployee.wage;
-
-    el('profileWage').textContent=
-        wage
-        ?
-        wage+' €/Std.'
-        :
-        'Nicht hinterlegt';
-}
-
-
-/* CONTRACT */
-
-function showContractOverview(){
-
-    if(!currentEmployee){
-        return;
-    }
-
-    el('contractName').textContent=
-        currentEmployee.name ||
-        '';
-
-    el('contractType').textContent=
-        currentEmployee.art ||
-        currentEmployee.type ||
-        'Nicht hinterlegt';
-
-    const wage=
-        currentEmployee.lohn ||
-        currentEmployee.wage;
-
-    el('contractWage').textContent=
-        wage
-        ?
-        wage+' €/Std.'
-        :
-        'Nicht hinterlegt';
-
-    openPage('contract');
-}
-
-
-/* COMPANY */
-
-function emailCompany(){
-
-    window.location.href=
-        'mailto:e-m-gebaudereinigung@web.de';
-}
-
-function callCompany(){
-
-    window.location.href=
-        'tel:017642787027';
-}
-
-
-/* INSTRUCTIONS */
-
-function toggleInstruction(head){
-
-    head
-        .parentElement
-        .classList
-        .toggle('open');
-}
-
-
-/* EMPLOYEES */
+/* ======================================================
+   EMPLOYEES
+====================================================== */
 
 window.receiveEmployeesFromFirestore=
 function(data){
 
-    try{
+    if(
+        typeof data==='string'
+    ){
 
-        if(typeof data==='string'){
-            data=JSON.parse(data);
-        }
-
-    }catch(e){
-
-        data=[];
+        data=
+            JSON.parse(
+                data
+            );
     }
+
 
     allEmployees=
         Array.isArray(data)
@@ -2830,23 +2586,30 @@ function(data){
         :
         [];
 
+
     populateLoginEmployees();
 
     populateEmployeeSelects();
 
+
     if(adminMode){
+
         renderEmployees();
     }
 
-    if(el('loginStatus')){
 
-        el('loginStatus').className='success';
+    el('loginStatus')
+        .className=
+            'success';
 
-        el('loginStatus').textContent=
-            allEmployees.length+
+
+    el('loginStatus')
+        .textContent=
+
+            allEmployees.length
+            +
             ' Mitarbeiter geladen.';
-    }
-};
+}
 
 
 function populateLoginEmployees(){
@@ -2854,36 +2617,48 @@ function populateLoginEmployees(){
     const select=
         el('loginEmployee');
 
+
     if(!select){
+
         return;
     }
+
 
     const old=
         select.value;
 
+
     select.innerHTML=
+
         '<option value="">Bitte auswählen</option>';
 
-    allEmployees.forEach(employee=>{
 
-        const option=
-            document.createElement(
-                'option'
-            );
+    allEmployees
+        .forEach(
+            employee=>{
 
-        option.value=
-            employee.id;
+                const option=
+                    document.createElement(
+                        'option'
+                    );
 
-        option.textContent=
-            employee.name;
+                option.value=
+                    employee.id;
 
-        select.appendChild(
-            option
+                option.textContent=
+                    employee.name;
+
+                select.appendChild(
+                    option
+                );
+            }
         );
-    });
+
 
     if(old){
-        select.value=old;
+
+        select.value=
+            old;
     }
 }
 
@@ -2892,44 +2667,67 @@ function populateEmployeeSelects(){
 
     [
         'timeEmployee',
-        'chatEmployee'
+        'chatEmployee',
+        'documentEmployee'
     ]
-    .forEach(id=>{
+    .forEach(
+        id=>{
 
-        const select=
-            el(id);
+            const select=
+                el(id);
 
-        if(!select){
-            return;
-        }
 
-        const old=
-            select.value;
+            if(!select){
 
-        select.innerHTML='';
+                return;
+            }
 
-        allEmployees.forEach(employee=>{
 
-            const option=
-                document.createElement(
-                    'option'
+            const old=
+                select.value;
+
+
+            select.innerHTML=
+
+                id==='documentEmployee'
+                ?
+                '<option value="">Allgemein – alle Mitarbeiter</option>'
+                :
+                '';
+
+
+            allEmployees
+                .forEach(
+                    employee=>{
+
+                        const option=
+                            document.createElement(
+                                'option'
+                            );
+
+
+                        option.value=
+                            employee.id;
+
+
+                        option.textContent=
+                            employee.name;
+
+
+                        select.appendChild(
+                            option
+                        );
+                    }
                 );
 
-            option.value=
-                employee.id;
 
-            option.textContent=
-                employee.name;
+            if(old){
 
-            select.appendChild(
-                option
-            );
-        });
-
-        if(old){
-            select.value=old;
+                select.value=
+                    old;
+            }
         }
-    });
+    );
 }
 
 
@@ -2938,66 +2736,102 @@ function renderEmployees(){
     const box=
         el('employeeList');
 
+
     box.innerHTML='';
 
-    if(!allEmployees.length){
 
-        box.innerHTML=
-            '<div class="info">Noch keine Mitarbeiter vorhanden.</div>';
+    allEmployees
+        .forEach(
+            employee=>{
 
-        return;
-    }
+                const item=
+                    document.createElement(
+                        'div'
+                    );
 
-    allEmployees.forEach(employee=>{
 
-        const item=
-            document.createElement(
-                'div'
-            );
+                item.className=
+                    'item';
 
-        item.className='item';
 
-        item.innerHTML=
+                item.innerHTML=
 
-            '<strong>'+
-            esc(employee.name)+
-            '</strong><br>'+
+                    '<strong>'
+                    +
+                    esc(employee.name)
+                    +
+                    '</strong><br>'
 
-            esc(employee.art || '')+
-            '<br>'+
+                    +
 
-            esc(employee.telefon || '')+
-            '<br>'+
+                    esc(
+                        employee.art
+                        ||
+                        ''
+                    )
 
-            (
-                employee.lohn
-                ?
-                esc(employee.lohn)+
-                ' €/Std.<br>'
-                :
-                ''
-            );
+                    +
 
-        const edit=
-            document.createElement(
-                'button'
-            );
+                    '<br>'
 
-        edit.className=
-            'small-button';
+                    +
 
-        edit.textContent=
-            '✏️ Bearbeiten';
+                    esc(
+                        employee.telefon
+                        ||
+                        ''
+                    )
 
-        edit.onclick=()=>{
+                    +
 
-            editEmployee(employee);
-        };
+                    '<br>'
 
-        item.appendChild(edit);
+                    +
 
-        box.appendChild(item);
-    });
+                    (
+                        employee.lohn
+                        ?
+                        esc(employee.lohn)
+                        +
+                        ' €/Std.'
+                        :
+                        ''
+                    );
+
+
+                const button=
+                    document.createElement(
+                        'button'
+                    );
+
+
+                button.className=
+                    'small-button';
+
+
+                button.textContent=
+                    'Bearbeiten';
+
+
+                button.onclick=
+                    ()=>{
+
+                        editEmployee(
+                            employee
+                        );
+                    };
+
+
+                item.appendChild(
+                    button
+                );
+
+
+                box.appendChild(
+                    item
+                );
+            }
+        );
 }
 
 
@@ -3020,7 +2854,10 @@ function editEmployee(employee){
 
     el('employeePin').value='';
 
-    window.scrollTo(0,0);
+    window.scrollTo(
+        0,
+        0
+    );
 }
 
 
@@ -3040,15 +2877,26 @@ function saveEmployee(){
     const editId=
         el('editEmployeeId').value;
 
+
     const id=
-        editId ||
-        String(Date.now());
+        editId
+        ||
+        String(
+            Date.now()
+        );
+
 
     const name=
-        el('employeeName').value.trim();
+        el('employeeName')
+            .value
+            .trim();
+
 
     const pin=
-        el('employeePin').value.trim();
+        el('employeePin')
+            .value
+            .trim();
+
 
     if(!name){
 
@@ -3059,8 +2907,10 @@ function saveEmployee(){
         return;
     }
 
+
     if(
-        !editId &&
+        !editId
+        &&
         !/^\d{4}$/.test(pin)
     ){
 
@@ -3071,17 +2921,20 @@ function saveEmployee(){
         return;
     }
 
+
     if(
-        pin &&
+        pin
+        &&
         !/^\d{4}$/.test(pin)
     ){
 
         alert(
-            'PIN muss genau vier Ziffern haben.'
+            'PIN muss vier Ziffern haben.'
         );
 
         return;
     }
+
 
     callAndroid(
 
@@ -3100,26 +2953,32 @@ function saveEmployee(){
         pin
     );
 
+
     clearEmployeeForm();
 
-    setTimeout(()=>{
 
-        callAndroid(
-            'loadEmployeesFromFirestore'
-        );
+    setTimeout(
+        ()=>{
 
-    },700);
+            callAndroid(
+                'loadEmployeesFromFirestore'
+            );
+
+        },
+        700
+    );
 }
 
 
-/* =========================================================
+/* ======================================================
    TIMES
-========================================================= */
+====================================================== */
 
 function getEmployeeId(){
 
     if(
-        employeeMode &&
+        employeeMode
+        &&
         currentEmployee
     ){
 
@@ -3127,6 +2986,7 @@ function getEmployeeId(){
             currentEmployee.id
         );
     }
+
 
     return el('timeEmployee')
         ?
@@ -3139,29 +2999,28 @@ function getEmployeeId(){
 function getEmployeeName(){
 
     if(
-        employeeMode &&
+        employeeMode
+        &&
         currentEmployee
     ){
 
         return currentEmployee.name;
     }
 
+
     const select=
         el('timeEmployee');
 
-    if(
-        !select ||
-        select.selectedIndex<0
-    ){
-
-        return '';
-    }
 
     return select
-        .options[
+        &&
+        select.selectedIndex>=0
+        ?
+        select.options[
             select.selectedIndex
-        ]
-        .text;
+        ].text
+        :
+        '';
 }
 
 
@@ -3169,27 +3028,38 @@ function prepareTimesPage(){
 
     populateEmployeeSelects();
 
-    updateEmployeeTexts();
 
     callAndroid(
         'loadTimesheetsFromFirestore'
     );
+
+
+    if(
+        employeeMode
+        &&
+        currentEmployee
+    ){
+
+        el('employeeTimeName')
+            .textContent=
+                currentEmployee.name;
+    }
 }
 
 
 window.receiveTimesheetsFromFirestore=
 function(data){
 
-    try{
+    if(
+        typeof data==='string'
+    ){
 
-        if(typeof data==='string'){
-            data=JSON.parse(data);
-        }
-
-    }catch(e){
-
-        data=[];
+        data=
+            JSON.parse(
+                data
+            );
     }
+
 
     allTimesheets=
         Array.isArray(data)
@@ -3198,22 +3068,26 @@ function(data){
         :
         [];
 
-    if(el('timesCloud')){
 
-        el('timesCloud').className=
+    el('timesCloud')
+        .className=
             'success';
 
-        el('timesCloud').textContent=
-            allTimesheets.length+
+
+    el('timesCloud')
+        .textContent=
+
+            allTimesheets.length
+            +
             ' Stundenzettel geladen.';
-    }
+
 
     renderSavedMonths();
 
     loadSelectedTimesheet();
 
     updateTodayWork();
-};
+}
 
 
 function employeeTimeChanged(){
@@ -3226,200 +3100,182 @@ function employeeTimeChanged(){
 }
 
 
-function monthChanged(){
-
-    loadSelectedTimesheet();
-}
-
-
-function jumpToWorkTimes(){
-
-    const target=
-        el('workTimesCard');
-
-    if(target){
-
-        target.scrollIntoView({
-            behavior:'smooth',
-            block:'start'
-        });
-    }
-}
-
-
-/* SAVED MONTHS */
-
 function renderSavedMonths(){
 
     const box=
         el('savedMonths');
 
-    if(!box){
-        return;
-    }
 
     box.innerHTML='';
+
 
     const employeeId=
         getEmployeeId();
 
+
     if(!employeeId){
+
         return;
     }
+
 
     const list=
 
         allTimesheets
 
-        .filter(sheet=>
+        .filter(
+            item=>
 
-            String(
-                sheet.mitarbeiterId
-            )
-            ===
-            String(
-                employeeId
-            )
+                String(
+                    item.mitarbeiterId
+                )
+                ===
+                String(
+                    employeeId
+                )
         )
 
-        .sort((a,b)=>
+        .sort(
+            (a,b)=>
 
-            String(
-                b.monat
-            )
-            .localeCompare(
                 String(
-                    a.monat
+                    b.monat
                 )
-            )
+                .localeCompare(
+                    String(
+                        a.monat
+                    )
+                )
         );
+
 
     if(!list.length){
 
         box.innerHTML=
+
             '<div class="info">Noch keine gespeicherten Monate.</div>';
 
         return;
     }
 
-    const title=
-        document.createElement(
-            'div'
-        );
 
-    title.className='card-title';
+    list.forEach(
+        sheet=>{
 
-    title.style.marginTop='22px';
-
-    title.textContent=
-        'Gespeicherte Monate';
-
-    box.appendChild(title);
+            let total=0;
 
 
-    list.forEach(sheet=>{
+            (
+                sheet.tage
+                ||
+                []
+            )
+            .forEach(
+                day=>{
 
-        let total=0;
-
-        (sheet.tage || [])
-            .forEach(day=>{
-
-                total+=
-                    Number(
-                        day.stunden || 0
-                    );
-            });
-
-        const item=
-            document.createElement(
-                'div'
+                    total+=
+                        Number(
+                            day.stunden
+                            ||
+                            0
+                        );
+                }
             );
 
-        item.className='item';
 
-        item.innerHTML=
+            const item=
+                document.createElement(
+                    'div'
+                );
 
-            '<strong style="font-size:18px">'+
-            esc(
-                monthName(
-                    sheet.monat
+
+            item.className=
+                'item';
+
+
+            item.innerHTML=
+
+                '<strong>'
+                +
+                esc(
+                    monthName(
+                        sheet.monat
+                    )
                 )
-            )+
-            '</strong>';
+                +
+                '</strong><br>'
 
-        const row=
-            document.createElement(
-                'div'
+                +
+
+                'Gesamt: <strong>'
+
+                +
+
+                total
+                    .toFixed(2)
+                    .replace(
+                        '.',
+                        ','
+                    )
+
+                +
+
+                ' Stunden</strong>';
+
+
+            const button=
+                document.createElement(
+                    'button'
+                );
+
+
+            button.className=
+                'small-button';
+
+
+            button.textContent=
+                'Öffnen';
+
+
+            button.onclick=
+                ()=>{
+
+                    el('timeMonth').value=
+                        sheet.monat;
+
+                    loadSelectedTimesheet();
+
+                    el('workTimesCard')
+                        .scrollIntoView({
+                            behavior:'smooth'
+                        });
+                };
+
+
+            item.appendChild(
+                button
             );
 
-        row.className=
-            'saved-month-row';
 
-        const hours=
-            document.createElement(
-                'div'
+            box.appendChild(
+                item
             );
-
-        hours.innerHTML=
-
-            'Gesamt: <strong>'+
-            total
-                .toFixed(2)
-                .replace('.',',')+
-            ' Stunden</strong>';
-
-        const open=
-            document.createElement(
-                'button'
-            );
-
-        open.className=
-            'small-button';
-
-        open.textContent=
-            'Öffnen';
-
-        open.onclick=()=>{
-
-            openSavedMonth(
-                sheet.monat
-            );
-        };
-
-        row.appendChild(hours);
-
-        row.appendChild(open);
-
-        item.appendChild(row);
-
-        box.appendChild(item);
-    });
-}
-
-
-function openSavedMonth(month){
-
-    el('timeMonth').value=
-        month;
-
-    loadSelectedTimesheet();
-
-    setTimeout(()=>{
-
-        jumpToWorkTimes();
-
-    },100);
+        }
+    );
 }
 
 
 function monthName(month){
 
     if(!month){
+
         return '';
     }
 
+
     const parts=
         month.split('-');
+
 
     const names=[
         '',
@@ -3437,29 +3293,34 @@ function monthName(month){
         'Dezember'
     ];
 
+
     return names[
         Number(
             parts[1]
         )
-    ]+
-    ' '+
+    ]
+    +
+    ' '
+    +
     parts[0];
 }
 
 
-/* CALCULATION */
-
 function toMinutes(time){
 
     if(!time){
+
         return 0;
     }
 
-    const p=
+
+    const parts=
         time.split(':');
 
-    return Number(p[0])*60+
-        Number(p[1]);
+
+    return Number(parts[0])*60
+        +
+        Number(parts[1]);
 }
 
 
@@ -3469,26 +3330,49 @@ function calculateHours(
     pause
 ){
 
-    if(!start || !end){
+    if(
+        !start
+        ||
+        !end
+    ){
+
         return 0;
     }
 
+
     let a=
-        toMinutes(start);
+        toMinutes(
+            start
+        );
+
 
     let b=
-        toMinutes(end);
+        toMinutes(
+            end
+        );
+
 
     if(b<a){
+
         b+=1440;
     }
+
 
     return Math.max(
         0,
         (
-            b-a-
-            Number(pause || 0)
-        )/60
+            b
+            -
+            a
+            -
+            Number(
+                pause
+                ||
+                0
+            )
+        )
+        /
+        60
     );
 }
 
@@ -3497,115 +3381,124 @@ function formatDate(date){
 
     return String(
         date.getDate()
-    ).padStart(2,'0')+
-    '.'+
+    )
+    .padStart(
+        2,
+        '0'
+    )
+
+    +
+
+    '.'
+
+    +
+
     String(
         date.getMonth()+1
-    ).padStart(2,'0')+
-    '.'+
+    )
+    .padStart(
+        2,
+        '0'
+    )
+
+    +
+
+    '.'
+
+    +
+
     date.getFullYear();
 }
 
-
-/* CREATE MONTH */
 
 function createMonth(){
 
     const employeeId=
         getEmployeeId();
 
+
     const month=
         el('timeMonth').value;
 
+
     if(
-        !employeeId ||
+        !employeeId
+        ||
         !month
     ){
 
         alert(
-            'Bitte zuerst einen Monat auswählen.'
+            'Mitarbeiter oder Monat fehlt.'
         );
 
         return;
     }
 
-    const existing=
-        allTimesheets.find(
-            sheet=>
-
-                String(
-                    sheet.mitarbeiterId
-                )
-                ===
-                String(
-                    employeeId
-                )
-
-                &&
-
-                sheet.monat===
-                month
-        );
-
-    if(existing){
-
-        const overwrite=
-            confirm(
-                'Für diesen Monat ist bereits ein Stundenzettel gespeichert. Neu erstellen und überschreiben?'
-            );
-
-        if(!overwrite){
-            return;
-        }
-    }
 
     const weekdays=[];
+
 
     document
         .querySelectorAll(
             '.weekday:checked'
         )
-        .forEach(input=>{
+        .forEach(
+            input=>{
 
-            weekdays.push(
-                Number(
-                    input.value
-                )
-            );
-        });
+                weekdays.push(
+                    Number(
+                        input.value
+                    )
+                );
+            }
+        );
+
 
     if(!weekdays.length){
 
         alert(
-            'Bitte mindestens einen Arbeitstag auswählen.'
+            'Bitte Arbeitstage auswählen.'
         );
 
         return;
     }
 
+
     const start=
         el('defaultStart').value;
+
 
     const end=
         el('defaultEnd').value;
 
+
     const pause=
         Number(
-            el('defaultPause').value ||
+            el('defaultPause').value
+            ||
             0
         );
 
-    const object=
-        el('defaultObject').value.trim();
 
-    const p=
+    const object=
+        el('defaultObject').value;
+
+
+    const parts=
         month.split('-');
 
+
     const year=
-        Number(p[0]);
+        Number(
+            parts[0]
+        );
+
 
     const mon=
-        Number(p[1]);
+        Number(
+            parts[1]
+        );
+
 
     const last=
         new Date(
@@ -3614,7 +3507,9 @@ function createMonth(){
             0
         ).getDate();
 
+
     currentTimesheet=[];
+
 
     for(
         let i=1;
@@ -3629,15 +3524,19 @@ function createMonth(){
                 i
             );
 
+
         const works=
             weekdays.includes(
                 date.getDay()
             );
 
+
         currentTimesheet.push({
 
             datum:
-                formatDate(date),
+                formatDate(
+                    date
+                ),
 
             status:
                 works
@@ -3684,312 +3583,74 @@ function createMonth(){
                 object
                 :
                 ''
+
         });
     }
 
+
     renderTimesheet();
-
-    setTimeout(()=>{
-
-        jumpToWorkTimes();
-
-    },100);
 }
 
-
-/* LOAD MONTH */
 
 function loadSelectedTimesheet(){
 
     const employeeId=
         getEmployeeId();
 
+
     const month=
-        el('timeMonth')
-        ?
-        el('timeMonth').value
-        :
-        '';
+        el('timeMonth').value;
+
 
     if(
-        !employeeId ||
+        !employeeId
+        ||
         !month
     ){
+
         return;
     }
+
 
     const found=
-        allTimesheets.find(
-            sheet=>
+        allTimesheets
+            .find(
+                sheet=>
 
-                String(
-                    sheet.mitarbeiterId
-                )
-                ===
-                String(
-                    employeeId
-                )
+                    String(
+                        sheet.mitarbeiterId
+                    )
+                    ===
+                    String(
+                        employeeId
+                    )
 
-                &&
+                    &&
 
-                sheet.monat===
-                month
-        );
+                    sheet.monat===
+                    month
+            );
 
-    if(!found){
-
-        currentTimesheet=[];
-
-        renderTimesheet();
-
-        return;
-    }
 
     currentTimesheet=
+
+        found
+        ?
+
         JSON.parse(
             JSON.stringify(
-                found.tage || []
+                found.tage
+                ||
+                []
             )
-        );
+        )
+
+        :
+
+        [];
+
 
     renderTimesheet();
-}
-
-
-/* RENDER TIMESHEET */
-
-function renderTimesheet(){
-
-    const box=
-        el('timesheetDays');
-
-    if(!box){
-        return;
-    }
-
-    box.innerHTML='';
-
-    if(!currentTimesheet.length){
-
-        box.innerHTML=
-
-            '<div class="info">'+
-            'Für diesen Monat ist noch kein Stundenzettel vorhanden. '+
-            'Oben kannst du einen neuen Monat erstellen.'+
-            '</div>';
-
-        if(el('totalHours')){
-
-            el('totalHours').style.display=
-                'none';
-        }
-
-        return;
-    }
-
-
-    currentTimesheet.forEach(
-        (day,index)=>{
-
-            const work=
-                day.status===
-                'Arbeit';
-
-            const container=
-                document.createElement(
-                    'div'
-                );
-
-            container.className=
-
-                'timesheet-day'+
-                (
-                    work
-                    ?
-                    ' work'
-                    :
-                    ''
-                );
-
-            const dateParts=
-                String(
-                    day.datum
-                )
-                .split('.');
-
-
-            /*
-             * WICHTIG:
-             * Editor wird jetzt für Mitarbeiter UND Admin angezeigt.
-             */
-
-            const editor=
-
-                '<div class="timesheet-grid">'+
-
-                '<select onchange="changeDay('+
-                index+
-                ',\'status\',this.value)">'+
-
-                '<option value="Arbeit"'+
-                (
-                    work
-                    ?
-                    ' selected'
-                    :
-                    ''
-                )+
-                '>Arbeit</option>'+
-
-                '<option value="Frei"'+
-                (
-                    !work
-                    ?
-                    ' selected'
-                    :
-                    ''
-                )+
-                '>Frei</option>'+
-
-                '<option value="Urlaub"'+
-                (
-                    day.status==='Urlaub'
-                    ?
-                    ' selected'
-                    :
-                    ''
-                )+
-                '>Urlaub</option>'+
-
-                '<option value="Krank"'+
-                (
-                    day.status==='Krank'
-                    ?
-                    ' selected'
-                    :
-                    ''
-                )+
-                '>Krank</option>'+
-
-                '</select>'+
-
-                '<input '+
-                'type="number" '+
-                'min="0" '+
-                'value="'+
-                esc(day.pause || 0)+
-                '" '+
-                'onchange="changeDay('+
-                index+
-                ',\'pause\',this.value)" '+
-                'placeholder="Pause Min.">'+
-
-                '<input '+
-                'type="time" '+
-                'value="'+
-                esc(day.start || '')+
-                '" '+
-                'onchange="changeDay('+
-                index+
-                ',\'start\',this.value)">'+
-
-                '<input '+
-                'type="time" '+
-                'value="'+
-                esc(day.ende || '')+
-                '" '+
-                'onchange="changeDay('+
-                index+
-                ',\'ende\',this.value)">'+
-
-                '<input '+
-                'class="full" '+
-                'value="'+
-                esc(day.objekt || '')+
-                '" '+
-                'onchange="changeDay('+
-                index+
-                ',\'objekt\',this.value)" '+
-                'placeholder="Objekt / Kunde">'+
-
-                '</div>';
-
-
-            let label=
-                day.status ||
-                'Frei';
-
-            if(
-                day.status==='Arbeit'
-            ){
-
-                label=
-                    day.objekt ||
-                    'Arbeit';
-            }
-
-
-            container.innerHTML=
-
-                '<div class="timesheet-head">'+
-
-                    '<div class="timesheet-date">'+
-
-                        '<strong>'+
-                        esc(
-                            dateParts[0] || ''
-                        )+
-                        '</strong>'+
-
-                        weekdayShort(
-                            day.datum
-                        )+
-
-                    '</div>'+
-
-                    '<div style="flex:1">'+
-
-                        '<strong style="font-size:17px">'+
-                        esc(label)+
-                        '</strong>'+
-
-                        (
-                            work
-                            ?
-                            '<div style="margin-top:5px;color:#667085">'+
-
-                            esc(day.start || '')+
-                            ' - '+
-                            esc(day.ende || '')+
-
-                            '<br>'+
-
-                            Number(
-                                day.stunden || 0
-                            )
-                            .toFixed(2)
-                            .replace('.',',')+
-
-                            ' Stunden'+
-
-                            '</div>'
-                            :
-                            ''
-                        )+
-
-                    '</div>'+
-
-                '</div>'+
-
-                editor;
-
-            box.appendChild(
-                container
-            );
-        }
-    );
-
-    updateTotal();
 }
 
 
@@ -3999,17 +3660,29 @@ function weekdayShort(
 
     try{
 
-        const p=
+        const parts=
             dateString.split('.');
+
 
         const date=
             new Date(
-                Number(p[2]),
-                Number(p[1])-1,
-                Number(p[0])
+
+                Number(
+                    parts[2]
+                ),
+
+                Number(
+                    parts[1]
+                )-1,
+
+                Number(
+                    parts[0]
+                )
             );
 
+
         return [
+
             'So',
             'Mo',
             'Di',
@@ -4017,12 +3690,348 @@ function weekdayShort(
             'Do',
             'Fr',
             'Sa'
-        ][date.getDay()];
+
+        ][
+            date.getDay()
+        ];
 
     }catch(e){
 
         return '';
     }
+}
+
+
+function renderTimesheet(){
+
+    const box=
+        el('timesheetDays');
+
+
+    box.innerHTML='';
+
+
+    if(!currentTimesheet.length){
+
+        box.innerHTML=
+
+            '<div class="info">Für diesen Monat ist noch kein Stundenzettel vorhanden.</div>';
+
+
+        el('totalHours')
+            .style.display=
+                'none';
+
+        return;
+    }
+
+
+    currentTimesheet
+        .forEach(
+            (day,index)=>{
+
+                const work=
+                    day.status===
+                    'Arbeit';
+
+
+                const parts=
+                    String(
+                        day.datum
+                    )
+                    .split('.');
+
+
+                const container=
+                    document.createElement(
+                        'div'
+                    );
+
+
+                container.className=
+
+                    'timesheet-day'
+                    +
+                    (
+                        work
+                        ?
+                        ' work'
+                        :
+                        ''
+                    );
+
+
+                container.innerHTML=
+
+                    '<div class="timesheet-head">'
+
+                    +
+
+                    '<div class="timesheet-date">'
+
+                    +
+
+                    '<strong>'
+                    +
+                    esc(
+                        parts[0]
+                        ||
+                        ''
+                    )
+                    +
+                    '</strong>'
+
+                    +
+
+                    weekdayShort(
+                        day.datum
+                    )
+
+                    +
+
+                    '</div>'
+
+                    +
+
+                    '<div>'
+
+                    +
+
+                    '<strong>'
+
+                    +
+
+                    esc(
+                        work
+                        ?
+                        (
+                            day.objekt
+                            ||
+                            'Arbeit'
+                        )
+                        :
+                        (
+                            day.status
+                            ||
+                            'Frei'
+                        )
+                    )
+
+                    +
+
+                    '</strong>'
+
+                    +
+
+                    (
+                        work
+                        ?
+
+                        '<div style="color:#667085;margin-top:4px">'
+
+                        +
+
+                        esc(
+                            day.start
+                            ||
+                            ''
+                        )
+
+                        +
+
+                        ' - '
+
+                        +
+
+                        esc(
+                            day.ende
+                            ||
+                            ''
+                        )
+
+                        +
+
+                        ' · '
+
+                        +
+
+                        Number(
+                            day.stunden
+                            ||
+                            0
+                        )
+                        .toFixed(2)
+                        .replace(
+                            '.',
+                            ','
+                        )
+
+                        +
+
+                        ' h</div>'
+
+                        :
+
+                        ''
+                    )
+
+                    +
+
+                    '</div>'
+
+                    +
+
+                    '</div>'
+
+                    +
+
+                    '<div class="timesheet-grid">'
+
+                    +
+
+                    '<select onchange="changeDay('
+                    +
+                    index
+                    +
+                    ',\'status\',this.value)">'
+
+                    +
+
+                    '<option value="Arbeit"'
+                    +
+                    (
+                        day.status==='Arbeit'
+                        ?
+                        ' selected'
+                        :
+                        ''
+                    )
+                    +
+                    '>Arbeit</option>'
+
+                    +
+
+                    '<option value="Frei"'
+                    +
+                    (
+                        day.status==='Frei'
+                        ?
+                        ' selected'
+                        :
+                        ''
+                    )
+                    +
+                    '>Frei</option>'
+
+                    +
+
+                    '<option value="Urlaub"'
+                    +
+                    (
+                        day.status==='Urlaub'
+                        ?
+                        ' selected'
+                        :
+                        ''
+                    )
+                    +
+                    '>Urlaub</option>'
+
+                    +
+
+                    '<option value="Krank"'
+                    +
+                    (
+                        day.status==='Krank'
+                        ?
+                        ' selected'
+                        :
+                        ''
+                    )
+                    +
+                    '>Krank</option>'
+
+                    +
+
+                    '</select>'
+
+                    +
+
+                    '<input type="number" min="0" value="'
+                    +
+                    esc(
+                        day.pause
+                        ||
+                        0
+                    )
+                    +
+                    '" onchange="changeDay('
+                    +
+                    index
+                    +
+                    ',\'pause\',this.value)" placeholder="Pause Min.">'
+
+                    +
+
+                    '<input type="time" value="'
+                    +
+                    esc(
+                        day.start
+                        ||
+                        ''
+                    )
+                    +
+                    '" onchange="changeDay('
+                    +
+                    index
+                    +
+                    ',\'start\',this.value)">'
+
+                    +
+
+                    '<input type="time" value="'
+                    +
+                    esc(
+                        day.ende
+                        ||
+                        ''
+                    )
+                    +
+                    '" onchange="changeDay('
+                    +
+                    index
+                    +
+                    ',\'ende\',this.value)">'
+
+                    +
+
+                    '<input class="full" value="'
+                    +
+                    esc(
+                        day.objekt
+                        ||
+                        ''
+                    )
+                    +
+                    '" onchange="changeDay('
+                    +
+                    index
+                    +
+                    ',\'objekt\',this.value)" placeholder="Objekt / Kunde">'
+
+                    +
+
+                    '</div>';
+
+
+                box.appendChild(
+                    container
+                );
+            }
+        );
+
+
+    updateTotal();
 }
 
 
@@ -4033,55 +4042,78 @@ function changeDay(
 ){
 
     const day=
-        currentTimesheet[index];
+        currentTimesheet[
+            index
+        ];
+
 
     if(!day){
+
         return;
-    }
-
-    if(field==='pause'){
-
-        day.pause=
-            Math.max(
-                0,
-                Number(value || 0)
-            );
-
-    }else{
-
-        day[field]=value;
     }
 
 
     if(
-        day.status==='Arbeit'
+        field==='pause'
+    ){
+
+        day.pause=
+            Math.max(
+                0,
+                Number(
+                    value
+                    ||
+                    0
+                )
+            );
+
+    }else{
+
+        day[field]=
+            value;
+    }
+
+
+    if(
+        day.status===
+        'Arbeit'
     ){
 
         if(!day.start){
 
             day.start=
-                el('defaultStart').value ||
+                el('defaultStart').value
+                ||
                 '08:00';
         }
+
 
         if(!day.ende){
 
             day.ende=
-                el('defaultEnd').value ||
+                el('defaultEnd').value
+                ||
                 '16:00';
         }
 
+
         day.stunden=
             calculateHours(
+
                 day.start,
+
                 day.ende,
+
                 day.pause
             );
 
+
     }else{
 
-        day.stunden=0;
+        day.stunden=
+            0;
     }
+
 
     renderTimesheet();
 }
@@ -4092,35 +4124,53 @@ function updateTotal(){
     const box=
         el('totalHours');
 
-    if(
-        !box ||
-        !currentTimesheet.length
-    ){
+
+    if(!currentTimesheet.length){
+
+        box.style.display=
+            'none';
 
         return;
     }
 
+
     let total=0;
 
-    currentTimesheet.forEach(day=>{
 
-        total+=
-            Number(
-                day.stunden || 0
-            );
-    });
+    currentTimesheet
+        .forEach(
+            day=>{
 
-    box.style.display='block';
+                total+=
+                    Number(
+                        day.stunden
+                        ||
+                        0
+                    );
+            }
+        );
+
+
+    box.style.display=
+        'block';
+
 
     box.innerHTML=
 
-        '<strong>Arbeitsstunden insgesamt</strong>'+
+        '<strong>Arbeitsstunden insgesamt</strong>'
 
-        '<div class="big-result">'+
+        +
+
+        '<div class="big-result">'
+
+        +
 
         total
             .toFixed(2)
-            .replace('.',',')
+            .replace(
+                '.',
+                ','
+            )
 
         +
 
@@ -4128,36 +4178,7 @@ function updateTotal(){
 }
 
 
-/* SAVE TIMESHEET */
-
 function saveTimesheet(){
-
-    const employeeId=
-        getEmployeeId();
-
-    const employeeName=
-        getEmployeeName();
-
-    const month=
-        el('timeMonth').value;
-
-    if(!employeeId){
-
-        alert(
-            'Mitarbeiter fehlt.'
-        );
-
-        return;
-    }
-
-    if(!month){
-
-        alert(
-            'Bitte Monat auswählen.'
-        );
-
-        return;
-    }
 
     if(!currentTimesheet.length){
 
@@ -4168,293 +4189,338 @@ function saveTimesheet(){
         return;
     }
 
-    /*
-     * Stunden vor dem Speichern nochmals neu berechnen.
-     */
-
-    currentTimesheet.forEach(day=>{
-
-        if(day.status==='Arbeit'){
-
-            day.stunden=
-                calculateHours(
-                    day.start,
-                    day.ende,
-                    day.pause
-                );
-
-        }else{
-
-            day.stunden=0;
-        }
-    });
-
 
     callAndroid(
 
         'saveTimesheetToFirestore',
 
-        employeeId,
+        getEmployeeId(),
 
-        employeeName,
+        getEmployeeName(),
 
-        month,
+        el('timeMonth').value,
 
         JSON.stringify(
             currentTimesheet
         )
     );
 
-    alert(
-        'Stundenzettel wird gespeichert.'
+
+    setTimeout(
+        ()=>{
+
+            callAndroid(
+                'loadTimesheetsFromFirestore'
+            );
+
+        },
+        700
     );
-
-    setTimeout(()=>{
-
-        callAndroid(
-            'loadTimesheetsFromFirestore'
-        );
-
-    },700);
 }
 
-
-/* PDF + SHARE */
 
 function createAndSharePdf(){
 
     if(!currentTimesheet.length){
 
         alert(
-            'Bitte zuerst einen Stundenzettel erstellen oder öffnen.'
+            'Bitte Stundenzettel öffnen.'
         );
 
         return;
     }
 
-    const employeeName=
-        getEmployeeName();
-
-    const month=
-        el('timeMonth').value;
-
-    const json=
-        JSON.stringify(
-            currentTimesheet
-        );
-
-
-    /*
-     * Wenn deine Android-App bereits eine Share-Funktion hat,
-     * wird sie benutzt.
-     */
-
-    if(
-        window.Android &&
-        typeof Android.shareTimesheetPdf===
-        'function'
-    ){
-
-        Android.shareTimesheetPdf(
-            employeeName,
-            month,
-            json
-        );
-
-        return;
-    }
-
-
-    /*
-     * Fallback auf deine bisherige PDF-Funktion.
-     */
-
-    if(
-        window.Android &&
-        typeof Android.createTimesheetPdf===
-        'function'
-    ){
-
-        Android.createTimesheetPdf(
-            employeeName,
-            month,
-            json
-        );
-
-        return;
-    }
-
-
-    alert(
-        'Die PDF-Funktion ist in Android noch nicht verbunden.'
-    );
-}
-
-
-/* TODAY */
-
-function refreshToday(){
 
     callAndroid(
-        'loadTimesheetsFromFirestore'
-    );
 
-    updateTodayWork();
+        'shareTimesheetPdf',
+
+        getEmployeeName(),
+
+        el('timeMonth').value,
+
+        JSON.stringify(
+            currentTimesheet
+        )
+    );
 }
 
+
+/* ======================================================
+   TODAY
+====================================================== */
 
 function updateTodayWork(){
 
     if(
-        !employeeMode ||
+        !employeeMode
+        ||
         !currentEmployee
     ){
+
         return;
     }
+
 
     const now=
         new Date();
 
+
     const today=
-        formatDate(now);
+        formatDate(
+            now
+        );
+
 
     let found=null;
 
-    allTimesheets.forEach(sheet=>{
 
-        if(
-            String(
-                sheet.mitarbeiterId
-            )
-            !==
-            String(
-                currentEmployee.id
-            )
-        ){
-            return;
-        }
+    allTimesheets
+        .forEach(
+            sheet=>{
 
-        const day=
-            (sheet.tage || [])
-            .find(
-                d=>
-                    d.datum===
-                    today
-            );
+                if(
+                    String(
+                        sheet.mitarbeiterId
+                    )
+                    !==
+                    String(
+                        currentEmployee.id
+                    )
+                ){
 
-        if(day){
-            found=day;
-        }
-    });
+                    return;
+                }
+
+
+                const day=
+
+                    (
+                        sheet.tage
+                        ||
+                        []
+                    )
+                    .find(
+                        item=>
+
+                            item.datum===
+                            today
+                    );
+
+
+                if(day){
+
+                    found=
+                        day;
+                }
+            }
+        );
+
 
     const box=
         el('todayWork');
 
-    if(!box){
-        return;
-    }
 
-    const number=
-        now.getDate();
+    const short=
 
-    const short=[
-        'So','Mo','Di','Mi','Do','Fr','Sa'
-    ][now.getDay()];
+        [
+            'So',
+            'Mo',
+            'Di',
+            'Mi',
+            'Do',
+            'Fr',
+            'Sa'
+        ][
+            now.getDay()
+        ];
+
 
     if(
-        !found ||
+        !found
+        ||
         found.status!=='Arbeit'
     ){
 
         box.innerHTML=
 
-            '<div class="workday">'+
+            '<div class="workday">'
 
-                '<div class="day-box">'+
-                    '<strong>'+
-                    number+
-                    '</strong>'+
-                    '<span>'+
-                    short+
-                    '</span>'+
-                '</div>'+
+            +
 
-                '<div class="work-info" style="border-left-color:#d0d5dd">'+
-                    '<strong>Keine Planung</strong>'+
-                    '<div class="hours">'+
-                    'Heute ist keine Arbeitszeit eingetragen.'+
-                    '</div>'+
-                '</div>'+
+            '<div class="day-box">'
+
+            +
+
+            '<strong>'
+            +
+            now.getDate()
+            +
+            '</strong>'
+
+            +
+
+            '<span>'
+            +
+            short
+            +
+            '</span>'
+
+            +
+
+            '</div>'
+
+            +
+
+            '<div class="work-info" style="border-left-color:#d0d5dd">'
+
+            +
+
+            '<strong>Keine Planung</strong>'
+
+            +
+
+            '</div>'
+
+            +
 
             '</div>';
 
         return;
     }
 
+
     box.innerHTML=
 
-        '<div class="workday">'+
+        '<div class="workday">'
 
-            '<div class="day-box">'+
-                '<strong>'+
-                number+
-                '</strong>'+
-                '<span>'+
-                short+
-                '</span>'+
-            '</div>'+
+        +
 
-            '<div class="work-info">'+
-                '<strong>'+
-                esc(
-                    found.objekt ||
-                    'Arbeit'
-                )+
-                '</strong>'+
-                '<div class="time">'+
-                esc(found.start)+
-                ' - '+
-                esc(found.ende)+
-                '</div>'+
-                '<div class="hours">'+
-                Number(
-                    found.stunden || 0
-                )
-                .toFixed(2)
-                .replace('.',',')+
-                ' Stunden'+
-                '</div>'+
-            '</div>'+
+        '<div class="day-box">'
+
+        +
+
+        '<strong>'
+        +
+        now.getDate()
+        +
+        '</strong>'
+
+        +
+
+        '<span>'
+        +
+        short
+        +
+        '</span>'
+
+        +
+
+        '</div>'
+
+        +
+
+        '<div class="work-info">'
+
+        +
+
+        '<strong>'
+        +
+        esc(
+            found.objekt
+            ||
+            'Arbeit'
+        )
+        +
+        '</strong>'
+
+        +
+
+        '<div class="time">'
+
+        +
+
+        esc(
+            found.start
+        )
+
+        +
+
+        ' - '
+
+        +
+
+        esc(
+            found.ende
+        )
+
+        +
+
+        '</div>'
+
+        +
+
+        '<div>'
+
+        +
+
+        Number(
+            found.stunden
+            ||
+            0
+        )
+        .toFixed(2)
+        .replace(
+            '.',
+            ','
+        )
+
+        +
+
+        ' Stunden</div>'
+
+        +
+
+        '</div>'
+
+        +
 
         '</div>';
 }
 
 
-/* CHAT */
+/* ======================================================
+   CHAT
+====================================================== */
 
 function getChatEmployee(){
 
     if(
-        employeeMode &&
+        employeeMode
+        &&
         currentEmployee
     ){
 
         return currentEmployee;
     }
 
+
     const id=
-        el('chatEmployee')
-        ?
-        el('chatEmployee').value
-        :
-        '';
+        el('chatEmployee').value;
 
-    return allEmployees.find(
-        employee=>
 
-            String(employee.id)===
-            String(id)
-    );
+    return allEmployees
+        .find(
+            item=>
+
+                String(
+                    item.id
+                )
+                ===
+                String(
+                    id
+                )
+        );
 }
 
 
@@ -4463,30 +4529,30 @@ function loadChat(){
     const employee=
         getChatEmployee();
 
-    if(!employee){
-        return;
-    }
 
-    callAndroid(
-        'loadChatMessages',
-        employee.id
-    );
+    if(employee){
+
+        callAndroid(
+            'loadChatMessages',
+            employee.id
+        );
+    }
 }
 
 
 window.receiveChatMessagesFromFirestore=
 function(data){
 
-    try{
+    if(
+        typeof data==='string'
+    ){
 
-        if(typeof data==='string'){
-            data=JSON.parse(data);
-        }
-
-    }catch(e){
-
-        data=[];
+        data=
+            JSON.parse(
+                data
+            );
     }
+
 
     data=
         Array.isArray(data)
@@ -4495,73 +4561,113 @@ function(data){
         :
         [];
 
+
     data.sort(
         (a,b)=>
-            Number(a.createdAt || 0)-
-            Number(b.createdAt || 0)
+
+            Number(
+                a.createdAt
+                ||
+                0
+            )
+
+            -
+
+            Number(
+                b.createdAt
+                ||
+                0
+            )
     );
+
 
     const box=
         el('chatMessages');
 
+
     box.innerHTML='';
+
 
     if(!data.length){
 
         box.innerHTML=
+
             '<div class="info">Noch keine Nachrichten.</div>';
 
         return;
     }
 
-    data.forEach(msg=>{
 
-        const mine=
-            employeeMode
-            ?
-            msg.sender==='employee'
-            :
-            msg.sender==='admin';
+    data.forEach(
+        message=>{
 
-        const div=
-            document.createElement(
-                'div'
-            );
+            const mine=
 
-        div.className=
-            'message '+
-            (
-                mine
+                employeeMode
                 ?
-                'me'
+                message.sender==='employee'
                 :
-                'other'
-            );
+                message.sender==='admin';
 
-        div.innerHTML=
 
-            esc(msg.message)+
+            const item=
+                document.createElement(
+                    'div'
+                );
 
-            '<small>'+
 
-            (
-                msg.sender==='admin'
-                ?
-                'E-M Cleaning'
-                :
+            item.className=
+
+                'message '
+
+                +
+
+                (
+                    mine
+                    ?
+                    'me'
+                    :
+                    'other'
+                );
+
+
+            item.innerHTML=
+
                 esc(
-                    msg.employeeName
+                    message.message
                 )
-            )+
 
-            '</small>';
+                +
 
-        box.appendChild(div);
-    });
+                '<small>'
+
+                +
+
+                (
+                    message.sender==='admin'
+                    ?
+                    'E-M Cleaning'
+                    :
+                    esc(
+                        message.employeeName
+                    )
+                )
+
+                +
+
+                '</small>';
+
+
+            box.appendChild(
+                item
+            );
+        }
+    );
+
 
     box.scrollTop=
         box.scrollHeight;
-};
+}
 
 
 function sendChat(){
@@ -4569,15 +4675,22 @@ function sendChat(){
     const employee=
         getChatEmployee();
 
+
     const text=
-        el('chatText').value.trim();
+        el('chatText')
+            .value
+            .trim();
+
 
     if(
-        !employee ||
+        !employee
+        ||
         !text
     ){
+
         return;
     }
+
 
     callAndroid(
 
@@ -4590,7 +4703,9 @@ function sendChat(){
         text
     );
 
+
     el('chatText').value='';
+
 
     setTimeout(
         loadChat,
@@ -4599,16 +4714,23 @@ function sendChat(){
 }
 
 
-/* TICKETS */
+/* ======================================================
+   TICKETS
+====================================================== */
 
 function createTicket(){
 
     if(!currentEmployee){
+
         return;
     }
 
+
     const subject=
-        el('ticketSubject').value.trim();
+        el('ticketSubject')
+            .value
+            .trim();
+
 
     if(!subject){
 
@@ -4618,6 +4740,7 @@ function createTicket(){
 
         return;
     }
+
 
     callAndroid(
 
@@ -4634,9 +4757,11 @@ function createTicket(){
         el('ticketDescription').value
     );
 
+
     el('ticketSubject').value='';
 
     el('ticketDescription').value='';
+
 
     setTimeout(
         loadTickets,
@@ -4651,11 +4776,16 @@ function loadTickets(){
 
         'loadTickets',
 
-        employeeMode &&
+        employeeMode
+        &&
         currentEmployee
+
         ?
+
         currentEmployee.id
+
         :
+
         ''
     );
 }
@@ -4664,16 +4794,16 @@ function loadTickets(){
 window.receiveTicketsFromFirestore=
 function(data){
 
-    try{
+    if(
+        typeof data==='string'
+    ){
 
-        if(typeof data==='string'){
-            data=JSON.parse(data);
-        }
-
-    }catch(e){
-
-        data=[];
+        data=
+            JSON.parse(
+                data
+            );
     }
+
 
     data=
         Array.isArray(data)
@@ -4682,127 +4812,196 @@ function(data){
         :
         [];
 
+
     const box=
         el('ticketList');
 
+
     box.innerHTML='';
 
-    if(!data.length){
 
-        box.innerHTML=
-            '<div class="info">Keine Tickets vorhanden.</div>';
+    data.forEach(
+        ticket=>{
 
-        return;
-    }
-
-    data.forEach(ticket=>{
-
-        const item=
-            document.createElement(
-                'div'
-            );
-
-        item.className='item';
-
-        const statusClass=
-            String(
-                ticket.status ||
-                'Offen'
-            ).toLowerCase();
-
-        item.innerHTML=
-
-            (
-                adminMode
-                ?
-                '<strong>'+
-                esc(ticket.employeeName)+
-                '</strong><br>'
-                :
-                ''
-            )+
-
-            '<strong>'+
-            esc(ticket.subject)+
-            '</strong><br>'+
-
-            esc(ticket.type || '')+
-
-            '<br><br>'+
-
-            esc(ticket.description || '')+
-
-            '<br><br>'+
-
-            '<span class="status '+
-            esc(statusClass)+
-            '">'+
-            esc(
-                ticket.status ||
-                'Offen'
-            )+
-            '</span>';
-
-        if(adminMode){
-
-            const done=
+            const item=
                 document.createElement(
-                    'button'
+                    'div'
                 );
 
-            done.className=
-                'small-button';
 
-            done.textContent=
-                'Erledigt';
+            item.className=
+                'item';
 
-            done.onclick=()=>{
 
-                callAndroid(
-                    'updateTicketStatus',
-                    ticket.id,
-                    'Erledigt'
+            const statusClass=
+                String(
+                    ticket.status
+                    ||
+                    'Offen'
+                )
+                .toLowerCase();
+
+
+            item.innerHTML=
+
+                (
+                    adminMode
+                    ?
+
+                    '<strong>'
+                    +
+                    esc(
+                        ticket.employeeName
+                    )
+                    +
+                    '</strong><br>'
+
+                    :
+
+                    ''
+                )
+
+                +
+
+                '<strong>'
+                +
+                esc(
+                    ticket.subject
+                )
+                +
+                '</strong><br>'
+
+                +
+
+                esc(
+                    ticket.type
+                    ||
+                    ''
+                )
+
+                +
+
+                '<br><br>'
+
+                +
+
+                esc(
+                    ticket.description
+                    ||
+                    ''
+                )
+
+                +
+
+                '<br><br>'
+
+                +
+
+                '<span class="status '
+
+                +
+
+                esc(
+                    statusClass
+                )
+
+                +
+
+                '">'
+
+                +
+
+                esc(
+                    ticket.status
+                    ||
+                    'Offen'
+                )
+
+                +
+
+                '</span>';
+
+
+            if(adminMode){
+
+                const button=
+                    document.createElement(
+                        'button'
+                    );
+
+
+                button.className=
+                    'small-button';
+
+
+                button.textContent=
+                    'Erledigt';
+
+
+                button.onclick=
+                    ()=>{
+
+                        callAndroid(
+                            'updateTicketStatus',
+                            ticket.id,
+                            'Erledigt'
+                        );
+
+
+                        setTimeout(
+                            loadTickets,
+                            500
+                        );
+                    };
+
+
+                item.appendChild(
+                    button
                 );
+            }
 
-                setTimeout(
-                    loadTickets,
-                    500
-                );
-            };
 
-            item.appendChild(done);
+            box.appendChild(
+                item
+            );
         }
-
-        box.appendChild(item);
-    });
-};
+    );
+}
 
 
-/* LEAVE */
+/* ======================================================
+   URLAUB
+====================================================== */
 
 function sendLeaveRequest(){
 
     if(!currentEmployee){
+
         return;
     }
+
 
     const from=
         el('leaveFrom').value;
 
+
     const to=
         el('leaveTo').value;
 
+
     if(
-        !from ||
+        !from
+        ||
         !to
     ){
 
         alert(
-            'Bitte Von und Bis auswählen.'
+            'Bitte Zeitraum auswählen.'
         );
 
         return;
     }
+
 
     callAndroid(
 
@@ -4819,7 +5018,9 @@ function sendLeaveRequest(){
         el('leaveNote').value
     );
 
+
     el('leaveNote').value='';
+
 
     setTimeout(
         loadLeaveRequests,
@@ -4834,11 +5035,16 @@ function loadLeaveRequests(){
 
         'loadLeaveRequests',
 
-        employeeMode &&
+        employeeMode
+        &&
         currentEmployee
+
         ?
+
         currentEmployee.id
+
         :
+
         ''
     );
 }
@@ -4847,16 +5053,16 @@ function loadLeaveRequests(){
 window.receiveLeaveRequestsFromFirestore=
 function(data){
 
-    try{
+    if(
+        typeof data==='string'
+    ){
 
-        if(typeof data==='string'){
-            data=JSON.parse(data);
-        }
-
-    }catch(e){
-
-        data=[];
+        data=
+            JSON.parse(
+                data
+            );
     }
+
 
     data=
         Array.isArray(data)
@@ -4865,154 +5071,216 @@ function(data){
         :
         [];
 
+
     const box=
         el('leaveList');
 
+
     box.innerHTML='';
 
-    if(!data.length){
 
-        box.innerHTML=
-            '<div class="info">Keine Urlaubsanträge vorhanden.</div>';
+    data.forEach(
+        request=>{
 
-        return;
-    }
+            const item=
+                document.createElement(
+                    'div'
+                );
 
-    data.forEach(request=>{
 
-        const item=
-            document.createElement(
-                'div'
-            );
+            item.className=
+                'item';
 
-        item.className='item';
 
-        const statusClass=
-            String(
-                request.status ||
-                'Offen'
-            ).toLowerCase();
+            const statusClass=
+                String(
+                    request.status
+                    ||
+                    'Offen'
+                )
+                .toLowerCase();
 
-        item.innerHTML=
 
-            (
-                adminMode
-                ?
-                '<strong>'+
-                esc(request.employeeName)+
+            item.innerHTML=
+
+                (
+                    adminMode
+                    ?
+
+                    '<strong>'
+                    +
+                    esc(
+                        request.employeeName
+                    )
+                    +
+                    '</strong><br>'
+
+                    :
+
+                    ''
+                )
+
+                +
+
+                '<strong>'
+
+                +
+
+                esc(
+                    request.from
+                )
+
+                +
+
+                ' – '
+
+                +
+
+                esc(
+                    request.to
+                )
+
+                +
+
                 '</strong><br>'
-                :
-                ''
-            )+
 
-            '<strong>'+
-            formatIsoDate(request.from)+
-            ' – '+
-            formatIsoDate(request.to)+
-            '</strong><br>'+
+                +
 
-            esc(request.note || '')+
+                esc(
+                    request.note
+                    ||
+                    ''
+                )
 
-            '<br><br>'+
+                +
 
-            '<span class="status '+
-            esc(statusClass)+
-            '">'+
-            esc(
-                request.status ||
-                'Offen'
-            )+
-            '</span>';
+                '<br><br>'
 
-        if(adminMode){
+                +
 
-            const approve=
-                document.createElement(
-                    'button'
+                '<span class="status '
+
+                +
+
+                esc(
+                    statusClass
+                )
+
+                +
+
+                '">'
+
+                +
+
+                esc(
+                    request.status
+                    ||
+                    'Offen'
+                )
+
+                +
+
+                '</span>';
+
+
+            if(adminMode){
+
+                const approve=
+                    document.createElement(
+                        'button'
+                    );
+
+
+                approve.className=
+                    'small-button';
+
+
+                approve.textContent=
+                    'Genehmigen';
+
+
+                approve.onclick=
+                    ()=>{
+
+                        callAndroid(
+                            'updateLeaveStatus',
+                            request.id,
+                            'Genehmigt'
+                        );
+
+
+                        setTimeout(
+                            loadLeaveRequests,
+                            500
+                        );
+                    };
+
+
+                const reject=
+                    document.createElement(
+                        'button'
+                    );
+
+
+                reject.className=
+                    'small-button';
+
+
+                reject.style.background=
+                    '#d92d20';
+
+
+                reject.textContent=
+                    'Ablehnen';
+
+
+                reject.onclick=
+                    ()=>{
+
+                        callAndroid(
+                            'updateLeaveStatus',
+                            request.id,
+                            'Abgelehnt'
+                        );
+
+
+                        setTimeout(
+                            loadLeaveRequests,
+                            500
+                        );
+                    };
+
+
+                item.appendChild(
+                    approve
                 );
 
-            approve.className=
-                'small-button';
 
-            approve.textContent=
-                'Genehmigen';
-
-            approve.onclick=()=>{
-
-                callAndroid(
-                    'updateLeaveStatus',
-                    request.id,
-                    'Genehmigt'
+                item.appendChild(
+                    reject
                 );
+            }
 
-                setTimeout(
-                    loadLeaveRequests,
-                    500
-                );
-            };
 
-            const reject=
-                document.createElement(
-                    'button'
-                );
-
-            reject.className=
-                'small-button';
-
-            reject.style.background=
-                '#d92d20';
-
-            reject.textContent=
-                'Ablehnen';
-
-            reject.onclick=()=>{
-
-                callAndroid(
-                    'updateLeaveStatus',
-                    request.id,
-                    'Abgelehnt'
-                );
-
-                setTimeout(
-                    loadLeaveRequests,
-                    500
-                );
-            };
-
-            item.appendChild(approve);
-            item.appendChild(reject);
+            box.appendChild(
+                item
+            );
         }
-
-        box.appendChild(item);
-    });
-};
-
-
-function formatIsoDate(value){
-
-    if(!value){
-        return '';
-    }
-
-    const p=
-        value.split('-');
-
-    if(p.length!==3){
-        return value;
-    }
-
-    return p[2]+'.'+
-        p[1]+'.'+
-        p[0];
+    );
 }
 
 
-/* ORDERS */
+/* ======================================================
+   ORDERS
+====================================================== */
 
 function saveOrder(){
 
     const customer=
-        el('orderCustomer').value.trim();
+        el('orderCustomer')
+            .value
+            .trim();
+
 
     if(!customer){
 
@@ -5022,6 +5290,7 @@ function saveOrder(){
 
         return;
     }
+
 
     callAndroid(
 
@@ -5040,158 +5309,467 @@ function saveOrder(){
         el('orderDescription').value
     );
 
-    setTimeout(()=>{
 
-        callAndroid(
-            'loadOrdersFromFirestore'
-        );
+    setTimeout(
+        ()=>{
 
-    },600);
+            callAndroid(
+                'loadOrdersFromFirestore'
+            );
+
+        },
+        600
+    );
 }
 
 
 window.receiveOrdersFromFirestore=
 function(data){
 
-    try{
+    if(
+        typeof data==='string'
+    ){
 
-        if(typeof data==='string'){
-            data=JSON.parse(data);
-        }
-
-    }catch(e){
-
-        data=[];
+        data=
+            JSON.parse(
+                data
+            );
     }
 
-    data=
-        Array.isArray(data)
-        ?
-        data
-        :
-        [];
 
     const box=
         el('orderList');
 
+
     box.innerHTML='';
 
-    if(!data.length){
 
-        box.innerHTML=
-            '<div class="info">Keine Aufträge vorhanden.</div>';
+    (
+        Array.isArray(data)
+        ?
+        data
+        :
+        []
+    )
+    .forEach(
+        order=>{
+
+            const item=
+                document.createElement(
+                    'div'
+                );
+
+
+            item.className=
+                'item';
+
+
+            item.innerHTML=
+
+                '<strong>'
+                +
+                esc(
+                    order.kunde
+                    ||
+                    ''
+                )
+                +
+                '</strong><br>'
+
+                +
+
+                esc(
+                    order.art
+                    ||
+                    ''
+                )
+
+                +
+
+                '<br>'
+
+                +
+
+                esc(
+                    order.ort
+                    ||
+                    ''
+                )
+
+                +
+
+                '<br>'
+
+                +
+
+                esc(
+                    order.datum
+                    ||
+                    ''
+                )
+
+                +
+
+                '<br>'
+
+                +
+
+                esc(
+                    order.preis
+                    ||
+                    ''
+                )
+
+                +
+
+                ' €<br>'
+
+                +
+
+                esc(
+                    order.notiz
+                    ||
+                    ''
+                );
+
+
+            box.appendChild(
+                item
+            );
+        }
+    );
+}
+
+
+/* ======================================================
+   PAUSCHALPREIS
+====================================================== */
+
+function productivity(
+    service,
+    difficulty
+){
+
+    const map={
+
+        'Unterhaltsreinigung':{
+            light:300,
+            normal:250,
+            intensive:180
+        },
+
+        'Grundreinigung':{
+            light:90,
+            normal:70,
+            intensive:50
+        },
+
+        'Bauendreinigung':{
+            light:80,
+            normal:60,
+            intensive:40
+        },
+
+        'Glasreinigung':{
+            light:45,
+            normal:35,
+            intensive:25
+        },
+
+        'Treppenhausreinigung':{
+            light:220,
+            normal:170,
+            intensive:120
+        }
+    };
+
+
+    return (
+        map[service]
+        ||
+        map['Unterhaltsreinigung']
+    )[
+        difficulty
+    ]
+    ||
+    250;
+}
+
+
+function suggestCleaningTime(){
+
+    const area=
+        Number(
+            el('priceArea').value
+            ||
+            0
+        );
+
+
+    const service=
+        el('priceService').value;
+
+
+    const difficulty=
+        el('priceDifficulty').value;
+
+
+    const performance=
+        productivity(
+            service,
+            difficulty
+        );
+
+
+    if(area<=0){
+
+        el('timeSuggestion')
+            .textContent=
+
+                'Fläche eingeben – die App schätzt automatisch die Stunden pro Einsatz.';
 
         return;
     }
 
-    data.forEach(order=>{
 
-        const item=
-            document.createElement(
-                'div'
-            );
-
-        item.className='item';
-
-        item.innerHTML=
-
-            '<strong>'+
-            esc(order.kunde || '')+
-            '</strong><br>'+
-
-            esc(order.art || '')+
-            '<br>'+
-
-            esc(order.ort || '')+
-            '<br>'+
-
-            esc(order.datum || '')+
-            '<br>'+
-
-            esc(order.preis || '')+
-            ' €<br>'+
-
-            esc(order.notiz || '');
-
-        box.appendChild(item);
-    });
-};
+    const hours=
+        area
+        /
+        performance;
 
 
-/* PRICE */
+    el('priceHoursPerVisit').value=
+        hours.toFixed(1);
 
-function calculatePrice(){
 
-    const area=
-        Number(
-            el('priceArea').value ||
-            0
-        );
+    el('timeSuggestion').innerHTML=
+
+        'Geschätzte Leistung: <strong>'
+
+        +
+
+        performance
+
+        +
+
+        ' m²/Std.</strong><br>'
+
+        +
+
+        'Vorschlag: <strong>'
+
+        +
+
+        hours
+            .toFixed(1)
+            .replace(
+                '.',
+                ','
+            )
+
+        +
+
+        ' Stunden pro Einsatz</strong>';
+
+
+    calculatePackagePrice();
+}
+
+
+function calculatePackagePrice(){
 
     const hours=
         Number(
-            el('priceHours').value ||
+            el('priceHoursPerVisit').value
+            ||
             0
         );
+
+
+    const visits=
+        Number(
+            el('priceFrequency').value
+            ||
+            0
+        );
+
 
     const hourly=
         Number(
-            el('priceHourly').value ||
+            el('priceHourly').value
+            ||
             0
         );
 
-    const sqm=
-        Number(
-            el('priceSqm').value ||
-            0
-        );
 
     const travel=
         Number(
-            el('priceTravel').value ||
+            el('priceTravel').value
+            ||
             0
         );
+
 
     const material=
         Number(
-            el('priceMaterial').value ||
+            el('priceMaterial').value
+            ||
             0
         );
 
-    const netto=
-        area*sqm+
-        hours*hourly+
-        travel+
+
+    const markup=
+        Number(
+            el('priceMarkup').value
+            ||
+            0
+        );
+
+
+    const monthlyHours=
+        hours
+        *
+        visits;
+
+
+    const base=
+
+        monthlyHours
+        *
+        hourly
+
+        +
+
+        travel
+        *
+        visits
+
+        +
+
         material;
 
-    const vat=
-        netto*.19;
 
-    const total=
-        netto+vat;
+    const netto=
+
+        base
+        *
+        (
+            1
+            +
+            markup/100
+        );
+
+
+    const vat=
+        netto
+        *
+        .19;
+
+
+    const gross=
+        netto
+        +
+        vat;
+
 
     const box=
         el('priceResult');
 
-    box.style.display='block';
+
+    box.style.display=
+        'block';
+
 
     box.innerHTML=
 
-        'Netto: '+
-        netto.toFixed(2)+
-        ' €<br>'+
+        'Einsätze pro Monat: <strong>'
 
-        'MwSt.: '+
-        vat.toFixed(2)+
-        ' €'+
+        +
 
-        '<div class="big-result">'+
-        total.toFixed(2)+
-        ' €</div>';
+        visits
+            .toFixed(2)
+            .replace(
+                '.',
+                ','
+            )
+
+        +
+
+        '</strong><br>'
+
+        +
+
+        'Monatsstunden: <strong>'
+
+        +
+
+        monthlyHours
+            .toFixed(1)
+            .replace(
+                '.',
+                ','
+            )
+
+        +
+
+        '</strong><br>'
+
+        +
+
+        'Monatspauschale netto: <strong>'
+
+        +
+
+        netto
+            .toFixed(2)
+            .replace(
+                '.',
+                ','
+            )
+
+        +
+
+        ' €</strong><br>'
+
+        +
+
+        '19 % MwSt.: '
+
+        +
+
+        vat
+            .toFixed(2)
+            .replace(
+                '.',
+                ','
+            )
+
+        +
+
+        ' €'
+
+        +
+
+        '<div class="big-result">'
+
+        +
+
+        gross
+            .toFixed(2)
+            .replace(
+                '.',
+                ','
+            )
+
+        +
+
+        ' € brutto</div>';
 }
 
 
-/* WINDOWS */
+/* ======================================================
+   AR
+====================================================== */
 
 function startMeasurement(){
 
@@ -5202,35 +5780,89 @@ function startMeasurement(){
 
 
 window.receiveArMeasurement=
-function(width,height,area){
+function(
+    width,
+    height,
+    area
+){
 
-    arWidth=Number(width || 0);
-    arHeight=Number(height || 0);
-    arArea=Number(area || 0);
+    arWidth=
+        Number(
+            width
+            ||
+            0
+        );
 
-    openPage('windows');
+
+    arHeight=
+        Number(
+            height
+            ||
+            0
+        );
+
+
+    arArea=
+        Number(
+            area
+            ||
+            0
+        );
+
+
+    openPage(
+        'windows'
+    );
+
 
     const box=
         el('measurementResult');
 
-    box.style.display='block';
+
+    box.style.display=
+        'block';
+
 
     box.innerHTML=
 
-        '<strong>Fenster gemessen</strong><br><br>'+
+        '<strong>Fenster gemessen</strong><br>'
 
-        'Breite: '+
-        arWidth.toFixed(2)+
-        ' m<br>'+
+        +
 
-        'Höhe: '+
-        arHeight.toFixed(2)+
-        ' m<br>'+
+        'Breite: '
 
-        '<div class="big-result">'+
-        arArea.toFixed(2)+
+        +
+
+        arWidth.toFixed(2)
+
+        +
+
+        ' m<br>'
+
+        +
+
+        'Höhe: '
+
+        +
+
+        arHeight.toFixed(2)
+
+        +
+
+        ' m'
+
+        +
+
+        '<div class="big-result">'
+
+        +
+
+        arArea.toFixed(2)
+
+        +
+
         ' m²</div>';
-};
+}
 
 
 function calculateWindows(){
@@ -5239,36 +5871,865 @@ function calculateWindows(){
         Math.max(
             1,
             Number(
-                el('windowCount').value ||
+                el('windowCount').value
+                ||
                 1
             )
         );
 
+
     const price=
         Number(
-            el('windowPrice').value ||
+            el('windowPrice').value
+            ||
             0
         );
 
-    const total=
-        count*price;
 
     const box=
         el('windowResult');
 
-    box.style.display='block';
+
+    box.style.display=
+        'block';
+
 
     box.innerHTML=
 
-        '<strong>Gesamtpreis</strong>'+
+        '<strong>Gesamtpreis</strong>'
 
-        '<div class="big-result">'+
-        total.toFixed(2)+
+        +
+
+        '<div class="big-result">'
+
+        +
+
+        (
+            count
+            *
+            price
+        )
+        .toFixed(2)
+
+        +
+
         ' €</div>';
 }
 
 
-/* ANDROID BACK */
+/* ======================================================
+   MATERIALIEN
+====================================================== */
+
+function toggleInstruction(head){
+
+    head
+        .parentElement
+        .classList
+        .toggle(
+            'open'
+        );
+}
+
+
+function openExternal(url){
+
+    if(!url){
+
+        alert(
+            'Kein Link hinterlegt.'
+        );
+
+        return;
+    }
+
+
+    callAndroid(
+        'openExternalUrl',
+        url
+    );
+}
+
+
+function saveMaterial(){
+
+    const id=
+        el('materialId').value
+        ||
+        String(
+            Date.now()
+        );
+
+
+    const name=
+        el('materialName')
+            .value
+            .trim();
+
+
+    if(!name){
+
+        alert(
+            'Produktname fehlt.'
+        );
+
+        return;
+    }
+
+
+    callAndroid(
+
+        'saveMaterialToFirestore',
+
+        id,
+
+        name,
+
+        el('materialManufacturer').value,
+
+        el('materialCategory').value,
+
+        el('materialUse').value,
+
+        el('materialProductUrl').value,
+
+        el('materialSafetyUrl').value
+    );
+
+
+    clearMaterialForm();
+
+
+    setTimeout(
+        loadMaterials,
+        600
+    );
+}
+
+
+function clearMaterialForm(){
+
+    [
+        'materialId',
+        'materialName',
+        'materialManufacturer',
+        'materialUse',
+        'materialProductUrl',
+        'materialSafetyUrl'
+    ]
+    .forEach(
+        id=>{
+
+            el(id).value='';
+        }
+    );
+
+
+    el('materialCategory').value=
+        'Unterhaltsreinigung';
+}
+
+
+function loadMaterials(){
+
+    callAndroid(
+        'loadMaterialsFromFirestore'
+    );
+}
+
+
+window.receiveMaterialsFromFirestore=
+function(data){
+
+    if(
+        typeof data==='string'
+    ){
+
+        data=
+            JSON.parse(
+                data
+            );
+    }
+
+
+    allMaterials=
+        Array.isArray(data)
+        ?
+        data
+        :
+        [];
+
+
+    renderMaterials();
+}
+
+
+function renderMaterials(){
+
+    [
+        'materialsList',
+        'materialsAdminList'
+    ]
+    .forEach(
+        id=>{
+
+            const box=
+                el(id);
+
+
+            if(!box){
+
+                return;
+            }
+
+
+            box.innerHTML='';
+
+
+            if(!allMaterials.length){
+
+                box.innerHTML=
+
+                    '<div class="info">Noch keine Materialien hinterlegt.</div>';
+
+                return;
+            }
+
+
+            allMaterials
+                .forEach(
+                    material=>{
+
+                        const item=
+                            document.createElement(
+                                'div'
+                            );
+
+
+                        item.className=
+                            'item';
+
+
+                        item.innerHTML=
+
+                            '<strong>'
+                            +
+                            esc(
+                                material.name
+                            )
+                            +
+                            '</strong><br>'
+
+                            +
+
+                            esc(
+                                material.manufacturer
+                                ||
+                                ''
+                            )
+
+                            +
+
+                            ' · '
+
+                            +
+
+                            esc(
+                                material.category
+                                ||
+                                ''
+                            )
+
+                            +
+
+                            '<br><br>'
+
+                            +
+
+                            esc(
+                                material.use
+                                ||
+                                ''
+                            );
+
+
+                        if(
+                            material.productUrl
+                        ){
+
+                            const button=
+                                document.createElement(
+                                    'button'
+                                );
+
+
+                            button.className=
+                                'small-button';
+
+
+                            button.textContent=
+                                'Produktdatenblatt';
+
+
+                            button.onclick=
+                                ()=>{
+
+                                    openExternal(
+                                        material.productUrl
+                                    );
+                                };
+
+
+                            item.appendChild(
+                                button
+                            );
+                        }
+
+
+                        if(
+                            material.safetyUrl
+                        ){
+
+                            const button=
+                                document.createElement(
+                                    'button'
+                                );
+
+
+                            button.className=
+                                'small-button';
+
+
+                            button.textContent=
+                                'Sicherheitsdatenblatt';
+
+
+                            button.onclick=
+                                ()=>{
+
+                                    openExternal(
+                                        material.safetyUrl
+                                    );
+                                };
+
+
+                            item.appendChild(
+                                button
+                            );
+                        }
+
+
+                        if(
+                            adminMode
+                            &&
+                            id==='materialsAdminList'
+                        ){
+
+                            const edit=
+                                document.createElement(
+                                    'button'
+                                );
+
+
+                            edit.className=
+                                'small-button';
+
+
+                            edit.style.background=
+                                '#536176';
+
+
+                            edit.textContent=
+                                'Bearbeiten';
+
+
+                            edit.onclick=
+                                ()=>{
+
+                                    el('materialId').value=
+                                        material.id;
+
+                                    el('materialName').value=
+                                        material.name || '';
+
+                                    el('materialManufacturer').value=
+                                        material.manufacturer || '';
+
+                                    el('materialCategory').value=
+                                        material.category || 'Unterhaltsreinigung';
+
+                                    el('materialUse').value=
+                                        material.use || '';
+
+                                    el('materialProductUrl').value=
+                                        material.productUrl || '';
+
+                                    el('materialSafetyUrl').value=
+                                        material.safetyUrl || '';
+
+                                    window.scrollTo(
+                                        0,
+                                        0
+                                    );
+                                };
+
+
+                            item.appendChild(
+                                edit
+                            );
+
+
+                            const remove=
+                                document.createElement(
+                                    'button'
+                                );
+
+
+                            remove.className=
+                                'small-button';
+
+
+                            remove.style.background=
+                                '#d92d20';
+
+
+                            remove.textContent=
+                                'Löschen';
+
+
+                            remove.onclick=
+                                ()=>{
+
+                                    if(
+                                        confirm(
+                                            'Material löschen?'
+                                        )
+                                    ){
+
+                                        callAndroid(
+                                            'deleteMaterialFromFirestore',
+                                            material.id
+                                        );
+                                    }
+                                };
+
+
+                            item.appendChild(
+                                remove
+                            );
+                        }
+
+
+                        box.appendChild(
+                            item
+                        );
+                    }
+                );
+        }
+    );
+}
+
+
+/* ======================================================
+   DOCUMENTS
+====================================================== */
+
+function saveDocument(){
+
+    const id=
+        el('documentId').value
+        ||
+        String(
+            Date.now()
+        );
+
+
+    const title=
+        el('documentTitle')
+            .value
+            .trim();
+
+
+    const url=
+        el('documentUrl')
+            .value
+            .trim();
+
+
+    if(
+        !title
+        ||
+        !url
+    ){
+
+        alert(
+            'Titel und Link sind erforderlich.'
+        );
+
+        return;
+    }
+
+
+    const select=
+        el('documentEmployee');
+
+
+    const employeeId=
+        select.value;
+
+
+    const employeeName=
+
+        employeeId
+        ?
+        select.options[
+            select.selectedIndex
+        ].text
+        :
+        '';
+
+
+    callAndroid(
+
+        'saveDocumentToFirestore',
+
+        id,
+
+        title,
+
+        el('documentType').value,
+
+        employeeId,
+
+        employeeName,
+
+        url,
+
+        el('documentNote').value
+    );
+
+
+    clearDocumentForm();
+
+
+    setTimeout(
+        loadDocuments,
+        600
+    );
+}
+
+
+function clearDocumentForm(){
+
+    [
+        'documentId',
+        'documentTitle',
+        'documentUrl',
+        'documentNote'
+    ]
+    .forEach(
+        id=>{
+
+            el(id).value='';
+        }
+    );
+
+
+    el('documentType').value=
+        'Arbeitsvertrag';
+
+
+    el('documentEmployee').value='';
+}
+
+
+function loadDocuments(){
+
+    callAndroid(
+
+        'loadDocumentsFromFirestore',
+
+        employeeMode
+        &&
+        currentEmployee
+
+        ?
+
+        currentEmployee.id
+
+        :
+
+        ''
+    );
+}
+
+
+window.receiveDocumentsFromFirestore=
+function(data){
+
+    if(
+        typeof data==='string'
+    ){
+
+        data=
+            JSON.parse(
+                data
+            );
+    }
+
+
+    allDocuments=
+        Array.isArray(data)
+        ?
+        data
+        :
+        [];
+
+
+    renderDocuments();
+}
+
+
+function renderDocuments(){
+
+    [
+        'documentsList',
+        'documentsAdminList'
+    ]
+    .forEach(
+        id=>{
+
+            const box=
+                el(id);
+
+
+            if(!box){
+
+                return;
+            }
+
+
+            box.innerHTML='';
+
+
+            if(!allDocuments.length){
+
+                box.innerHTML=
+
+                    '<div class="info">Noch keine Dokumente hinterlegt.</div>';
+
+                return;
+            }
+
+
+            allDocuments
+                .forEach(
+                    documentItem=>{
+
+                        const item=
+                            document.createElement(
+                                'div'
+                            );
+
+
+                        item.className=
+                            'item';
+
+
+                        item.innerHTML=
+
+                            '<strong>'
+                            +
+                            esc(
+                                documentItem.title
+                            )
+                            +
+                            '</strong><br>'
+
+                            +
+
+                            esc(
+                                documentItem.type
+                                ||
+                                ''
+                            )
+
+                            +
+
+                            (
+                                documentItem.employeeName
+
+                                ?
+
+                                '<br>Für: '
+                                +
+                                esc(
+                                    documentItem.employeeName
+                                )
+
+                                :
+
+                                '<br>Allgemein'
+                            )
+
+                            +
+
+                            (
+                                documentItem.note
+
+                                ?
+
+                                '<br><br>'
+                                +
+                                esc(
+                                    documentItem.note
+                                )
+
+                                :
+
+                                ''
+                            );
+
+
+                        const open=
+                            document.createElement(
+                                'button'
+                            );
+
+
+                        open.className=
+                            'small-button';
+
+
+                        open.textContent=
+                            'Öffnen';
+
+
+                        open.onclick=
+                            ()=>{
+
+                                openExternal(
+                                    documentItem.url
+                                );
+                            };
+
+
+                        item.appendChild(
+                            open
+                        );
+
+
+                        if(
+                            adminMode
+                            &&
+                            id==='documentsAdminList'
+                        ){
+
+                            const edit=
+                                document.createElement(
+                                    'button'
+                                );
+
+
+                            edit.className=
+                                'small-button';
+
+
+                            edit.style.background=
+                                '#536176';
+
+
+                            edit.textContent=
+                                'Bearbeiten';
+
+
+                            edit.onclick=
+                                ()=>{
+
+                                    el('documentId').value=
+                                        documentItem.id;
+
+                                    el('documentTitle').value=
+                                        documentItem.title || '';
+
+                                    el('documentType').value=
+                                        documentItem.type || 'Sonstiges';
+
+                                    el('documentEmployee').value=
+                                        documentItem.employeeId || '';
+
+                                    el('documentUrl').value=
+                                        documentItem.url || '';
+
+                                    el('documentNote').value=
+                                        documentItem.note || '';
+
+                                    window.scrollTo(
+                                        0,
+                                        0
+                                    );
+                                };
+
+
+                            item.appendChild(
+                                edit
+                            );
+
+
+                            const remove=
+                                document.createElement(
+                                    'button'
+                                );
+
+
+                            remove.className=
+                                'small-button';
+
+
+                            remove.style.background=
+                                '#d92d20';
+
+
+                            remove.textContent=
+                                'Löschen';
+
+
+                            remove.onclick=
+                                ()=>{
+
+                                    if(
+                                        confirm(
+                                            'Dokument löschen?'
+                                        )
+                                    ){
+
+                                        callAndroid(
+                                            'deleteDocumentFromFirestore',
+                                            documentItem.id
+                                        );
+                                    }
+                                };
+
+
+                            item.appendChild(
+                                remove
+                            );
+                        }
+
+
+                        box.appendChild(
+                            item
+                        );
+                    }
+                );
+        }
+    );
+}
+
+
+/* ======================================================
+   BACK
+====================================================== */
 
 window.androidBack=
 function(){
@@ -5278,72 +6739,73 @@ function(){
             '.page.active'
         );
 
+
     if(!page){
+
         return false;
     }
 
-    const morePages=[
-        'profile',
-        'documents',
-        'contract',
-        'instructions',
-        'help',
-        'leave'
-    ];
 
     if(
-        employeeMode &&
-        morePages.includes(
-            page.id
-        )
-    ){
-
-        openPage('more');
-
-        return true;
-    }
-
-    if(
-        page.id!=='home' &&
+        page.id!=='home'
+        &&
         page.id!=='login'
     ){
 
-        openPage('home');
+        openPage(
+            'home'
+        );
 
         return true;
     }
 
+
     return false;
-};
+}
 
 
-/* START */
+/* ======================================================
+   START
+====================================================== */
 
 (function(){
 
     setMode('');
 
+
     const today=
         new Date();
 
+
     el('timeMonth').value=
 
-        today.getFullYear()+
-        '-'+
+        today.getFullYear()
+
+        +
+
+        '-'
+
+        +
+
         String(
             today.getMonth()+1
-        ).padStart(
+        )
+        .padStart(
             2,
             '0'
         );
 
-    setTimeout(()=>{
 
-        callAndroid(
-            'loadEmployeesFromFirestore'
-        );
+    setTimeout(
+        ()=>{
 
-    },350);
+            callAndroid(
+                'loadEmployeesFromFirestore'
+            );
+
+        },
+        350
+    );
 
 })();
 
