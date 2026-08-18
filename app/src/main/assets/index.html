@@ -4,11 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f7f8">
-
 <title>E-M Cleaning Service</title>
 
 <style>
-
 :root{
     --green:#078a65;
     --green-dark:#066f52;
@@ -248,85 +246,6 @@ body.employee-mode .employee-only{
     font-weight:850;
 }
 
-.workday{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    margin-top:18px;
-}
-
-.day-box{
-    width:88px;
-    min-width:88px;
-    height:95px;
-    border:1px solid #ccd3d9;
-    border-radius:20px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    background:#fff;
-}
-
-.day-box strong{
-    font-size:31px;
-}
-
-.day-box span{
-    font-size:19px;
-}
-
-.work-info{
-    flex:1;
-    border-left:7px solid var(--green);
-    padding-left:16px;
-}
-
-.work-info strong{
-    font-size:20px;
-}
-
-.work-info .time{
-    font-size:18px;
-    margin-top:4px;
-}
-
-.bottom-nav{
-    display:none;
-    position:fixed;
-    z-index:9999;
-    left:0;
-    right:0;
-    bottom:0;
-    height:84px;
-    background:#fff;
-    border-top:1px solid #d7dde3;
-}
-
-body.employee-mode .bottom-nav{
-    display:flex;
-}
-
-.nav-btn{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    color:#a8b0bb;
-    font-size:12px;
-    font-weight:700;
-    gap:3px;
-}
-
-.nav-btn.active{
-    color:var(--green);
-}
-
-.nav-icon{
-    font-size:22px;
-}
-
 .admin-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -414,12 +333,6 @@ body.employee-mode .bottom-nav{
     gap:8px;
 }
 
-.timesheet-grid input,
-.timesheet-grid select{
-    padding:10px;
-    font-size:14px;
-}
-
 .full{
     grid-column:1/-1;
 }
@@ -502,6 +415,28 @@ body.employee-mode .bottom-nav{
     font-weight:800;
 }
 
+.document-file{
+    margin-top:9px;
+    padding:10px 12px;
+    border-radius:11px;
+    background:#fff;
+    border:1px solid #dfe4e8;
+    color:#475467;
+    font-size:13px;
+    word-break:break-word;
+}
+
+.document-badge{
+    display:inline-block;
+    margin-top:7px;
+    padding:5px 9px;
+    border-radius:20px;
+    background:#eef7f3;
+    color:#067647;
+    font-size:12px;
+    font-weight:800;
+}
+
 .instruction-category{
     border:1px solid #dfe4e8;
     border-radius:16px;
@@ -532,34 +467,76 @@ body.employee-mode .bottom-nav{
     padding-left:22px;
 }
 
-.instruction-body li{
-    margin-top:7px;
+/* SICHTBARE ZURÜCK-TASTE */
+
+.app-back-bar{
+    display:none;
+    max-width:760px;
+    margin:0 auto;
+    padding:
+        calc(10px + env(safe-area-inset-top))
+        16px
+        0;
 }
 
-.document-file{
-    margin-top:9px;
-    padding:10px 12px;
-    border-radius:11px;
+.app-back-bar.show{
+    display:block;
+}
+
+.app-back-button{
+    width:auto;
+    min-height:46px;
+    border:0;
+    border-radius:14px;
+    padding:10px 16px;
     background:#fff;
-    border:1px solid #dfe4e8;
-    color:#475467;
-    font-size:13px;
-    word-break:break-word;
+    color:var(--green);
+    font-size:16px;
+    font-weight:900;
+    box-shadow:0 5px 16px rgba(26,40,50,.10);
 }
 
-.document-badge{
-    display:inline-block;
-    margin-top:7px;
-    padding:5px 9px;
-    border-radius:20px;
-    background:#eef7f3;
-    color:#067647;
+.app-back-button:active{
+    background:#eaf7f2;
+}
+
+.bottom-nav{
+    display:none;
+    position:fixed;
+    z-index:9999;
+    left:0;
+    right:0;
+    bottom:0;
+    height:84px;
+    background:#fff;
+    border-top:1px solid #d7dde3;
+}
+
+body.employee-mode .bottom-nav{
+    display:flex;
+}
+
+.nav-btn{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:#a8b0bb;
     font-size:12px;
-    font-weight:800;
+    font-weight:700;
+    gap:3px;
+}
+
+.nav-btn.active{
+    color:var(--green);
+}
+
+.nav-icon{
+    font-size:22px;
 }
 
 @media(max-width:520px){
-
     .admin-grid,
     .timesheet-grid{
         grid-template-columns:1fr;
@@ -569,35 +546,28 @@ body.employee-mode .bottom-nav{
         grid-column:auto;
     }
 }
-
 </style>
 </head>
 
 <body>
 
-
-<!-- =====================================================
-     LOGIN
-===================================================== -->
+<div id="appBackBar" class="app-back-bar">
+    <button
+        type="button"
+        class="app-back-button"
+        onclick="goBackInsideApp()"
+    >
+        ← Zurück zur Übersicht
+    </button>
+</div>
 
 <section id="login" class="page active">
 
     <div class="login-logo">
-
-        <div class="logo-circle">
-            E-M
-        </div>
-
-        <h1>
-            E-M Cleaning
-        </h1>
-
-        <p>
-            Mitarbeiter-App
-        </p>
-
+        <div class="logo-circle">E-M</div>
+        <h1>E-M Cleaning</h1>
+        <p>Mitarbeiter-App</p>
     </div>
-
 
     <div class="card">
 
@@ -605,28 +575,17 @@ body.employee-mode .bottom-nav{
             👤 Mitarbeiter-Login
         </div>
 
-        <div
-            id="loginStatus"
-            class="info"
-        >
+        <div id="loginStatus" class="info">
             Mitarbeiter werden geladen...
         </div>
 
-        <label>
-            Mitarbeiter
-        </label>
+        <label>Mitarbeiter</label>
 
         <select id="loginEmployee">
-
-            <option value="">
-                Wird geladen...
-            </option>
-
+            <option value="">Wird geladen...</option>
         </select>
 
-        <label>
-            PIN
-        </label>
+        <label>PIN</label>
 
         <input
             id="loginPin"
@@ -645,16 +604,13 @@ body.employee-mode .bottom-nav{
 
     </div>
 
-
     <div class="card">
 
         <div class="card-title">
             🔐 Verwaltung
         </div>
 
-        <label>
-            Admin-PIN
-        </label>
+        <label>Admin-PIN</label>
 
         <input
             id="adminPin"
@@ -680,36 +636,21 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     HOME
-===================================================== -->
-
 <section id="home" class="page">
-
-
-    <!-- MITARBEITER -->
 
     <div class="employee-only">
 
         <div class="card">
-
-            <div
-                id="welcomeEmployee"
-                class="card-title"
-            >
+            <div id="welcomeEmployee" class="card-title">
                 Willkommen
             </div>
 
             <div class="card-subtitle">
                 Dein persönlicher E-M Cleaning Bereich
             </div>
-
         </div>
 
-
         <div class="card">
-
             <div class="card-title">
                 Dein Arbeitstag
             </div>
@@ -717,9 +658,7 @@ body.employee-mode .bottom-nav{
             <div id="todayWork">
                 Wird geladen...
             </div>
-
         </div>
-
 
         <div class="card">
 
@@ -727,52 +666,31 @@ body.employee-mode .bottom-nav{
                 Deine Übersicht
             </div>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('times')"
-            >
+            <button class="home-menu-button" onclick="openPage('times')">
                 ⏱ Zeiten erfassen
             </button>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('chat')"
-            >
+            <button class="home-menu-button" onclick="openPage('chat')">
                 💬 Chat
             </button>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('tickets')"
-            >
+            <button class="home-menu-button" onclick="openPage('tickets')">
                 🎫 Ticket erstellen
             </button>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('leave')"
-            >
+            <button class="home-menu-button" onclick="openPage('leave')">
                 🏖 Urlaub
             </button>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('materials')"
-            >
+            <button class="home-menu-button" onclick="openPage('materials')">
                 🧴 Materialien & Datenblätter
             </button>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('documents')"
-            >
+            <button class="home-menu-button" onclick="openPage('documents')">
                 📄 Meine Dokumente
             </button>
 
-            <button
-                class="home-menu-button"
-                onclick="openPage('instructions')"
-            >
+            <button class="home-menu-button" onclick="openPage('instructions')">
                 🧹 Reinigungsanweisungen
             </button>
 
@@ -780,13 +698,9 @@ body.employee-mode .bottom-nav{
 
     </div>
 
-
-    <!-- ADMIN -->
-
     <div class="admin-only">
 
         <div class="card">
-
             <div class="card-title">
                 E-M Cleaning Verwaltung
             </div>
@@ -794,148 +708,63 @@ body.employee-mode .bottom-nav{
             <div class="card-subtitle">
                 Komplette Betriebsverwaltung
             </div>
-
         </div>
-
 
         <div class="admin-grid">
 
             <div class="admin-tile">
-
-                <h3>
-                    👥 Mitarbeiter
-                </h3>
-
-                <button onclick="openPage('employees')">
-                    Öffnen
-                </button>
-
+                <h3>👥 Mitarbeiter</h3>
+                <button onclick="openPage('employees')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    ⏱ Stunden
-                </h3>
-
-                <button onclick="openPage('times')">
-                    Öffnen
-                </button>
-
+                <h3>⏱ Stunden</h3>
+                <button onclick="openPage('times')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    💬 Chat
-                </h3>
-
-                <button onclick="openPage('chat')">
-                    Öffnen
-                </button>
-
+                <h3>💬 Chat</h3>
+                <button onclick="openPage('chat')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    🎫 Tickets
-                </h3>
-
-                <button onclick="openPage('tickets')">
-                    Öffnen
-                </button>
-
+                <h3>🎫 Tickets</h3>
+                <button onclick="openPage('tickets')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    🏖 Urlaub
-                </h3>
-
-                <button onclick="openPage('leave')">
-                    Öffnen
-                </button>
-
+                <h3>🏖 Urlaub</h3>
+                <button onclick="openPage('leave')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    🧹 Aufträge
-                </h3>
-
-                <button onclick="openPage('orders')">
-                    Öffnen
-                </button>
-
+                <h3>🧹 Aufträge</h3>
+                <button onclick="openPage('orders')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    💰 Pauschalpreis
-                </h3>
-
-                <button onclick="openPage('price')">
-                    Öffnen
-                </button>
-
+                <h3>💰 Pauschalpreis</h3>
+                <button onclick="openPage('price')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    📐 Fenster
-                </h3>
-
-                <button onclick="openPage('windows')">
-                    Öffnen
-                </button>
-
+                <h3>📐 Fenster</h3>
+                <button onclick="openPage('windows')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    🧴 Materialien
-                </h3>
-
-                <button onclick="openPage('materialsAdmin')">
-                    Öffnen
-                </button>
-
+                <h3>🧴 Materialien</h3>
+                <button onclick="openPage('materialsAdmin')">Öffnen</button>
             </div>
 
-
             <div class="admin-tile">
-
-                <h3>
-                    📄 Dokumente
-                </h3>
-
-                <button onclick="openPage('documentsAdmin')">
-                    Öffnen
-                </button>
-
+                <h3>📄 Dokumente</h3>
+                <button onclick="openPage('documentsAdmin')">Öffnen</button>
             </div>
 
         </div>
 
-
-        <div
-            class="card"
-            style="margin-top:16px"
-        >
+        <div class="card" style="margin-top:16px">
 
             <button
                 class="secondary-button"
@@ -950,23 +779,15 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     ZEITEN
-===================================================== -->
-
 <section id="times" class="page">
 
     <div class="section-title">
         ⏱ Zeiten
     </div>
 
-
     <div class="card admin-only">
 
-        <label>
-            Mitarbeiter
-        </label>
+        <label>Mitarbeiter</label>
 
         <select
             id="timeEmployee"
@@ -974,7 +795,6 @@ body.employee-mode .bottom-nav{
         ></select>
 
     </div>
-
 
     <div class="card employee-only">
 
@@ -989,7 +809,6 @@ body.employee-mode .bottom-nav{
 
     </div>
 
-
     <div class="card">
 
         <div
@@ -1003,16 +822,13 @@ body.employee-mode .bottom-nav{
 
     </div>
 
-
     <div class="card">
 
         <div class="card-title">
             📅 Monat
         </div>
 
-        <label>
-            Monat
-        </label>
+        <label>Monat</label>
 
         <input
             id="timeMonth"
@@ -1022,56 +838,25 @@ body.employee-mode .bottom-nav{
 
     </div>
 
-
     <div class="card">
 
         <div class="card-title">
             ➕ Monat erstellen
         </div>
 
-        <label>
-            Arbeitsbeginn
-        </label>
+        <label>Arbeitsbeginn</label>
+        <input id="defaultStart" type="time" value="08:00">
 
-        <input
-            id="defaultStart"
-            type="time"
-            value="08:00"
-        >
+        <label>Arbeitsende</label>
+        <input id="defaultEnd" type="time" value="16:00">
 
-        <label>
-            Arbeitsende
-        </label>
+        <label>Pause in Minuten</label>
+        <input id="defaultPause" type="number" value="30" min="0">
 
-        <input
-            id="defaultEnd"
-            type="time"
-            value="16:00"
-        >
+        <label>Objekt / Kunde</label>
+        <input id="defaultObject" placeholder="z.B. Bürozentrum">
 
-        <label>
-            Pause in Minuten
-        </label>
-
-        <input
-            id="defaultPause"
-            type="number"
-            value="30"
-            min="0"
-        >
-
-        <label>
-            Objekt / Kunde
-        </label>
-
-        <input
-            id="defaultObject"
-            placeholder="z.B. Bürozentrum"
-        >
-
-        <label>
-            Normale Arbeitstage
-        </label>
+        <label>Normale Arbeitstage</label>
 
         <div class="days">
 
@@ -1121,11 +906,7 @@ body.employee-mode .bottom-nav{
 
     </div>
 
-
-    <div
-        class="card"
-        id="workTimesCard"
-    >
+    <div class="card" id="workTimesCard">
 
         <div class="card-title">
             Arbeitszeiten
@@ -1157,11 +938,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     CHAT
-===================================================== -->
-
 <section id="chat" class="page">
 
     <div class="section-title">
@@ -1170,9 +946,7 @@ body.employee-mode .bottom-nav{
 
     <div class="card admin-only">
 
-        <label>
-            Mitarbeiter
-        </label>
+        <label>Mitarbeiter</label>
 
         <select
             id="chatEmployee"
@@ -1211,11 +985,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     TICKETS
-===================================================== -->
-
 <section id="tickets" class="page">
 
     <div class="section-title">
@@ -1228,55 +997,22 @@ body.employee-mode .bottom-nav{
             Neues Ticket
         </div>
 
-        <label>
-            Art
-        </label>
+        <label>Art</label>
 
         <select id="ticketType">
-
-            <option>
-                Allgemeine Anfrage
-            </option>
-
-            <option>
-                Material fehlt
-            </option>
-
-            <option>
-                Schaden am Objekt
-            </option>
-
-            <option>
-                Problem am Objekt
-            </option>
-
-            <option>
-                Krankmeldung
-            </option>
-
-            <option>
-                Arbeitszeit
-            </option>
-
-            <option>
-                Sonstiges
-            </option>
-
+            <option>Allgemeine Anfrage</option>
+            <option>Material fehlt</option>
+            <option>Schaden am Objekt</option>
+            <option>Problem am Objekt</option>
+            <option>Krankmeldung</option>
+            <option>Arbeitszeit</option>
+            <option>Sonstiges</option>
         </select>
 
-        <label>
-            Betreff
-        </label>
+        <label>Betreff</label>
+        <input id="ticketSubject" placeholder="Kurzer Betreff">
 
-        <input
-            id="ticketSubject"
-            placeholder="Kurzer Betreff"
-        >
-
-        <label>
-            Beschreibung
-        </label>
-
+        <label>Beschreibung</label>
         <textarea id="ticketDescription"></textarea>
 
         <button
@@ -1303,11 +1039,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     URLAUB
-===================================================== -->
-
 <section id="leave" class="page">
 
     <div class="section-title">
@@ -1320,28 +1051,13 @@ body.employee-mode .bottom-nav{
             Urlaubsantrag
         </div>
 
-        <label>
-            Von
-        </label>
+        <label>Von</label>
+        <input id="leaveFrom" type="date">
 
-        <input
-            id="leaveFrom"
-            type="date"
-        >
+        <label>Bis</label>
+        <input id="leaveTo" type="date">
 
-        <label>
-            Bis
-        </label>
-
-        <input
-            id="leaveTo"
-            type="date"
-        >
-
-        <label>
-            Bemerkung
-        </label>
-
+        <label>Bemerkung</label>
         <textarea id="leaveNote"></textarea>
 
         <button
@@ -1372,11 +1088,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     MATERIALIEN MITARBEITER
-===================================================== -->
-
 <section id="materials" class="page">
 
     <div class="employee-only">
@@ -1386,10 +1097,6 @@ body.employee-mode .bottom-nav{
         </div>
 
         <div class="card">
-
-            <div class="card-subtitle">
-                Hier findest du die freigegebenen Produkte und die dazugehörigen Produkt- und Sicherheitsdatenblätter.
-            </div>
 
             <button
                 class="secondary-button"
@@ -1406,11 +1113,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     DOKUMENTE MITARBEITER
-===================================================== -->
-
 <section id="documents" class="page">
 
     <div class="employee-only">
@@ -1422,7 +1124,7 @@ body.employee-mode .bottom-nav{
         <div class="card">
 
             <div class="card-subtitle">
-                Hier findest du deine persönlichen Dokumente sowie allgemeine Firmendokumente.
+                Deine persönlichen Dokumente und allgemeine Firmendokumente.
             </div>
 
             <button
@@ -1440,11 +1142,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     ANWEISUNGEN
-===================================================== -->
-
 <section id="instructions" class="page">
 
     <div class="employee-only">
@@ -1459,19 +1156,11 @@ body.employee-mode .bottom-nav{
                 Objektbezogene Vorgaben haben Vorrang.
             </div>
 
-
             <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    🧹 Unterhaltsreinigung
-                    <span>▾</span>
+                <div class="instruction-head" onclick="toggleInstruction(this)">
+                    🧹 Unterhaltsreinigung <span>▾</span>
                 </div>
-
                 <div class="instruction-body">
-
                     <ol>
                         <li>Material vorbereiten.</li>
                         <li>Abfälle leeren.</li>
@@ -1481,24 +1170,14 @@ body.employee-mode .bottom-nav{
                         <li>Boden materialgerecht wischen.</li>
                         <li>Arbeitsbereich ordentlich hinterlassen.</li>
                     </ol>
-
                 </div>
-
             </div>
 
-
             <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    🚻 Sanitär
-                    <span>▾</span>
+                <div class="instruction-head" onclick="toggleInstruction(this)">
+                    🚻 Sanitär <span>▾</span>
                 </div>
-
                 <div class="instruction-body">
-
                     <ol>
                         <li>Handschuhe tragen.</li>
                         <li>Separate Sanitärtücher verwenden.</li>
@@ -1506,48 +1185,28 @@ body.employee-mode .bottom-nav{
                         <li>Hygieneartikel auffüllen.</li>
                         <li>Boden zuletzt reinigen.</li>
                     </ol>
-
                 </div>
-
             </div>
 
-
             <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    🪟 Glasreinigung
-                    <span>▾</span>
+                <div class="instruction-head" onclick="toggleInstruction(this)">
+                    🪟 Glasreinigung <span>▾</span>
                 </div>
-
                 <div class="instruction-body">
-
                     <ol>
                         <li>Rahmen vorreinigen.</li>
                         <li>Glas einwaschen.</li>
                         <li>Verschmutzung vorsichtig lösen.</li>
                         <li>Abziehen und Ränder trocknen.</li>
                     </ol>
-
                 </div>
-
             </div>
 
-
             <div class="instruction-category">
-
-                <div
-                    class="instruction-head"
-                    onclick="toggleInstruction(this)"
-                >
-                    ⚠️ Sicherheit
-                    <span>▾</span>
+                <div class="instruction-head" onclick="toggleInstruction(this)">
+                    ⚠️ Sicherheit <span>▾</span>
                 </div>
-
                 <div class="instruction-body">
-
                     <ul>
                         <li>Reinigungsmittel niemals mischen.</li>
                         <li>Dosierung beachten.</li>
@@ -1555,9 +1214,7 @@ body.employee-mode .bottom-nav{
                         <li>Defekte Geräte nicht benutzen.</li>
                         <li>Schäden sofort melden.</li>
                     </ul>
-
                 </div>
-
             </div>
 
         </div>
@@ -1565,11 +1222,6 @@ body.employee-mode .bottom-nav{
     </div>
 
 </section>
-
-
-<!-- =====================================================
-     MEHR
-===================================================== -->
 
 <section id="more" class="page">
 
@@ -1581,31 +1233,19 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <div
-                class="more-item"
-                onclick="openPage('documents')"
-            >
+            <div class="more-item" onclick="openPage('documents')">
                 📄 Meine Dokumente
             </div>
 
-            <div
-                class="more-item"
-                onclick="openPage('materials')"
-            >
+            <div class="more-item" onclick="openPage('materials')">
                 🧴 Materialien & Datenblätter
             </div>
 
-            <div
-                class="more-item"
-                onclick="openPage('instructions')"
-            >
+            <div class="more-item" onclick="openPage('instructions')">
                 🧹 Reinigungsanweisungen
             </div>
 
-            <div
-                class="more-item"
-                onclick="openPage('leave')"
-            >
+            <div class="more-item" onclick="openPage('leave')">
                 🏖 Urlaub
             </div>
 
@@ -1622,11 +1262,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     MITARBEITER ADMIN
-===================================================== -->
-
 <section id="employees" class="page">
 
     <div class="admin-only">
@@ -1637,10 +1272,7 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <input
-                id="employeeName"
-                placeholder="Vorname Nachname"
-            >
+            <input id="employeeName" placeholder="Vorname Nachname">
 
             <input
                 id="employeePhone"
@@ -1648,23 +1280,10 @@ body.employee-mode .bottom-nav{
                 style="margin-top:10px"
             >
 
-            <select
-                id="employeeType"
-                style="margin-top:10px"
-            >
-
-                <option>
-                    Vollzeit
-                </option>
-
-                <option>
-                    Teilzeit
-                </option>
-
-                <option>
-                    Minijob
-                </option>
-
+            <select id="employeeType" style="margin-top:10px">
+                <option>Vollzeit</option>
+                <option>Teilzeit</option>
+                <option>Minijob</option>
             </select>
 
             <input
@@ -1684,10 +1303,7 @@ body.employee-mode .bottom-nav{
                 style="margin-top:10px"
             >
 
-            <input
-                id="editEmployeeId"
-                type="hidden"
-            >
+            <input id="editEmployeeId" type="hidden">
 
             <button
                 class="main-button"
@@ -1706,19 +1322,12 @@ body.employee-mode .bottom-nav{
         </div>
 
         <div class="card">
-
             <div id="employeeList"></div>
-
         </div>
 
     </div>
 
 </section>
-
-
-<!-- =====================================================
-     MATERIALIEN ADMIN
-===================================================== -->
 
 <section id="materialsAdmin" class="page">
 
@@ -1730,87 +1339,33 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <input
-                id="materialId"
-                type="hidden"
-            >
+            <input id="materialId" type="hidden">
 
-            <label>
-                Produktname
-            </label>
+            <label>Produktname</label>
+            <input id="materialName" placeholder="z.B. Glasreiniger">
 
-            <input
-                id="materialName"
-                placeholder="z.B. Glasreiniger"
-            >
+            <label>Hersteller</label>
+            <input id="materialManufacturer" placeholder="Hersteller">
 
-            <label>
-                Hersteller
-            </label>
-
-            <input
-                id="materialManufacturer"
-                placeholder="Hersteller"
-            >
-
-            <label>
-                Kategorie
-            </label>
+            <label>Kategorie</label>
 
             <select id="materialCategory">
-
-                <option>
-                    Unterhaltsreinigung
-                </option>
-
-                <option>
-                    Sanitär
-                </option>
-
-                <option>
-                    Glas
-                </option>
-
-                <option>
-                    Boden
-                </option>
-
-                <option>
-                    Grundreinigung
-                </option>
-
-                <option>
-                    Sonstiges
-                </option>
-
+                <option>Unterhaltsreinigung</option>
+                <option>Sanitär</option>
+                <option>Glas</option>
+                <option>Boden</option>
+                <option>Grundreinigung</option>
+                <option>Sonstiges</option>
             </select>
 
-            <label>
-                Anwendung / Dosierung
-            </label>
+            <label>Anwendung / Dosierung</label>
+            <textarea id="materialUse"></textarea>
 
-            <textarea
-                id="materialUse"
-                placeholder="Kurze Anweisung"
-            ></textarea>
+            <label>Produktdatenblatt-Link</label>
+            <input id="materialProductUrl" placeholder="https://...">
 
-            <label>
-                Produktdatenblatt-Link
-            </label>
-
-            <input
-                id="materialProductUrl"
-                placeholder="https://..."
-            >
-
-            <label>
-                Sicherheitsdatenblatt-Link
-            </label>
-
-            <input
-                id="materialSafetyUrl"
-                placeholder="https://..."
-            >
+            <label>Sicherheitsdatenblatt-Link</label>
+            <input id="materialSafetyUrl" placeholder="https://...">
 
             <button
                 class="main-button"
@@ -1827,7 +1382,6 @@ body.employee-mode .bottom-nav{
             </button>
 
         </div>
-
 
         <div class="card">
 
@@ -1846,11 +1400,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     DOKUMENTE ADMIN
-===================================================== -->
-
 <section id="documentsAdmin" class="page">
 
     <div class="admin-only">
@@ -1859,103 +1408,56 @@ body.employee-mode .bottom-nav{
             📄 Dokumente verwalten
         </div>
 
-
         <div class="card">
 
-            <input
-                id="documentId"
-                type="hidden"
-            >
+            <input id="documentId" type="hidden">
 
             <div class="card-title">
                 Dokument hochladen
             </div>
 
             <div class="card-subtitle">
-                Arbeitsverträge, Personalunterlagen, Zusatzblätter,
-                Unterweisungen, PDFs, Word-Dateien und Bilder direkt hochladen.
+                Arbeitsverträge, Personalunterlagen, PDFs, Word-Dateien und Bilder direkt hochladen.
             </div>
 
-
-            <label>
-                Titel
-            </label>
+            <label>Titel</label>
 
             <input
                 id="documentTitle"
                 placeholder="z.B. Arbeitsvertrag 2026"
             >
 
-
-            <label>
-                Art
-            </label>
+            <label>Art</label>
 
             <select id="documentType">
-
-                <option>
-                    Arbeitsvertrag
-                </option>
-
-                <option>
-                    Zusatzblatt
-                </option>
-
-                <option>
-                    Personal-Dokument
-                </option>
-
-                <option>
-                    Unterweisung
-                </option>
-
-                <option>
-                    Lohnabrechnung
-                </option>
-
-                <option>
-                    Bescheinigung
-                </option>
-
-                <option>
-                    Firmendokument
-                </option>
-
-                <option>
-                    Sonstiges
-                </option>
-
+                <option>Arbeitsvertrag</option>
+                <option>Zusatzblatt</option>
+                <option>Personal-Dokument</option>
+                <option>Unterweisung</option>
+                <option>Lohnabrechnung</option>
+                <option>Bescheinigung</option>
+                <option>Firmendokument</option>
+                <option>Sonstiges</option>
             </select>
 
-
-            <label>
-                Für Mitarbeiter
-            </label>
+            <label>Für Mitarbeiter</label>
 
             <select id="documentEmployee">
-
                 <option value="">
                     Allgemein – alle Mitarbeiter
                 </option>
-
             </select>
 
-
             <div class="info">
-                Wenn du „Allgemein“ auswählst, können alle angemeldeten Mitarbeiter das Dokument sehen.
-                Bei einem ausgewählten Mitarbeiter ist es nur diesem Mitarbeiter zugeordnet.
+                Allgemein = für alle Mitarbeiter sichtbar.
             </div>
 
-
-            <label>
-                Hinweis
-            </label>
+            <label>Hinweis</label>
 
             <textarea
                 id="documentNote"
                 placeholder="Optionaler Hinweis"
             ></textarea>
-
 
             <div
                 id="documentUploadStatus"
@@ -1963,7 +1465,6 @@ body.employee-mode .bottom-nav{
             >
                 Titel und Zuordnung ausfüllen und anschließend Datei auswählen.
             </div>
-
 
             <button
                 id="documentUploadButton"
@@ -1973,7 +1474,6 @@ body.employee-mode .bottom-nav{
                 📎 Datei auswählen & hochladen
             </button>
 
-
             <button
                 class="secondary-button"
                 onclick="clearDocumentForm()"
@@ -1982,7 +1482,6 @@ body.employee-mode .bottom-nav{
             </button>
 
         </div>
-
 
         <div class="card">
 
@@ -2005,11 +1504,6 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     AUFTRÄGE
-===================================================== -->
-
 <section id="orders" class="page">
 
     <div class="admin-only">
@@ -2020,10 +1514,7 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <input
-                id="orderCustomer"
-                placeholder="Kunde"
-            >
+            <input id="orderCustomer" placeholder="Kunde">
 
             <input
                 id="orderAddress"
@@ -2031,31 +1522,12 @@ body.employee-mode .bottom-nav{
                 style="margin-top:10px"
             >
 
-            <select
-                id="orderService"
-                style="margin-top:10px"
-            >
-
-                <option>
-                    Unterhaltsreinigung
-                </option>
-
-                <option>
-                    Grundreinigung
-                </option>
-
-                <option>
-                    Bauendreinigung
-                </option>
-
-                <option>
-                    Glasreinigung
-                </option>
-
-                <option>
-                    Treppenhausreinigung
-                </option>
-
+            <select id="orderService" style="margin-top:10px">
+                <option>Unterhaltsreinigung</option>
+                <option>Grundreinigung</option>
+                <option>Bauendreinigung</option>
+                <option>Glasreinigung</option>
+                <option>Treppenhausreinigung</option>
             </select>
 
             <input
@@ -2088,19 +1560,12 @@ body.employee-mode .bottom-nav{
         </div>
 
         <div class="card">
-
             <div id="orderList"></div>
-
         </div>
 
     </div>
 
 </section>
-
-
-<!-- =====================================================
-     PREIS
-===================================================== -->
 
 <section id="price" class="page">
 
@@ -2112,184 +1577,70 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <label>
-                Reinigungsart
-            </label>
+            <label>Reinigungsart</label>
 
             <select
                 id="priceService"
                 onchange="suggestCleaningTime()"
             >
-
-                <option>
-                    Unterhaltsreinigung
-                </option>
-
-                <option>
-                    Grundreinigung
-                </option>
-
-                <option>
-                    Bauendreinigung
-                </option>
-
-                <option>
-                    Glasreinigung
-                </option>
-
-                <option>
-                    Treppenhausreinigung
-                </option>
-
+                <option>Unterhaltsreinigung</option>
+                <option>Grundreinigung</option>
+                <option>Bauendreinigung</option>
+                <option>Glasreinigung</option>
+                <option>Treppenhausreinigung</option>
             </select>
 
-            <label>
-                Fläche in m²
-            </label>
+            <label>Fläche in m²</label>
 
             <input
                 id="priceArea"
                 type="number"
-                step="1"
                 oninput="suggestCleaningTime()"
             >
 
-            <label>
-                Verschmutzungsgrad
-            </label>
+            <label>Verschmutzungsgrad</label>
 
             <select
                 id="priceDifficulty"
                 onchange="suggestCleaningTime()"
             >
-
-                <option value="light">
-                    Leicht
-                </option>
-
-                <option
-                    value="normal"
-                    selected
-                >
-                    Normal
-                </option>
-
-                <option value="intensive">
-                    Intensiv
-                </option>
-
+                <option value="light">Leicht</option>
+                <option value="normal" selected>Normal</option>
+                <option value="intensive">Intensiv</option>
             </select>
 
-            <label>
-                Häufigkeit
-            </label>
+            <label>Häufigkeit</label>
 
             <select
                 id="priceFrequency"
                 onchange="calculatePackagePrice()"
             >
-
-                <option value="1">
-                    1× monatlich
-                </option>
-
-                <option value="2.165">
-                    Alle 2 Wochen
-                </option>
-
-                <option
-                    value="4.33"
-                    selected
-                >
-                    1× pro Woche
-                </option>
-
-                <option value="8.66">
-                    2× pro Woche
-                </option>
-
-                <option value="12.99">
-                    3× pro Woche
-                </option>
-
-                <option value="21.65">
-                    5× pro Woche
-                </option>
-
+                <option value="1">1× monatlich</option>
+                <option value="2.165">Alle 2 Wochen</option>
+                <option value="4.33" selected>1× pro Woche</option>
+                <option value="8.66">2× pro Woche</option>
+                <option value="12.99">3× pro Woche</option>
+                <option value="21.65">5× pro Woche</option>
             </select>
 
-
-            <div
-                id="timeSuggestion"
-                class="info"
-            >
-                Fläche eingeben – die App schätzt automatisch die Stunden pro Einsatz.
+            <div id="timeSuggestion" class="info">
+                Fläche eingeben – die App schätzt die Stunden pro Einsatz.
             </div>
 
+            <label>Stunden pro Einsatz</label>
+            <input id="priceHoursPerVisit" type="number" step="0.1" oninput="calculatePackagePrice()">
 
-            <label>
-                Stunden pro Einsatz
-            </label>
+            <label>Verkaufspreis pro Stunde €</label>
+            <input id="priceHourly" type="number" value="35" oninput="calculatePackagePrice()">
 
-            <input
-                id="priceHoursPerVisit"
-                type="number"
-                step="0.1"
-                oninput="calculatePackagePrice()"
-            >
+            <label>Anfahrt pro Einsatz €</label>
+            <input id="priceTravel" type="number" value="0" oninput="calculatePackagePrice()">
 
+            <label>Material pro Monat €</label>
+            <input id="priceMaterial" type="number" value="0" oninput="calculatePackagePrice()">
 
-            <label>
-                Verkaufspreis pro Stunde €
-            </label>
-
-            <input
-                id="priceHourly"
-                type="number"
-                step="0.5"
-                value="35"
-                oninput="calculatePackagePrice()"
-            >
-
-
-            <label>
-                Anfahrt pro Einsatz €
-            </label>
-
-            <input
-                id="priceTravel"
-                type="number"
-                step="0.5"
-                value="0"
-                oninput="calculatePackagePrice()"
-            >
-
-
-            <label>
-                Material pro Monat €
-            </label>
-
-            <input
-                id="priceMaterial"
-                type="number"
-                step="0.5"
-                value="0"
-                oninput="calculatePackagePrice()"
-            >
-
-
-            <label>
-                Aufschlag / Reserve %
-            </label>
-
-            <input
-                id="priceMarkup"
-                type="number"
-                step="1"
-                value="10"
-                oninput="calculatePackagePrice()"
-            >
-
+            <label>Aufschlag / Reserve %</label>
+            <input id="priceMarkup" type="number" value="10" oninput="calculatePackagePrice()">
 
             <button
                 class="main-button"
@@ -2297,7 +1648,6 @@ body.employee-mode .bottom-nav{
             >
                 Pauschalpreis berechnen
             </button>
-
 
             <div
                 id="priceResult"
@@ -2310,11 +1660,6 @@ body.employee-mode .bottom-nav{
     </div>
 
 </section>
-
-
-<!-- =====================================================
-     FENSTER
-===================================================== -->
 
 <section id="windows" class="page">
 
@@ -2339,25 +1684,11 @@ body.employee-mode .bottom-nav{
                 style="display:none"
             ></div>
 
-            <label>
-                Anzahl Fenster
-            </label>
+            <label>Anzahl Fenster</label>
+            <input id="windowCount" type="number" value="1">
 
-            <input
-                id="windowCount"
-                type="number"
-                value="1"
-            >
-
-            <label>
-                Preis pro Fenster €
-            </label>
-
-            <input
-                id="windowPrice"
-                type="number"
-                value="10"
-            >
+            <label>Preis pro Fenster €</label>
+            <input id="windowPrice" type="number" value="10">
 
             <button
                 class="main-button"
@@ -2378,96 +1709,36 @@ body.employee-mode .bottom-nav{
 
 </section>
 
-
-<!-- =====================================================
-     BOTTOM NAV
-===================================================== -->
-
 <nav class="bottom-nav">
 
-    <div
-        class="nav-btn"
-        id="navHome"
-        onclick="openPage('home')"
-    >
-
-        <div class="nav-icon">
-            ⌂
-        </div>
-
+    <div class="nav-btn" id="navHome" onclick="openPage('home')">
+        <div class="nav-icon">⌂</div>
         Home
-
     </div>
 
-
-    <div
-        class="nav-btn"
-        id="navTimes"
-        onclick="openPage('times')"
-    >
-
-        <div class="nav-icon">
-            ▣
-        </div>
-
+    <div class="nav-btn" id="navTimes" onclick="openPage('times')">
+        <div class="nav-icon">▣</div>
         Zeiten
-
     </div>
 
-
-    <div
-        class="nav-btn"
-        id="navChat"
-        onclick="openPage('chat')"
-    >
-
-        <div class="nav-icon">
-            💬
-        </div>
-
+    <div class="nav-btn" id="navChat" onclick="openPage('chat')">
+        <div class="nav-icon">💬</div>
         Chat
-
     </div>
 
-
-    <div
-        class="nav-btn"
-        id="navTickets"
-        onclick="openPage('tickets')"
-    >
-
-        <div class="nav-icon">
-            🎫
-        </div>
-
+    <div class="nav-btn" id="navTickets" onclick="openPage('tickets')">
+        <div class="nav-icon">🎫</div>
         Tickets
-
     </div>
 
-
-    <div
-        class="nav-btn"
-        id="navMore"
-        onclick="openPage('more')"
-    >
-
-        <div class="nav-icon">
-            •••
-        </div>
-
+    <div class="nav-btn" id="navMore" onclick="openPage('more')">
+        <div class="nav-icon">•••</div>
         Mehr
-
     </div>
 
 </nav>
 
-
 <script>
-
-
-/* =====================================================
-   GLOBAL
-===================================================== */
 
 let adminMode=false;
 let employeeMode=false;
@@ -2486,164 +1757,54 @@ let arArea=0;
 
 let documentUploadRunning=false;
 
-
-/* =====================================================
-   HELPER
-===================================================== */
-
 function el(id){
-
     return document.getElementById(id);
 }
 
-
 function esc(value){
-
-    return String(
-        value==null
-        ?
-        ''
-        :
-        value
-    )
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
+    return String(value==null?'':value)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
 }
 
-
-function callAndroid(
-    method,
-    ...args
-){
-
+function callAndroid(method,...args){
     try{
-
         if(
-            window.Android
-            &&
+            window.Android &&
             typeof Android[method]==='function'
         ){
-
-            return Android[method](
-                ...args
-            );
+            return Android[method](...args);
         }
-
     }catch(e){
-
-        console.error(
-            method,
-            e
-        );
+        console.error(method,e);
     }
 }
-
-
-window.receiveFirebaseError=
-function(error){
-
-    try{
-
-        if(
-            typeof error==='string'
-        ){
-
-            error=
-                JSON.parse(
-                    error
-                );
-        }
-
-
-        if(
-            error
-            &&
-            error.type==='EMPLOYEES'
-        ){
-
-            const box=
-                el('loginStatus');
-
-
-            if(box){
-
-                box.className=
-                    'warning';
-
-
-                box.textContent=
-
-                    'Mitarbeiter konnten nicht geladen werden: '
-                    +
-                    (
-                        error.message
-                        ||
-                        'Firebase-Fehler'
-                    );
-            }
-        }
-
-    }catch(e){
-
-        console.error(e);
-    }
-}
-
-
-/* =====================================================
-   MODE
-===================================================== */
 
 function setMode(mode){
 
-    document.body
-        .classList
-        .remove(
-            'admin-mode',
-            'employee-mode'
-        );
+    document.body.classList.remove(
+        'admin-mode',
+        'employee-mode'
+    );
 
-
-    adminMode=
-        mode==='admin';
-
-
-    employeeMode=
-        mode==='employee';
-
+    adminMode=mode==='admin';
+    employeeMode=mode==='employee';
 
     if(adminMode){
-
-        document.body
-            .classList
-            .add(
-                'admin-mode'
-            );
+        document.body.classList.add('admin-mode');
     }
-
 
     if(employeeMode){
-
-        document.body
-            .classList
-            .add(
-                'employee-mode'
-            );
+        document.body.classList.add('employee-mode');
     }
 }
-
-
-/* =====================================================
-   NAVIGATION
-===================================================== */
 
 function openPage(id){
 
     const employeePages=[
-
         'home',
         'times',
         'chat',
@@ -2655,231 +1816,200 @@ function openPage(id){
         'instructions'
     ];
 
-
     if(
-        employeeMode
-        &&
+        employeeMode &&
         !employeePages.includes(id)
     ){
-
         id='home';
     }
 
-
     if(
-        !employeeMode
-        &&
-        !adminMode
-        &&
+        !employeeMode &&
+        !adminMode &&
         id!=='login'
     ){
-
         id='login';
     }
 
-
     document
-        .querySelectorAll(
-            '.page'
-        )
-        .forEach(
-            page=>
-                page.classList.remove(
-                    'active'
-                )
-        );
+        .querySelectorAll('.page')
+        .forEach(page=>{
+            page.classList.remove('active');
+        });
 
-
-    if(el(id)){
-
-        el(id)
-            .classList
-            .add(
-                'active'
-            );
+    if(!el(id)){
+        id=
+            adminMode || employeeMode
+            ?
+            'home'
+            :
+            'login';
     }
 
+    el(id).classList.add('active');
 
     updateBottomNav(id);
-
+    updateBackButton(id);
 
     if(id==='home'){
-
         updateTodayWork();
     }
 
-
     if(id==='times'){
-
         prepareTimesPage();
     }
 
-
     if(id==='chat'){
-
         populateEmployeeSelects();
-
         loadChat();
     }
 
-
     if(id==='tickets'){
-
         loadTickets();
     }
 
-
     if(id==='leave'){
-
         loadLeaveRequests();
     }
 
-
     if(
-        id==='materials'
-        ||
+        id==='materials' ||
         id==='materialsAdmin'
     ){
-
         loadMaterials();
     }
 
-
     if(
-        id==='documents'
-        ||
+        id==='documents' ||
         id==='documentsAdmin'
     ){
-
         populateEmployeeSelects();
-
         loadDocuments();
     }
 
-
     if(
-        id==='employees'
-        &&
+        id==='employees' &&
         adminMode
     ){
-
         callAndroid(
             'loadEmployeesFromFirestore'
         );
     }
 
-
     if(
-        id==='orders'
-        &&
+        id==='orders' &&
         adminMode
     ){
-
         callAndroid(
             'loadOrdersFromFirestore'
         );
     }
 
-
-    window.scrollTo(
-        0,
-        0
-    );
+    window.scrollTo(0,0);
 }
 
+function updateBackButton(id){
+
+    const bar=el('appBackBar');
+
+    if(!bar){
+        return;
+    }
+
+    if(
+        id==='home' ||
+        id==='login'
+    ){
+        bar.classList.remove('show');
+    }else{
+        bar.classList.add('show');
+    }
+}
+
+function goBackInsideApp(){
+
+    const page=
+        document.querySelector('.page.active');
+
+    if(!page){
+        return true;
+    }
+
+    if(
+        page.id!=='home' &&
+        page.id!=='login'
+    ){
+        openPage('home');
+        return true;
+    }
+
+    /*
+     * Auf der Hauptseite bleibt die App offen.
+     */
+    if(
+        page.id==='home' &&
+        (
+            adminMode ||
+            employeeMode
+        )
+    ){
+        return true;
+    }
+
+    return false;
+}
 
 function updateBottomNav(id){
 
     document
-        .querySelectorAll(
-            '.nav-btn'
-        )
-        .forEach(
-            button=>
-                button.classList.remove(
-                    'active'
-                )
-        );
-
+        .querySelectorAll('.nav-btn')
+        .forEach(button=>{
+            button.classList.remove('active');
+        });
 
     const map={
-
         home:'navHome',
         times:'navTimes',
         chat:'navChat',
         tickets:'navTickets',
-
         more:'navMore',
         leave:'navMore',
         materials:'navMore',
         documents:'navMore',
         instructions:'navMore'
-
     };
 
-
     if(
-        map[id]
-        &&
+        map[id] &&
         el(map[id])
     ){
-
-        el(map[id])
-            .classList
-            .add(
-                'active'
-            );
+        el(map[id]).classList.add('active');
     }
 }
 
-
-/* =====================================================
-   LOGIN MITARBEITER
-===================================================== */
+/* LOGIN */
 
 function employeeLogin(){
 
     const employeeId=
         el('loginEmployee').value;
 
-
     const pin=
-        el('loginPin')
-            .value
-            .trim();
-
+        el('loginPin').value.trim();
 
     if(!employeeId){
-
-        alert(
-            'Bitte Mitarbeiter auswählen.'
-        );
-
+        alert('Bitte Mitarbeiter auswählen.');
         return;
     }
 
-
-    if(
-        !/^\d{4}$/.test(pin)
-    ){
-
-        alert(
-            'Bitte 4-stellige PIN eingeben.'
-        );
-
+    if(!/^\d{4}$/.test(pin)){
+        alert('Bitte 4-stellige PIN eingeben.');
         return;
     }
 
-
-    el('loginStatus')
-        .className=
-            'info';
-
-
-    el('loginStatus')
-        .textContent=
-            'Anmeldung wird geprüft...';
-
+    el('loginStatus').className='info';
+    el('loginStatus').textContent=
+        'Anmeldung wird geprüft...';
 
     callAndroid(
         'loginEmployee',
@@ -2888,98 +2018,49 @@ function employeeLogin(){
     );
 }
 
+window.receiveEmployeeLogin=function(result){
 
-window.receiveEmployeeLogin=
-function(result){
-
-    if(
-        typeof result==='string'
-    ){
-
-        result=
-            JSON.parse(
-                result
-            );
+    if(typeof result==='string'){
+        result=JSON.parse(result);
     }
 
-
     if(
-        !result
-        ||
+        !result ||
         !result.success
     ){
-
-        el('loginStatus')
-            .className=
-                'warning';
-
-
-        el('loginStatus')
-            .textContent=
-
-                result?.message
-                ||
-                'Anmeldung fehlgeschlagen.';
-
-
+        el('loginStatus').className='warning';
+        el('loginStatus').textContent=
+            result?.message ||
+            'Anmeldung fehlgeschlagen.';
         return;
     }
 
+    currentEmployee=result.employee;
 
-    currentEmployee=
-        result.employee;
+    setMode('employee');
 
+    el('welcomeEmployee').textContent=
+        'Willkommen, '+currentEmployee.name;
 
-    setMode(
-        'employee'
-    );
-
-
-    el('welcomeEmployee')
-        .textContent=
-
-            'Willkommen, '
-            +
-            currentEmployee.name;
-
-
-    el('employeeTimeName')
-        .textContent=
-            currentEmployee.name;
-
+    el('employeeTimeName').textContent=
+        currentEmployee.name;
 
     callAndroid(
         'loadTimesheetsFromFirestore'
     );
 
-
-    openPage(
-        'home'
-    );
-}
-
-
-/* =====================================================
-   ADMIN LOGIN
-===================================================== */
+    openPage('home');
+};
 
 function adminLogin(){
 
     const pin=
-        el('adminPin')
-            .value
-            .trim();
-
+        el('adminPin').value.trim();
 
     if(!pin){
-
-        alert(
-            'Bitte Admin-PIN eingeben.'
-        );
-
+        alert('Bitte Admin-PIN eingeben.');
         return;
     }
-
 
     callAndroid(
         'loginAdmin',
@@ -2987,261 +2068,169 @@ function adminLogin(){
     );
 }
 
+window.receiveAdminLogin=function(result){
 
-window.receiveAdminLogin=
-function(result){
-
-    if(
-        typeof result==='string'
-    ){
-
-        result=
-            JSON.parse(
-                result
-            );
+    if(typeof result==='string'){
+        result=JSON.parse(result);
     }
 
-
     if(
-        !result
-        ||
+        !result ||
         !result.success
     ){
-
-        el('adminStatus')
-            .style.display=
-                'block';
-
-
-        el('adminStatus')
-            .className=
-                'warning';
-
-
-        el('adminStatus')
-            .textContent=
-
-                result?.message
-                ||
-                'Anmeldung fehlgeschlagen.';
-
-
+        el('adminStatus').style.display='block';
+        el('adminStatus').className='warning';
+        el('adminStatus').textContent=
+            result?.message ||
+            'Anmeldung fehlgeschlagen.';
         return;
     }
 
+    currentEmployee=null;
 
-    currentEmployee=
-        null;
-
-
-    setMode(
-        'admin'
-    );
-
+    setMode('admin');
 
     callAndroid(
         'loadEmployeesFromFirestore'
     );
 
-
     callAndroid(
         'loadTimesheetsFromFirestore'
     );
 
-
-    openPage(
-        'home'
-    );
-}
-
+    openPage('home');
+};
 
 function logoutEmployee(){
 
-    callAndroid(
-        'logoutEmployee'
-    );
+    callAndroid('logoutEmployee');
 
+    currentEmployee=null;
+    currentTimesheet=[];
 
-    currentEmployee=
-        null;
-
-
-    currentTimesheet=
-        [];
-
-
-    setMode(
-        ''
-    );
-
-
-    openPage(
-        'login'
-    );
+    setMode('');
+    openPage('login');
 }
-
 
 function logoutAdmin(){
 
-    callAndroid(
-        'logoutAdmin'
-    );
+    callAndroid('logoutAdmin');
 
+    currentEmployee=null;
 
-    currentEmployee=
-        null;
-
-
-    setMode(
-        ''
-    );
-
-
-    openPage(
-        'login'
-    );
+    setMode('');
+    openPage('login');
 }
 
+window.receiveFirebaseError=function(error){
 
-/* =====================================================
-   MITARBEITER
-===================================================== */
+    try{
+
+        if(typeof error==='string'){
+            error=JSON.parse(error);
+        }
+
+        if(
+            error &&
+            error.type==='EMPLOYEES'
+        ){
+
+            el('loginStatus').className='warning';
+
+            el('loginStatus').textContent=
+                'Mitarbeiter konnten nicht geladen werden: '
+                +
+                (
+                    error.message ||
+                    'Firebase-Fehler'
+                );
+        }
+
+    }catch(e){
+        console.error(e);
+    }
+};
+
+/* MITARBEITER */
 
 window.receiveEmployeesFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     allEmployees=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
     allEmployees.sort(
         (a,b)=>
-
-            String(
-                a.name
-                ||
-                ''
-            )
+            String(a.name||'')
             .localeCompare(
-
-                String(
-                    b.name
-                    ||
-                    ''
-                ),
-
+                String(b.name||''),
                 'de'
             )
     );
 
-
     populateLoginEmployees();
-
     populateEmployeeSelects();
 
-
     if(adminMode){
-
         renderEmployees();
     }
 
-
     if(el('loginStatus')){
 
-        el('loginStatus')
-            .className=
-                allEmployees.length
-                ?
-                'success'
-                :
-                'warning';
+        el('loginStatus').className=
+            allEmployees.length
+            ?
+            'success'
+            :
+            'warning';
 
-
-        el('loginStatus')
-            .textContent=
-
-                allEmployees.length
-                ?
-                allEmployees.length
-                +
-                ' Mitarbeiter geladen.'
-                :
-                'Keine Mitarbeiter gefunden.';
+        el('loginStatus').textContent=
+            allEmployees.length
+            ?
+            allEmployees.length+' Mitarbeiter geladen.'
+            :
+            'Keine Mitarbeiter gefunden.';
     }
-}
-
+};
 
 function populateLoginEmployees(){
 
-    const select=
-        el('loginEmployee');
-
+    const select=el('loginEmployee');
 
     if(!select){
-
         return;
     }
 
-
-    const old=
-        select.value;
-
+    const old=select.value;
 
     select.innerHTML=
-
         '<option value="">Bitte auswählen</option>';
 
+    allEmployees.forEach(employee=>{
 
-    allEmployees
-        .forEach(
-            employee=>{
+        const option=
+            document.createElement('option');
 
-                const option=
-                    document.createElement(
-                        'option'
-                    );
+        option.value=employee.id;
+        option.textContent=
+            employee.name ||
+            'Mitarbeiter';
 
-
-                option.value=
-                    employee.id;
-
-
-                option.textContent=
-                    employee.name
-                    ||
-                    'Mitarbeiter';
-
-
-                select.appendChild(
-                    option
-                );
-            }
-        );
-
+        select.appendChild(option);
+    });
 
     if(old){
-
-        select.value=
-            old;
+        select.value=old;
     }
 }
-
 
 function populateEmployeeSelects(){
 
@@ -3250,235 +2239,118 @@ function populateEmployeeSelects(){
         'chatEmployee',
         'documentEmployee'
     ]
-    .forEach(
-        id=>{
+    .forEach(id=>{
 
-            const select=
-                el(id);
+        const select=el(id);
 
-
-            if(!select){
-
-                return;
-            }
-
-
-            const old=
-                select.value;
-
-
-            select.innerHTML=
-
-                id==='documentEmployee'
-                ?
-                '<option value="">Allgemein – alle Mitarbeiter</option>'
-                :
-                '<option value="">Bitte auswählen</option>';
-
-
-            allEmployees
-                .forEach(
-                    employee=>{
-
-                        const option=
-                            document.createElement(
-                                'option'
-                            );
-
-
-                        option.value=
-                            employee.id;
-
-
-                        option.textContent=
-                            employee.name;
-
-
-                        select.appendChild(
-                            option
-                        );
-                    }
-                );
-
-
-            if(old){
-
-                select.value=
-                    old;
-            }
+        if(!select){
+            return;
         }
-    );
-}
 
+        const old=select.value;
+
+        select.innerHTML=
+            id==='documentEmployee'
+            ?
+            '<option value="">Allgemein – alle Mitarbeiter</option>'
+            :
+            '<option value="">Bitte auswählen</option>';
+
+        allEmployees.forEach(employee=>{
+
+            const option=
+                document.createElement('option');
+
+            option.value=employee.id;
+            option.textContent=employee.name;
+
+            select.appendChild(option);
+        });
+
+        if(old){
+            select.value=old;
+        }
+    });
+}
 
 function renderEmployees(){
 
-    const box=
-        el('employeeList');
-
-
-    if(!box){
-
-        return;
-    }
-
+    const box=el('employeeList');
 
     box.innerHTML='';
 
-
     if(!allEmployees.length){
-
         box.innerHTML=
-
             '<div class="info">Noch keine Mitarbeiter vorhanden.</div>';
-
         return;
     }
 
+    allEmployees.forEach(employee=>{
 
-    allEmployees
-        .forEach(
-            employee=>{
+        const item=
+            document.createElement('div');
 
-                const item=
-                    document.createElement(
-                        'div'
-                    );
+        item.className='item';
 
+        item.innerHTML=
+            '<strong>'
+            +
+            esc(employee.name)
+            +
+            '</strong><br>'
+            +
+            esc(employee.art||'')
+            +
+            '<br>'
+            +
+            esc(employee.telefon||'')
+            +
+            '<br>'
+            +
+            (
+                employee.lohn
+                ?
+                esc(employee.lohn)+' €/Std.'
+                :
+                ''
+            );
 
-                item.className=
-                    'item';
+        const button=
+            document.createElement('button');
 
+        button.className='small-button';
+        button.textContent='Bearbeiten';
 
-                item.innerHTML=
+        button.onclick=()=>{
+            editEmployee(employee);
+        };
 
-                    '<strong>'
-                    +
-                    esc(
-                        employee.name
-                    )
-                    +
-                    '</strong><br>'
-
-                    +
-
-                    esc(
-                        employee.art
-                        ||
-                        ''
-                    )
-
-                    +
-
-                    '<br>'
-
-                    +
-
-                    esc(
-                        employee.telefon
-                        ||
-                        ''
-                    )
-
-                    +
-
-                    '<br>'
-
-                    +
-
-                    (
-                        employee.lohn
-
-                        ?
-
-                        esc(
-                            employee.lohn
-                        )
-                        +
-                        ' €/Std.'
-
-                        :
-
-                        ''
-                    );
-
-
-                const button=
-                    document.createElement(
-                        'button'
-                    );
-
-
-                button.className=
-                    'small-button';
-
-
-                button.textContent=
-                    'Bearbeiten';
-
-
-                button.onclick=
-                    ()=>{
-
-                        editEmployee(
-                            employee
-                        );
-                    };
-
-
-                item.appendChild(
-                    button
-                );
-
-
-                box.appendChild(
-                    item
-                );
-            }
-        );
+        item.appendChild(button);
+        box.appendChild(item);
+    });
 }
-
 
 function editEmployee(employee){
 
     el('editEmployeeId').value=
         employee.id;
 
-
     el('employeeName').value=
-        employee.name
-        ||
-        '';
-
+        employee.name||'';
 
     el('employeePhone').value=
-        employee.telefon
-        ||
-        '';
-
+        employee.telefon||'';
 
     el('employeeType').value=
-        employee.art
-        ||
-        'Teilzeit';
-
+        employee.art||'Teilzeit';
 
     el('employeeWage').value=
-        employee.lohn
-        ||
-        '';
+        employee.lohn||'';
 
+    el('employeePin').value='';
 
-    el('employeePin').value=
-        '';
-
-
-    window.scrollTo(
-        0,
-        0
-    );
+    window.scrollTo(0,0);
 }
-
 
 function clearEmployeeForm(){
 
@@ -3490,111 +2362,67 @@ function clearEmployeeForm(){
     el('employeeType').value='Vollzeit';
 }
 
-
 function saveEmployee(){
 
     const editId=
         el('editEmployeeId').value;
 
-
     const id=
-
-        editId
-        ||
-        String(
-            Date.now()
-        );
-
+        editId ||
+        String(Date.now());
 
     const name=
-        el('employeeName')
-            .value
-            .trim();
-
+        el('employeeName').value.trim();
 
     const pin=
-        el('employeePin')
-            .value
-            .trim();
-
+        el('employeePin').value.trim();
 
     if(!name){
-
-        alert(
-            'Bitte Namen eingeben.'
-        );
-
+        alert('Bitte Namen eingeben.');
         return;
     }
 
-
     if(
-        !editId
-        &&
+        !editId &&
         !/^\d{4}$/.test(pin)
     ){
-
         alert(
             'Neue Mitarbeiter brauchen eine 4-stellige PIN.'
         );
-
         return;
     }
-
 
     if(
-        pin
-        &&
+        pin &&
         !/^\d{4}$/.test(pin)
     ){
-
-        alert(
-            'PIN muss vier Ziffern haben.'
-        );
-
+        alert('PIN muss vier Ziffern haben.');
         return;
     }
 
-
     callAndroid(
-
         'saveEmployeeToFirestore',
-
         id,
-
         name,
-
         el('employeePhone').value,
-
         el('employeeType').value,
-
         el('employeeWage').value,
-
         pin
     );
-
 
     clearEmployeeForm();
 }
 
-
-/* =====================================================
-   ZEITEN
-===================================================== */
+/* ZEITEN */
 
 function getEmployeeId(){
 
     if(
-        employeeMode
-        &&
+        employeeMode &&
         currentEmployee
     ){
-
-        return String(
-            currentEmployee.id
-        );
+        return String(currentEmployee.id);
     }
-
 
     return el('timeEmployee')
         ?
@@ -3603,295 +2431,88 @@ function getEmployeeId(){
         '';
 }
 
-
 function getEmployeeName(){
 
     if(
-        employeeMode
-        &&
+        employeeMode &&
         currentEmployee
     ){
-
         return currentEmployee.name;
     }
 
+    const select=el('timeEmployee');
 
-    const select=
-        el('timeEmployee');
-
-
-    return select
-        &&
+    return (
+        select &&
         select.selectedIndex>=0
-        ?
-        select.options[
-            select.selectedIndex
-        ].text
-        :
-        '';
+    )
+    ?
+    select.options[
+        select.selectedIndex
+    ].text
+    :
+    '';
 }
-
 
 function prepareTimesPage(){
 
     populateEmployeeSelects();
 
-
     callAndroid(
         'loadTimesheetsFromFirestore'
     );
 
-
     if(
-        employeeMode
-        &&
+        employeeMode &&
         currentEmployee
     ){
-
-        el('employeeTimeName')
-            .textContent=
-                currentEmployee.name;
+        el('employeeTimeName').textContent=
+            currentEmployee.name;
     }
 }
-
 
 window.receiveTimesheetsFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     allTimesheets=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
+    el('timesCloud').className='success';
 
-    el('timesCloud')
-        .className=
-            'success';
-
-
-    el('timesCloud')
-        .textContent=
-
-            allTimesheets.length
-            +
-            ' Stundenzettel geladen.';
-
+    el('timesCloud').textContent=
+        allTimesheets.length
+        +
+        ' Stundenzettel geladen.';
 
     renderSavedMonths();
-
     loadSelectedTimesheet();
-
     updateTodayWork();
-}
-
+};
 
 function employeeTimeChanged(){
 
     currentTimesheet=[];
-
     renderSavedMonths();
-
     loadSelectedTimesheet();
 }
-
-
-function renderSavedMonths(){
-
-    const box=
-        el('savedMonths');
-
-
-    box.innerHTML='';
-
-
-    const employeeId=
-        getEmployeeId();
-
-
-    if(!employeeId){
-
-        return;
-    }
-
-
-    const list=
-
-        allTimesheets
-
-        .filter(
-            item=>
-
-                String(
-                    item.mitarbeiterId
-                )
-                ===
-                String(
-                    employeeId
-                )
-        )
-
-        .sort(
-            (a,b)=>
-
-                String(
-                    b.monat
-                )
-                .localeCompare(
-                    String(
-                        a.monat
-                    )
-                )
-        );
-
-
-    if(!list.length){
-
-        box.innerHTML=
-
-            '<div class="info">Noch keine gespeicherten Monate.</div>';
-
-        return;
-    }
-
-
-    list.forEach(
-        sheet=>{
-
-            let total=0;
-
-
-            (
-                sheet.tage
-                ||
-                []
-            )
-            .forEach(
-                day=>{
-
-                    total+=
-                        Number(
-                            day.stunden
-                            ||
-                            0
-                        );
-                }
-            );
-
-
-            const item=
-                document.createElement(
-                    'div'
-                );
-
-
-            item.className=
-                'item';
-
-
-            item.innerHTML=
-
-                '<strong>'
-                +
-                esc(
-                    monthName(
-                        sheet.monat
-                    )
-                )
-                +
-                '</strong><br>'
-
-                +
-
-                'Gesamt: <strong>'
-
-                +
-
-                total
-                    .toFixed(2)
-                    .replace(
-                        '.',
-                        ','
-                    )
-
-                +
-
-                ' Stunden</strong>';
-
-
-            const button=
-                document.createElement(
-                    'button'
-                );
-
-
-            button.className=
-                'small-button';
-
-
-            button.textContent=
-                'Öffnen';
-
-
-            button.onclick=
-                ()=>{
-
-                    el('timeMonth').value=
-                        sheet.monat;
-
-
-                    loadSelectedTimesheet();
-
-
-                    el('workTimesCard')
-                        .scrollIntoView({
-
-                            behavior:'smooth'
-
-                        });
-                };
-
-
-            item.appendChild(
-                button
-            );
-
-
-            box.appendChild(
-                item
-            );
-        }
-    );
-}
-
 
 function monthName(month){
 
     if(!month){
-
         return '';
     }
 
-
-    const parts=
-        month.split('-');
-
+    const p=month.split('-');
 
     const names=[
-
         '',
         'Januar',
         'Februar',
@@ -3905,237 +2526,192 @@ function monthName(month){
         'Oktober',
         'November',
         'Dezember'
-
     ];
 
-
-    return names[
-        Number(
-            parts[1]
-        )
-    ]
-    +
-    ' '
-    +
-    parts[0];
+    return names[Number(p[1])]+' '+p[0];
 }
 
+function renderSavedMonths(){
+
+    const box=el('savedMonths');
+
+    box.innerHTML='';
+
+    const employeeId=getEmployeeId();
+
+    if(!employeeId){
+        return;
+    }
+
+    const list=
+        allTimesheets
+        .filter(
+            item=>
+                String(item.mitarbeiterId)
+                ===
+                String(employeeId)
+        )
+        .sort(
+            (a,b)=>
+                String(b.monat)
+                .localeCompare(String(a.monat))
+        );
+
+    if(!list.length){
+        box.innerHTML=
+            '<div class="info">Noch keine gespeicherten Monate.</div>';
+        return;
+    }
+
+    list.forEach(sheet=>{
+
+        let total=0;
+
+        (sheet.tage||[])
+            .forEach(day=>{
+                total+=Number(day.stunden||0);
+            });
+
+        const item=
+            document.createElement('div');
+
+        item.className='item';
+
+        item.innerHTML=
+            '<strong>'
+            +
+            esc(monthName(sheet.monat))
+            +
+            '</strong><br>'
+            +
+            'Gesamt: <strong>'
+            +
+            total.toFixed(2).replace('.',',')
+            +
+            ' Stunden</strong>';
+
+        const button=
+            document.createElement('button');
+
+        button.className='small-button';
+        button.textContent='Öffnen';
+
+        button.onclick=()=>{
+
+            el('timeMonth').value=
+                sheet.monat;
+
+            loadSelectedTimesheet();
+
+            el('workTimesCard')
+                .scrollIntoView({
+                    behavior:'smooth'
+                });
+        };
+
+        item.appendChild(button);
+        box.appendChild(item);
+    });
+}
 
 function toMinutes(time){
 
     if(!time){
-
         return 0;
     }
 
+    const p=time.split(':');
 
-    const parts=
-        time.split(':');
-
-
-    return Number(
-        parts[0]
-    )
-    *
-    60
-
-    +
-
-    Number(
-        parts[1]
-    );
+    return Number(p[0])*60+Number(p[1]);
 }
 
-
-function calculateHours(
-    start,
-    end,
-    pause
-){
+function calculateHours(start,end,pause){
 
     if(
-        !start
-        ||
+        !start ||
         !end
     ){
-
         return 0;
     }
 
-
-    let a=
-        toMinutes(
-            start
-        );
-
-
-    let b=
-        toMinutes(
-            end
-        );
-
+    let a=toMinutes(start);
+    let b=toMinutes(end);
 
     if(b<a){
-
         b+=1440;
     }
 
-
     return Math.max(
-
         0,
-
         (
-            b
-            -
-            a
-            -
-            Number(
-                pause
-                ||
-                0
-            )
-        )
-        /
-        60
+            b-a-Number(pause||0)
+        )/60
     );
 }
 
-
 function formatDate(date){
 
-    return String(
-        date.getDate()
-    )
-    .padStart(
-        2,
-        '0'
-    )
-
-    +
-
-    '.'
-
-    +
-
-    String(
-        date.getMonth()+1
-    )
-    .padStart(
-        2,
-        '0'
-    )
-
-    +
-
-    '.'
-
-    +
-
-    date.getFullYear();
+    return String(date.getDate())
+        .padStart(2,'0')
+        +
+        '.'
+        +
+        String(date.getMonth()+1)
+        .padStart(2,'0')
+        +
+        '.'
+        +
+        date.getFullYear();
 }
-
 
 function createMonth(){
 
-    const employeeId=
-        getEmployeeId();
-
-
-    const month=
-        el('timeMonth').value;
-
+    const employeeId=getEmployeeId();
+    const month=el('timeMonth').value;
 
     if(
-        !employeeId
-        ||
+        !employeeId ||
         !month
     ){
-
-        alert(
-            'Mitarbeiter oder Monat fehlt.'
-        );
-
+        alert('Mitarbeiter oder Monat fehlt.');
         return;
     }
-
 
     const weekdays=[];
 
-
     document
-        .querySelectorAll(
-            '.weekday:checked'
-        )
-        .forEach(
-            input=>{
-
-                weekdays.push(
-                    Number(
-                        input.value
-                    )
-                );
-            }
-        );
-
+        .querySelectorAll('.weekday:checked')
+        .forEach(input=>{
+            weekdays.push(
+                Number(input.value)
+            );
+        });
 
     if(!weekdays.length){
-
-        alert(
-            'Bitte Arbeitstage auswählen.'
-        );
-
+        alert('Bitte Arbeitstage auswählen.');
         return;
     }
 
-
-    const start=
-        el('defaultStart').value;
-
-
-    const end=
-        el('defaultEnd').value;
-
+    const start=el('defaultStart').value;
+    const end=el('defaultEnd').value;
 
     const pause=
         Number(
-            el('defaultPause').value
-            ||
-            0
+            el('defaultPause').value||0
         );
-
 
     const object=
         el('defaultObject').value;
 
+    const parts=month.split('-');
 
-    const parts=
-        month.split('-');
-
-
-    const year=
-        Number(
-            parts[0]
-        );
-
-
-    const mon=
-        Number(
-            parts[1]
-        );
-
+    const year=Number(parts[0]);
+    const mon=Number(parts[1]);
 
     const last=
-        new Date(
-            year,
-            mon,
-            0
-        )
-        .getDate();
-
+        new Date(year,mon,0).getDate();
 
     currentTimesheet=[];
-
 
     for(
         let i=1;
@@ -4150,48 +2726,17 @@ function createMonth(){
                 i
             );
 
-
         const works=
             weekdays.includes(
                 date.getDay()
             );
 
-
         currentTimesheet.push({
-
-            datum:
-                formatDate(
-                    date
-                ),
-
-            status:
-                works
-                ?
-                'Arbeit'
-                :
-                'Frei',
-
-            start:
-                works
-                ?
-                start
-                :
-                '',
-
-            ende:
-                works
-                ?
-                end
-                :
-                '',
-
-            pause:
-                works
-                ?
-                pause
-                :
-                0,
-
+            datum:formatDate(date),
+            status:works?'Arbeit':'Frei',
+            start:works?start:'',
+            ende:works?end:'',
+            pause:works?pause:0,
             stunden:
                 works
                 ?
@@ -4202,956 +2747,418 @@ function createMonth(){
                 )
                 :
                 0,
-
-            objekt:
-                works
-                ?
-                object
-                :
-                ''
-
+            objekt:works?object:''
         });
     }
 
-
     renderTimesheet();
 }
-
 
 function loadSelectedTimesheet(){
 
-    const employeeId=
-        getEmployeeId();
-
-
-    const month=
-        el('timeMonth').value;
-
+    const employeeId=getEmployeeId();
+    const month=el('timeMonth').value;
 
     if(
-        !employeeId
-        ||
+        !employeeId ||
         !month
     ){
-
         return;
     }
 
-
     const found=
-        allTimesheets
-            .find(
-                sheet=>
-
-                    String(
-                        sheet.mitarbeiterId
-                    )
-                    ===
-                    String(
-                        employeeId
-                    )
-
-                    &&
-
-                    sheet.monat===
-                    month
-            );
-
+        allTimesheets.find(
+            sheet=>
+                String(sheet.mitarbeiterId)
+                ===
+                String(employeeId)
+                &&
+                sheet.monat===month
+        );
 
     currentTimesheet=
-
         found
         ?
-
         JSON.parse(
-            JSON.stringify(
-                found.tage
-                ||
-                []
-            )
+            JSON.stringify(found.tage||[])
         )
-
         :
-
         [];
-
 
     renderTimesheet();
 }
-
 
 function weekdayShort(dateString){
 
     try{
 
-        const parts=
-            dateString.split('.');
-
+        const p=dateString.split('.');
 
         const date=
             new Date(
-
-                Number(
-                    parts[2]
-                ),
-
-                Number(
-                    parts[1]
-                )-1,
-
-                Number(
-                    parts[0]
-                )
+                Number(p[2]),
+                Number(p[1])-1,
+                Number(p[0])
             );
 
-
         return [
-
-            'So',
-            'Mo',
-            'Di',
-            'Mi',
-            'Do',
-            'Fr',
-            'Sa'
-
-        ][
-            date.getDay()
-        ];
+            'So','Mo','Di','Mi','Do','Fr','Sa'
+        ][date.getDay()];
 
     }catch(e){
-
         return '';
     }
 }
 
-
 function renderTimesheet(){
 
-    const box=
-        el('timesheetDays');
-
+    const box=el('timesheetDays');
 
     box.innerHTML='';
-
 
     if(!currentTimesheet.length){
 
         box.innerHTML=
-
             '<div class="info">Für diesen Monat ist noch kein Stundenzettel vorhanden.</div>';
 
-
-        el('totalHours')
-            .style.display=
-                'none';
-
+        el('totalHours').style.display='none';
 
         return;
     }
 
-
-    currentTimesheet
-        .forEach(
-            (day,index)=>{
-
-                const work=
-                    day.status===
-                    'Arbeit';
-
-
-                const parts=
-                    String(
-                        day.datum
-                    )
-                    .split('.');
-
-
-                const container=
-                    document.createElement(
-                        'div'
-                    );
-
-
-                container.className=
-
-                    'timesheet-day'
-                    +
-                    (
-                        work
-                        ?
-                        ' work'
-                        :
-                        ''
-                    );
-
-
-                container.innerHTML=
-
-                    '<div class="timesheet-head">'
-
-                    +
-
-                    '<div class="timesheet-date">'
-
-                    +
-
-                    '<strong>'
-                    +
-                    esc(
-                        parts[0]
-                        ||
-                        ''
-                    )
-                    +
-                    '</strong>'
-
-                    +
-
-                    weekdayShort(
-                        day.datum
-                    )
-
-                    +
-
-                    '</div>'
-
-                    +
-
-                    '<div>'
-
-                    +
-
-                    '<strong>'
-
-                    +
-
-                    esc(
-                        work
-                        ?
-                        (
-                            day.objekt
-                            ||
-                            'Arbeit'
-                        )
-                        :
-                        (
-                            day.status
-                            ||
-                            'Frei'
-                        )
-                    )
-
-                    +
-
-                    '</strong>'
-
-                    +
-
-                    (
-                        work
-                        ?
-
-                        '<div style="color:#667085;margin-top:4px">'
-
-                        +
-
-                        esc(
-                            day.start
-                            ||
-                            ''
-                        )
-
-                        +
-
-                        ' - '
-
-                        +
-
-                        esc(
-                            day.ende
-                            ||
-                            ''
-                        )
-
-                        +
-
-                        ' · '
-
-                        +
-
-                        Number(
-                            day.stunden
-                            ||
-                            0
-                        )
-                        .toFixed(2)
-                        .replace(
-                            '.',
-                            ','
-                        )
-
-                        +
-
-                        ' h</div>'
-
-                        :
-
-                        ''
-                    )
-
-                    +
-
-                    '</div>'
-
-                    +
-
-                    '</div>'
-
-                    +
-
-                    '<div class="timesheet-grid">'
-
-                    +
-
-                    '<select onchange="changeDay('
-                    +
-                    index
-                    +
-                    ',\'status\',this.value)">'
-
-                    +
-
-                    '<option value="Arbeit"'
-                    +
-                    (
-                        day.status==='Arbeit'
-                        ?
-                        ' selected'
-                        :
-                        ''
-                    )
-                    +
-                    '>Arbeit</option>'
-
-                    +
-
-                    '<option value="Frei"'
-                    +
-                    (
-                        day.status==='Frei'
-                        ?
-                        ' selected'
-                        :
-                        ''
-                    )
-                    +
-                    '>Frei</option>'
-
-                    +
-
-                    '<option value="Urlaub"'
-                    +
-                    (
-                        day.status==='Urlaub'
-                        ?
-                        ' selected'
-                        :
-                        ''
-                    )
-                    +
-                    '>Urlaub</option>'
-
-                    +
-
-                    '<option value="Krank"'
-                    +
-                    (
-                        day.status==='Krank'
-                        ?
-                        ' selected'
-                        :
-                        ''
-                    )
-                    +
-                    '>Krank</option>'
-
-                    +
-
-                    '</select>'
-
-                    +
-
-                    '<input type="number" min="0" value="'
-                    +
-                    esc(
-                        day.pause
-                        ||
-                        0
-                    )
-                    +
-                    '" onchange="changeDay('
-                    +
-                    index
-                    +
-                    ',\'pause\',this.value)" placeholder="Pause Min.">'
-
-                    +
-
-                    '<input type="time" value="'
-                    +
-                    esc(
-                        day.start
-                        ||
-                        ''
-                    )
-                    +
-                    '" onchange="changeDay('
-                    +
-                    index
-                    +
-                    ',\'start\',this.value)">'
-
-                    +
-
-                    '<input type="time" value="'
-                    +
-                    esc(
-                        day.ende
-                        ||
-                        ''
-                    )
-                    +
-                    '" onchange="changeDay('
-                    +
-                    index
-                    +
-                    ',\'ende\',this.value)">'
-
-                    +
-
-                    '<input class="full" value="'
-                    +
-                    esc(
-                        day.objekt
-                        ||
-                        ''
-                    )
-                    +
-                    '" onchange="changeDay('
-                    +
-                    index
-                    +
-                    ',\'objekt\',this.value)" placeholder="Objekt / Kunde">'
-
-                    +
-
-                    '</div>';
-
-
-                box.appendChild(
-                    container
+    currentTimesheet.forEach(
+        (day,index)=>{
+
+            const work=
+                day.status==='Arbeit';
+
+            const parts=
+                String(day.datum).split('.');
+
+            const container=
+                document.createElement('div');
+
+            container.className=
+                'timesheet-day'
+                +
+                (
+                    work
+                    ?
+                    ' work'
+                    :
+                    ''
                 );
-            }
-        );
 
+            container.innerHTML=
+                '<div class="timesheet-head">'
+                +
+                '<div class="timesheet-date">'
+                +
+                '<strong>'
+                +
+                esc(parts[0]||'')
+                +
+                '</strong>'
+                +
+                weekdayShort(day.datum)
+                +
+                '</div>'
+                +
+                '<div><strong>'
+                +
+                esc(
+                    work
+                    ?
+                    (
+                        day.objekt ||
+                        'Arbeit'
+                    )
+                    :
+                    (
+                        day.status ||
+                        'Frei'
+                    )
+                )
+                +
+                '</strong>'
+                +
+                (
+                    work
+                    ?
+                    '<div style="color:#667085;margin-top:4px">'
+                    +
+                    esc(day.start||'')
+                    +
+                    ' - '
+                    +
+                    esc(day.ende||'')
+                    +
+                    ' · '
+                    +
+                    Number(day.stunden||0)
+                    .toFixed(2)
+                    .replace('.',',')
+                    +
+                    ' h</div>'
+                    :
+                    ''
+                )
+                +
+                '</div></div>'
+                +
+                '<div class="timesheet-grid">'
+                +
+                '<select onchange="changeDay('+index+',\'status\',this.value)">'
+                +
+                '<option value="Arbeit"'+(day.status==='Arbeit'?' selected':'')+'>Arbeit</option>'
+                +
+                '<option value="Frei"'+(day.status==='Frei'?' selected':'')+'>Frei</option>'
+                +
+                '<option value="Urlaub"'+(day.status==='Urlaub'?' selected':'')+'>Urlaub</option>'
+                +
+                '<option value="Krank"'+(day.status==='Krank'?' selected':'')+'>Krank</option>'
+                +
+                '</select>'
+                +
+                '<input type="number" min="0" value="'
+                +
+                esc(day.pause||0)
+                +
+                '" onchange="changeDay('+index+',\'pause\',this.value)">'
+                +
+                '<input type="time" value="'
+                +
+                esc(day.start||'')
+                +
+                '" onchange="changeDay('+index+',\'start\',this.value)">'
+                +
+                '<input type="time" value="'
+                +
+                esc(day.ende||'')
+                +
+                '" onchange="changeDay('+index+',\'ende\',this.value)">'
+                +
+                '<input class="full" value="'
+                +
+                esc(day.objekt||'')
+                +
+                '" onchange="changeDay('+index+',\'objekt\',this.value)" placeholder="Objekt / Kunde">'
+                +
+                '</div>';
+
+            box.appendChild(container);
+        }
+    );
 
     updateTotal();
 }
 
+function changeDay(index,field,value){
 
-function changeDay(
-    index,
-    field,
-    value
-){
-
-    const day=
-        currentTimesheet[
-            index
-        ];
-
+    const day=currentTimesheet[index];
 
     if(!day){
-
         return;
     }
 
-
     if(field==='pause'){
-
         day.pause=
             Math.max(
-
                 0,
-
-                Number(
-                    value
-                    ||
-                    0
-                )
+                Number(value||0)
             );
-
     }else{
-
-        day[field]=
-            value;
+        day[field]=value;
     }
-
 
     if(day.status==='Arbeit'){
 
         if(!day.start){
-
             day.start=
-                el('defaultStart').value
-                ||
+                el('defaultStart').value ||
                 '08:00';
         }
 
-
         if(!day.ende){
-
             day.ende=
-                el('defaultEnd').value
-                ||
+                el('defaultEnd').value ||
                 '16:00';
         }
 
-
         day.stunden=
             calculateHours(
-
                 day.start,
                 day.ende,
                 day.pause
             );
 
     }else{
-
-        day.stunden=
-            0;
+        day.stunden=0;
     }
-
 
     renderTimesheet();
 }
 
-
 function updateTotal(){
-
-    const box=
-        el('totalHours');
-
-
-    if(!currentTimesheet.length){
-
-        box.style.display=
-            'none';
-
-
-        return;
-    }
-
 
     let total=0;
 
+    currentTimesheet.forEach(day=>{
+        total+=Number(day.stunden||0);
+    });
 
-    currentTimesheet
-        .forEach(
-            day=>{
+    const box=el('totalHours');
 
-                total+=
-                    Number(
-                        day.stunden
-                        ||
-                        0
-                    );
-            }
-        );
-
-
-    box.style.display=
-        'block';
-
+    box.style.display='block';
 
     box.innerHTML=
-
         '<strong>Arbeitsstunden insgesamt</strong>'
-
         +
-
         '<div class="big-result">'
-
         +
-
-        total
-            .toFixed(2)
-            .replace(
-                '.',
-                ','
-            )
-
+        total.toFixed(2).replace('.',',')
         +
-
         ' Stunden</div>';
 }
-
 
 function saveTimesheet(){
 
     if(!currentTimesheet.length){
-
         alert(
             'Bitte zuerst einen Monat erstellen oder öffnen.'
         );
-
         return;
     }
 
-
     callAndroid(
-
         'saveTimesheetToFirestore',
-
         getEmployeeId(),
-
         getEmployeeName(),
-
         el('timeMonth').value,
-
-        JSON.stringify(
-            currentTimesheet
-        )
+        JSON.stringify(currentTimesheet)
     );
 }
-
 
 function createAndSharePdf(){
 
     if(!currentTimesheet.length){
-
-        alert(
-            'Bitte Stundenzettel öffnen.'
-        );
-
+        alert('Bitte Stundenzettel öffnen.');
         return;
     }
 
-
     callAndroid(
-
         'shareTimesheetPdf',
-
         getEmployeeName(),
-
         el('timeMonth').value,
-
-        JSON.stringify(
-            currentTimesheet
-        )
+        JSON.stringify(currentTimesheet)
     );
 }
 
-
-/* =====================================================
-   HEUTE
-===================================================== */
+/* HEUTE */
 
 function updateTodayWork(){
 
     if(
-        !employeeMode
-        ||
+        !employeeMode ||
         !currentEmployee
     ){
-
         return;
     }
 
+    const now=new Date();
+    const today=formatDate(now);
 
-    const now=
-        new Date();
+    let found=null;
 
+    allTimesheets.forEach(sheet=>{
 
-    const today=
-        formatDate(
-            now
-        );
+        if(
+            String(sheet.mitarbeiterId)
+            !==
+            String(currentEmployee.id)
+        ){
+            return;
+        }
 
+        const day=
+            (sheet.tage||[])
+            .find(
+                item=>
+                    item.datum===today
+            );
 
-    let found=
-        null;
+        if(day){
+            found=day;
+        }
+    });
 
-
-    allTimesheets
-        .forEach(
-            sheet=>{
-
-                if(
-                    String(
-                        sheet.mitarbeiterId
-                    )
-                    !==
-                    String(
-                        currentEmployee.id
-                    )
-                ){
-
-                    return;
-                }
-
-
-                const day=
-
-                    (
-                        sheet.tage
-                        ||
-                        []
-                    )
-                    .find(
-                        item=>
-
-                            item.datum===
-                            today
-                    );
-
-
-                if(day){
-
-                    found=
-                        day;
-                }
-            }
-        );
-
-
-    const box=
-        el('todayWork');
-
-
-    const short=
-
-        [
-            'So',
-            'Mo',
-            'Di',
-            'Mi',
-            'Do',
-            'Fr',
-            'Sa'
-        ][
-            now.getDay()
-        ];
-
+    const box=el('todayWork');
 
     if(
-        !found
-        ||
+        !found ||
         found.status!=='Arbeit'
     ){
-
         box.innerHTML=
-
-            '<div class="workday">'
-
-            +
-
-            '<div class="day-box">'
-
-            +
-
-            '<strong>'
-            +
-            now.getDate()
-            +
-            '</strong>'
-
-            +
-
-            '<span>'
-            +
-            short
-            +
-            '</span>'
-
-            +
-
-            '</div>'
-
-            +
-
-            '<div class="work-info" style="border-left-color:#d0d5dd">'
-
-            +
-
-            '<strong>Keine Planung</strong>'
-
-            +
-
-            '</div>'
-
-            +
-
-            '</div>';
-
-
+            '<div class="info">Heute keine Arbeitszeit geplant.</div>';
         return;
     }
 
-
     box.innerHTML=
-
-        '<div class="workday">'
-
+        '<div class="item">'
         +
-
-        '<div class="day-box">'
-
-        +
-
         '<strong>'
         +
-        now.getDate()
+        esc(found.objekt||'Arbeit')
         +
-        '</strong>'
-
+        '</strong><br>'
         +
-
-        '<span>'
+        esc(found.start||'')
         +
-        short
-        +
-        '</span>'
-
-        +
-
-        '</div>'
-
-        +
-
-        '<div class="work-info">'
-
-        +
-
-        '<strong>'
-        +
-        esc(
-            found.objekt
-            ||
-            'Arbeit'
-        )
-        +
-        '</strong>'
-
-        +
-
-        '<div class="time">'
-
-        +
-
-        esc(
-            found.start
-        )
-
-        +
-
         ' - '
-
         +
-
-        esc(
-            found.ende
-        )
-
+        esc(found.ende||'')
         +
-
-        '</div>'
-
+        '<br>'
         +
-
-        '<div>'
-
-        +
-
-        Number(
-            found.stunden
-            ||
-            0
-        )
+        Number(found.stunden||0)
         .toFixed(2)
-        .replace(
-            '.',
-            ','
-        )
-
+        .replace('.',',')
         +
-
-        ' Stunden</div>'
-
+        ' Stunden'
         +
-
-        '</div>'
-
-        +
-
         '</div>';
 }
 
-
-/* =====================================================
-   CHAT
-===================================================== */
+/* CHAT */
 
 function getChatEmployee(){
 
     if(
-        employeeMode
-        &&
+        employeeMode &&
         currentEmployee
     ){
-
         return currentEmployee;
     }
 
-
-    const select=
-        el('chatEmployee');
-
+    const select=el('chatEmployee');
 
     if(!select){
-
         return null;
     }
 
-
-    const id=
-        select.value;
-
-
-    return allEmployees
-        .find(
-            item=>
-
-                String(
-                    item.id
-                )
-                ===
-                String(
-                    id
-                )
-        );
+    return allEmployees.find(
+        item=>
+            String(item.id)
+            ===
+            String(select.value)
+    );
 }
-
 
 function loadChat(){
 
-    const employee=
-        getChatEmployee();
-
+    const employee=getChatEmployee();
 
     if(employee){
-
         callAndroid(
             'loadChatMessages',
             employee.id
@@ -5159,1413 +3166,706 @@ function loadChat(){
     }
 }
 
-
 window.receiveChatMessagesFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     data=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
     data.sort(
         (a,b)=>
-
-            Number(
-                a.createdAt
-                ||
-                0
-            )
-
+            Number(a.createdAt||0)
             -
-
-            Number(
-                b.createdAt
-                ||
-                0
-            )
+            Number(b.createdAt||0)
     );
 
-
-    const box=
-        el('chatMessages');
-
+    const box=el('chatMessages');
 
     box.innerHTML='';
 
-
     if(!data.length){
-
         box.innerHTML=
-
             '<div class="info">Noch keine Nachrichten.</div>';
-
-
         return;
     }
 
+    data.forEach(message=>{
 
-    data.forEach(
-        message=>{
+        const mine=
+            employeeMode
+            ?
+            message.sender==='employee'
+            :
+            message.sender==='admin';
 
-            const mine=
+        const item=
+            document.createElement('div');
 
-                employeeMode
+        item.className=
+            'message '
+            +
+            (
+                mine
                 ?
-                message.sender==='employee'
+                'me'
                 :
-                message.sender==='admin';
-
-
-            const item=
-                document.createElement(
-                    'div'
-                );
-
-
-            item.className=
-
-                'message '
-
-                +
-
-                (
-                    mine
-                    ?
-                    'me'
-                    :
-                    'other'
-                );
-
-
-            item.innerHTML=
-
-                esc(
-                    message.message
-                )
-
-                +
-
-                '<small>'
-
-                +
-
-                (
-                    message.sender==='admin'
-                    ?
-                    'E-M Cleaning'
-                    :
-                    esc(
-                        message.employeeName
-                    )
-                )
-
-                +
-
-                '</small>';
-
-
-            box.appendChild(
-                item
+                'other'
             );
-        }
-    );
 
+        item.innerHTML=
+            esc(message.message)
+            +
+            '<small>'
+            +
+            (
+                message.sender==='admin'
+                ?
+                'E-M Cleaning'
+                :
+                esc(message.employeeName)
+            )
+            +
+            '</small>';
 
-    box.scrollTop=
-        box.scrollHeight;
-}
+        box.appendChild(item);
+    });
 
+    box.scrollTop=box.scrollHeight;
+};
 
 function sendChat(){
 
-    const employee=
-        getChatEmployee();
-
+    const employee=getChatEmployee();
 
     const text=
-        el('chatText')
-            .value
-            .trim();
-
+        el('chatText').value.trim();
 
     if(
-        !employee
-        ||
+        !employee ||
         !text
     ){
-
         return;
     }
 
-
     callAndroid(
-
         'sendChatMessage',
-
         employee.id,
-
         employee.name,
-
         text
     );
-
 
     el('chatText').value='';
 }
 
-
-/* =====================================================
-   TICKETS
-===================================================== */
+/* TICKETS */
 
 function createTicket(){
 
     if(!currentEmployee){
-
         return;
     }
-
 
     const subject=
-        el('ticketSubject')
-            .value
-            .trim();
-
+        el('ticketSubject').value.trim();
 
     if(!subject){
-
-        alert(
-            'Bitte Betreff eingeben.'
-        );
-
+        alert('Bitte Betreff eingeben.');
         return;
     }
 
-
     callAndroid(
-
         'saveTicket',
-
         currentEmployee.id,
-
         currentEmployee.name,
-
         el('ticketType').value,
-
         subject,
-
         el('ticketDescription').value
     );
 
-
     el('ticketSubject').value='';
-
     el('ticketDescription').value='';
 }
-
 
 function loadTickets(){
 
     callAndroid(
-
         'loadTickets',
-
-        employeeMode
-        &&
-        currentEmployee
-
+        (
+            employeeMode &&
+            currentEmployee
+        )
         ?
-
         currentEmployee.id
-
         :
-
         ''
     );
 }
-
 
 window.receiveTicketsFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     data=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
-    const box=
-        el('ticketList');
-
+    const box=el('ticketList');
 
     box.innerHTML='';
 
-
     if(!data.length){
-
         box.innerHTML=
-
             '<div class="info">Keine Tickets vorhanden.</div>';
-
-
         return;
     }
 
+    data.forEach(ticket=>{
 
-    data.forEach(
-        ticket=>{
+        const item=
+            document.createElement('div');
 
-            const item=
-                document.createElement(
-                    'div'
-                );
+        item.className='item';
 
+        const statusClass=
+            String(ticket.status||'Offen')
+            .toLowerCase();
 
-            item.className=
-                'item';
-
-
-            const statusClass=
-                String(
-                    ticket.status
-                    ||
-                    'Offen'
-                )
-                .toLowerCase();
-
-
-            item.innerHTML=
-
-                (
-                    adminMode
-                    ?
-
-                    '<strong>'
-                    +
-                    esc(
-                        ticket.employeeName
-                    )
-                    +
-                    '</strong><br>'
-
-                    :
-
-                    ''
-                )
-
-                +
-
+        item.innerHTML=
+            (
+                adminMode
+                ?
                 '<strong>'
                 +
-                esc(
-                    ticket.subject
-                )
+                esc(ticket.employeeName)
                 +
                 '</strong><br>'
+                :
+                ''
+            )
+            +
+            '<strong>'
+            +
+            esc(ticket.subject)
+            +
+            '</strong><br>'
+            +
+            esc(ticket.type||'')
+            +
+            '<br><br>'
+            +
+            esc(ticket.description||'')
+            +
+            '<br><br>'
+            +
+            '<span class="status '
+            +
+            esc(statusClass)
+            +
+            '">'
+            +
+            esc(ticket.status||'Offen')
+            +
+            '</span>';
 
-                +
+        if(adminMode){
 
-                esc(
-                    ticket.type
-                    ||
-                    ''
-                )
+            const button=
+                document.createElement('button');
 
-                +
+            button.className='small-button';
+            button.textContent='Erledigt';
 
-                '<br><br>'
-
-                +
-
-                esc(
-                    ticket.description
-                    ||
-                    ''
-                )
-
-                +
-
-                '<br><br>'
-
-                +
-
-                '<span class="status '
-
-                +
-
-                esc(
-                    statusClass
-                )
-
-                +
-
-                '">'
-
-                +
-
-                esc(
-                    ticket.status
-                    ||
-                    'Offen'
-                )
-
-                +
-
-                '</span>';
-
-
-            if(adminMode){
-
-                const button=
-                    document.createElement(
-                        'button'
-                    );
-
-
-                button.className=
-                    'small-button';
-
-
-                button.textContent=
-                    'Erledigt';
-
-
-                button.onclick=
-                    ()=>{
-
-                        callAndroid(
-                            'updateTicketStatus',
-                            ticket.id,
-                            'Erledigt'
-                        );
-                    };
-
-
-                item.appendChild(
-                    button
+            button.onclick=()=>{
+                callAndroid(
+                    'updateTicketStatus',
+                    ticket.id,
+                    'Erledigt'
                 );
-            }
+            };
 
-
-            box.appendChild(
-                item
-            );
+            item.appendChild(button);
         }
-    );
-}
 
+        box.appendChild(item);
+    });
+};
 
-/* =====================================================
-   URLAUB
-===================================================== */
+/* URLAUB */
 
 function sendLeaveRequest(){
 
     if(!currentEmployee){
-
         return;
     }
 
-
-    const from=
-        el('leaveFrom').value;
-
-
-    const to=
-        el('leaveTo').value;
-
+    const from=el('leaveFrom').value;
+    const to=el('leaveTo').value;
 
     if(
-        !from
-        ||
+        !from ||
         !to
     ){
-
-        alert(
-            'Bitte Zeitraum auswählen.'
-        );
-
+        alert('Bitte Zeitraum auswählen.');
         return;
     }
 
-
     callAndroid(
-
         'saveLeaveRequest',
-
         currentEmployee.id,
-
         currentEmployee.name,
-
         from,
-
         to,
-
         el('leaveNote').value
     );
-
 
     el('leaveNote').value='';
 }
 
-
 function loadLeaveRequests(){
 
     callAndroid(
-
         'loadLeaveRequests',
-
-        employeeMode
-        &&
-        currentEmployee
-
+        (
+            employeeMode &&
+            currentEmployee
+        )
         ?
-
         currentEmployee.id
-
         :
-
         ''
     );
 }
 
-
 window.receiveLeaveRequestsFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     data=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
-    const box=
-        el('leaveList');
-
+    const box=el('leaveList');
 
     box.innerHTML='';
 
-
     if(!data.length){
-
         box.innerHTML=
-
             '<div class="info">Keine Urlaubsanträge vorhanden.</div>';
-
-
         return;
     }
 
+    data.forEach(request=>{
 
-    data.forEach(
-        request=>{
+        const item=
+            document.createElement('div');
 
-            const item=
-                document.createElement(
-                    'div'
-                );
+        item.className='item';
 
+        const statusClass=
+            String(request.status||'Offen')
+            .toLowerCase();
 
-            item.className=
-                'item';
-
-
-            const statusClass=
-                String(
-                    request.status
-                    ||
-                    'Offen'
-                )
-                .toLowerCase();
-
-
-            item.innerHTML=
-
-                (
-                    adminMode
-                    ?
-
-                    '<strong>'
-                    +
-                    esc(
-                        request.employeeName
-                    )
-                    +
-                    '</strong><br>'
-
-                    :
-
-                    ''
-                )
-
-                +
-
+        item.innerHTML=
+            (
+                adminMode
+                ?
                 '<strong>'
-
                 +
-
-                esc(
-                    request.from
-                )
-
+                esc(request.employeeName)
                 +
-
-                ' – '
-
-                +
-
-                esc(
-                    request.to
-                )
-
-                +
-
                 '</strong><br>'
+                :
+                ''
+            )
+            +
+            '<strong>'
+            +
+            esc(request.from)
+            +
+            ' – '
+            +
+            esc(request.to)
+            +
+            '</strong><br>'
+            +
+            esc(request.note||'')
+            +
+            '<br><br>'
+            +
+            '<span class="status '
+            +
+            esc(statusClass)
+            +
+            '">'
+            +
+            esc(request.status||'Offen')
+            +
+            '</span>';
 
-                +
+        if(adminMode){
 
-                esc(
-                    request.note
-                    ||
-                    ''
-                )
+            const approve=
+                document.createElement('button');
 
-                +
+            approve.className='small-button';
+            approve.textContent='Genehmigen';
 
-                '<br><br>'
-
-                +
-
-                '<span class="status '
-
-                +
-
-                esc(
-                    statusClass
-                )
-
-                +
-
-                '">'
-
-                +
-
-                esc(
-                    request.status
-                    ||
-                    'Offen'
-                )
-
-                +
-
-                '</span>';
-
-
-            if(adminMode){
-
-                const approve=
-                    document.createElement(
-                        'button'
-                    );
-
-
-                approve.className=
-                    'small-button';
-
-
-                approve.textContent=
-                    'Genehmigen';
-
-
-                approve.onclick=
-                    ()=>{
-
-                        callAndroid(
-                            'updateLeaveStatus',
-                            request.id,
-                            'Genehmigt'
-                        );
-                    };
-
-
-                const reject=
-                    document.createElement(
-                        'button'
-                    );
-
-
-                reject.className=
-                    'small-button';
-
-
-                reject.style.background=
-                    '#d92d20';
-
-
-                reject.textContent=
-                    'Ablehnen';
-
-
-                reject.onclick=
-                    ()=>{
-
-                        callAndroid(
-                            'updateLeaveStatus',
-                            request.id,
-                            'Abgelehnt'
-                        );
-                    };
-
-
-                item.appendChild(
-                    approve
+            approve.onclick=()=>{
+                callAndroid(
+                    'updateLeaveStatus',
+                    request.id,
+                    'Genehmigt'
                 );
+            };
 
+            const reject=
+                document.createElement('button');
 
-                item.appendChild(
-                    reject
+            reject.className='small-button';
+            reject.style.background='#d92d20';
+            reject.textContent='Ablehnen';
+
+            reject.onclick=()=>{
+                callAndroid(
+                    'updateLeaveStatus',
+                    request.id,
+                    'Abgelehnt'
                 );
-            }
+            };
 
-
-            box.appendChild(
-                item
-            );
+            item.appendChild(approve);
+            item.appendChild(reject);
         }
-    );
-}
 
+        box.appendChild(item);
+    });
+};
 
-/* =====================================================
-   AUFTRÄGE
-===================================================== */
+/* AUFTRÄGE */
 
 function saveOrder(){
 
     const customer=
-        el('orderCustomer')
-            .value
-            .trim();
-
+        el('orderCustomer').value.trim();
 
     if(!customer){
-
-        alert(
-            'Bitte Kunde eingeben.'
-        );
-
+        alert('Bitte Kunde eingeben.');
         return;
     }
 
-
     callAndroid(
-
         'saveOrderToFirestore',
-
         customer,
-
         el('orderAddress').value,
-
         el('orderService').value,
-
         el('orderDate').value,
-
         el('orderPrice').value,
-
         el('orderDescription').value
     );
 }
 
-
 window.receiveOrdersFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
-    const box=
-        el('orderList');
-
+    const box=el('orderList');
 
     box.innerHTML='';
 
-
     const list=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
     if(!list.length){
-
         box.innerHTML=
-
             '<div class="info">Noch keine Aufträge gespeichert.</div>';
-
-
         return;
     }
 
+    list.forEach(order=>{
 
-    list.forEach(
-        order=>{
+        const item=
+            document.createElement('div');
 
-            const item=
-                document.createElement(
-                    'div'
-                );
+        item.className='item';
 
+        item.innerHTML=
+            '<strong>'
+            +
+            esc(order.kunde||'')
+            +
+            '</strong><br>'
+            +
+            esc(order.art||'')
+            +
+            '<br>'
+            +
+            esc(order.ort||'')
+            +
+            '<br>'
+            +
+            esc(order.datum||'')
+            +
+            '<br>'
+            +
+            esc(order.preis||'')
+            +
+            ' €<br>'
+            +
+            esc(order.notiz||'');
 
-            item.className=
-                'item';
+        box.appendChild(item);
+    });
+};
 
+/* PAUSCHALPREIS */
 
-            item.innerHTML=
-
-                '<strong>'
-                +
-                esc(
-                    order.kunde
-                    ||
-                    ''
-                )
-                +
-                '</strong><br>'
-
-                +
-
-                esc(
-                    order.art
-                    ||
-                    ''
-                )
-
-                +
-
-                '<br>'
-
-                +
-
-                esc(
-                    order.ort
-                    ||
-                    ''
-                )
-
-                +
-
-                '<br>'
-
-                +
-
-                esc(
-                    order.datum
-                    ||
-                    ''
-                )
-
-                +
-
-                '<br>'
-
-                +
-
-                esc(
-                    order.preis
-                    ||
-                    ''
-                )
-
-                +
-
-                ' €<br>'
-
-                +
-
-                esc(
-                    order.notiz
-                    ||
-                    ''
-                );
-
-
-            box.appendChild(
-                item
-            );
-        }
-    );
-}
-
-
-/* =====================================================
-   PAUSCHALPREIS
-===================================================== */
-
-function productivity(
-    service,
-    difficulty
-){
+function productivity(service,difficulty){
 
     const map={
-
         'Unterhaltsreinigung':{
             light:300,
             normal:250,
             intensive:180
         },
-
         'Grundreinigung':{
             light:90,
             normal:70,
             intensive:50
         },
-
         'Bauendreinigung':{
             light:80,
             normal:60,
             intensive:40
         },
-
         'Glasreinigung':{
             light:45,
             normal:35,
             intensive:25
         },
-
         'Treppenhausreinigung':{
             light:220,
             normal:170,
             intensive:120
         }
-
     };
 
-
     return (
-
-        map[service]
-        ||
+        map[service] ||
         map['Unterhaltsreinigung']
-
-    )[
-        difficulty
-    ]
-
-    ||
-
-    250;
+    )[difficulty] || 250;
 }
-
 
 function suggestCleaningTime(){
 
     const area=
-        Number(
-            el('priceArea').value
-            ||
-            0
-        );
-
-
-    const service=
-        el('priceService').value;
-
-
-    const difficulty=
-        el('priceDifficulty').value;
-
+        Number(el('priceArea').value||0);
 
     const performance=
         productivity(
-            service,
-            difficulty
+            el('priceService').value,
+            el('priceDifficulty').value
         );
 
-
     if(area<=0){
-
-        el('timeSuggestion')
-            .textContent=
-
-                'Fläche eingeben – die App schätzt automatisch die Stunden pro Einsatz.';
-
-
+        el('timeSuggestion').textContent=
+            'Fläche eingeben – die App schätzt die Stunden pro Einsatz.';
         return;
     }
 
-
     const hours=
-        area
-        /
-        performance;
-
+        area/performance;
 
     el('priceHoursPerVisit').value=
         hours.toFixed(1);
 
-
     el('timeSuggestion').innerHTML=
-
         'Geschätzte Leistung: <strong>'
-
         +
-
         performance
-
         +
-
-        ' m²/Std.</strong><br>'
-
+        ' m²/Std.</strong><br>Vorschlag: <strong>'
         +
-
-        'Vorschlag: <strong>'
-
+        hours.toFixed(1).replace('.',',')
         +
-
-        hours
-            .toFixed(1)
-            .replace(
-                '.',
-                ','
-            )
-
-        +
-
         ' Stunden pro Einsatz</strong>';
-
 
     calculatePackagePrice();
 }
 
-
 function calculatePackagePrice(){
 
     const hours=
-        Number(
-            el('priceHoursPerVisit').value
-            ||
-            0
-        );
-
+        Number(el('priceHoursPerVisit').value||0);
 
     const visits=
-        Number(
-            el('priceFrequency').value
-            ||
-            0
-        );
-
+        Number(el('priceFrequency').value||0);
 
     const hourly=
-        Number(
-            el('priceHourly').value
-            ||
-            0
-        );
-
+        Number(el('priceHourly').value||0);
 
     const travel=
-        Number(
-            el('priceTravel').value
-            ||
-            0
-        );
-
+        Number(el('priceTravel').value||0);
 
     const material=
-        Number(
-            el('priceMaterial').value
-            ||
-            0
-        );
-
+        Number(el('priceMaterial').value||0);
 
     const markup=
-        Number(
-            el('priceMarkup').value
-            ||
-            0
-        );
-
+        Number(el('priceMarkup').value||0);
 
     const monthlyHours=
-        hours
-        *
-        visits;
-
+        hours*visits;
 
     const base=
-
-        monthlyHours
-        *
-        hourly
-
+        monthlyHours*hourly
         +
-
-        travel
-        *
-        visits
-
+        travel*visits
         +
-
         material;
 
-
     const netto=
-
-        base
-        *
-        (
-            1
-            +
-            markup/100
-        );
-
+        base*(1+markup/100);
 
     const vat=
-        netto
-        *
-        .19;
-
+        netto*.19;
 
     const gross=
-        netto
-        +
-        vat;
+        netto+vat;
 
+    const box=el('priceResult');
 
-    const box=
-        el('priceResult');
-
-
-    box.style.display=
-        'block';
-
+    box.style.display='block';
 
     box.innerHTML=
-
-        'Einsätze pro Monat: <strong>'
-
-        +
-
-        visits
-            .toFixed(2)
-            .replace(
-                '.',
-                ','
-            )
-
-        +
-
-        '</strong><br>'
-
-        +
-
         'Monatsstunden: <strong>'
-
         +
-
-        monthlyHours
-            .toFixed(1)
-            .replace(
-                '.',
-                ','
-            )
-
+        monthlyHours.toFixed(1).replace('.',',')
         +
-
         '</strong><br>'
-
         +
-
-        'Monatspauschale netto: <strong>'
-
+        'Netto: <strong>'
         +
-
-        netto
-            .toFixed(2)
-            .replace(
-                '.',
-                ','
-            )
-
+        netto.toFixed(2).replace('.',',')
         +
-
         ' €</strong><br>'
-
         +
-
-        '19 % MwSt.: '
-
+        'MwSt.: '
         +
-
-        vat
-            .toFixed(2)
-            .replace(
-                '.',
-                ','
-            )
-
+        vat.toFixed(2).replace('.',',')
         +
-
         ' €'
-
         +
-
         '<div class="big-result">'
-
         +
-
-        gross
-            .toFixed(2)
-            .replace(
-                '.',
-                ','
-            )
-
+        gross.toFixed(2).replace('.',',')
         +
-
         ' € brutto</div>';
 }
 
-
-/* =====================================================
-   AR
-===================================================== */
+/* AR */
 
 function startMeasurement(){
-
-    callAndroid(
-        'startArMeasurement'
-    );
+    callAndroid('startArMeasurement');
 }
-
 
 window.receiveArMeasurement=
-function(
-    width,
-    height,
-    area
-){
+function(width,height,area){
 
-    arWidth=
-        Number(
-            width
-            ||
-            0
-        );
+    arWidth=Number(width||0);
+    arHeight=Number(height||0);
+    arArea=Number(area||0);
 
+    openPage('windows');
 
-    arHeight=
-        Number(
-            height
-            ||
-            0
-        );
+    const box=el('measurementResult');
 
-
-    arArea=
-        Number(
-            area
-            ||
-            0
-        );
-
-
-    openPage(
-        'windows'
-    );
-
-
-    const box=
-        el('measurementResult');
-
-
-    box.style.display=
-        'block';
-
+    box.style.display='block';
 
     box.innerHTML=
-
         '<strong>Fenster gemessen</strong><br>'
-
         +
-
         'Breite: '
-
         +
-
         arWidth.toFixed(2)
-
         +
-
-        ' m<br>'
-
+        ' m<br>Höhe: '
         +
-
-        'Höhe: '
-
-        +
-
         arHeight.toFixed(2)
-
         +
-
         ' m'
-
         +
-
         '<div class="big-result">'
-
         +
-
         arArea.toFixed(2)
-
         +
-
         ' m²</div>';
-}
-
+};
 
 function calculateWindows(){
 
     const count=
         Math.max(
-
             1,
-
-            Number(
-                el('windowCount').value
-                ||
-                1
-            )
+            Number(el('windowCount').value||1)
         );
-
 
     const price=
-        Number(
-            el('windowPrice').value
-            ||
-            0
-        );
+        Number(el('windowPrice').value||0);
 
+    const box=el('windowResult');
 
-    const box=
-        el('windowResult');
-
-
-    box.style.display=
-        'block';
-
+    box.style.display='block';
 
     box.innerHTML=
-
         '<strong>Gesamtpreis</strong>'
-
         +
-
         '<div class="big-result">'
-
         +
-
-        (
-            count
-            *
-            price
-        )
+        (count*price)
         .toFixed(2)
-        .replace(
-            '.',
-            ','
-        )
-
+        .replace('.',',')
         +
-
         ' €</div>';
 }
 
-
-/* =====================================================
-   MATERIALIEN
-===================================================== */
+/* MATERIALIEN */
 
 function toggleInstruction(head){
-
-    head
-        .parentElement
-        .classList
-        .toggle(
-            'open'
-        );
+    head.parentElement.classList.toggle('open');
 }
-
 
 function openExternal(url){
 
     if(!url){
-
-        alert(
-            'Kein Link hinterlegt.'
-        );
-
+        alert('Kein Link hinterlegt.');
         return;
     }
-
 
     callAndroid(
         'openExternalUrl',
@@ -6573,59 +3873,34 @@ function openExternal(url){
     );
 }
 
-
 function saveMaterial(){
 
     const id=
-
         el('materialId').value
-
         ||
-
-        String(
-            Date.now()
-        );
-
+        String(Date.now());
 
     const name=
-        el('materialName')
-            .value
-            .trim();
-
+        el('materialName').value.trim();
 
     if(!name){
-
-        alert(
-            'Produktname fehlt.'
-        );
-
+        alert('Produktname fehlt.');
         return;
     }
 
-
     callAndroid(
-
         'saveMaterialToFirestore',
-
         id,
-
         name,
-
         el('materialManufacturer').value,
-
         el('materialCategory').value,
-
         el('materialUse').value,
-
         el('materialProductUrl').value,
-
         el('materialSafetyUrl').value
     );
 
-
     clearMaterialForm();
 }
-
 
 function clearMaterialForm(){
 
@@ -6637,53 +3912,36 @@ function clearMaterialForm(){
         'materialProductUrl',
         'materialSafetyUrl'
     ]
-    .forEach(
-        id=>{
-
-            el(id).value='';
-        }
-    );
-
+    .forEach(id=>{
+        el(id).value='';
+    });
 
     el('materialCategory').value=
         'Unterhaltsreinigung';
 }
 
-
 function loadMaterials(){
-
     callAndroid(
         'loadMaterialsFromFirestore'
     );
 }
 
-
 window.receiveMaterialsFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     allMaterials=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
     renderMaterials();
-}
-
+};
 
 function renderMaterials(){
 
@@ -6691,645 +3949,347 @@ function renderMaterials(){
         'materialsList',
         'materialsAdminList'
     ]
-    .forEach(
-        id=>{
+    .forEach(id=>{
 
-            const box=
-                el(id);
+        const box=el(id);
 
+        if(!box){
+            return;
+        }
 
-            if(!box){
+        box.innerHTML='';
 
-                return;
+        if(!allMaterials.length){
+            box.innerHTML=
+                '<div class="info">Noch keine Materialien hinterlegt.</div>';
+            return;
+        }
+
+        allMaterials.forEach(material=>{
+
+            const item=
+                document.createElement('div');
+
+            item.className='item';
+
+            item.innerHTML=
+                '<strong>'
+                +
+                esc(material.name)
+                +
+                '</strong><br>'
+                +
+                esc(material.manufacturer||'')
+                +
+                ' · '
+                +
+                esc(material.category||'')
+                +
+                '<br><br>'
+                +
+                esc(material.use||'');
+
+            if(material.productUrl){
+
+                const button=
+                    document.createElement('button');
+
+                button.className='small-button';
+                button.textContent='Produktdatenblatt';
+
+                button.onclick=()=>{
+                    openExternal(
+                        material.productUrl
+                    );
+                };
+
+                item.appendChild(button);
             }
 
+            if(material.safetyUrl){
 
-            box.innerHTML='';
+                const button=
+                    document.createElement('button');
 
+                button.className='small-button';
+                button.textContent='Sicherheitsdatenblatt';
 
-            if(!allMaterials.length){
+                button.onclick=()=>{
+                    openExternal(
+                        material.safetyUrl
+                    );
+                };
 
-                box.innerHTML=
-
-                    '<div class="info">Noch keine Materialien hinterlegt.</div>';
-
-
-                return;
+                item.appendChild(button);
             }
 
+            if(
+                adminMode &&
+                id==='materialsAdminList'
+            ){
 
-            allMaterials
-                .forEach(
-                    material=>{
+                const edit=
+                    document.createElement('button');
 
-                        const item=
-                            document.createElement(
-                                'div'
-                            );
+                edit.className='small-button';
+                edit.style.background='#536176';
+                edit.textContent='Bearbeiten';
 
+                edit.onclick=()=>{
 
-                        item.className=
-                            'item';
+                    el('materialId').value=
+                        material.id;
 
+                    el('materialName').value=
+                        material.name||'';
 
-                        item.innerHTML=
+                    el('materialManufacturer').value=
+                        material.manufacturer||'';
 
-                            '<strong>'
-                            +
-                            esc(
-                                material.name
-                            )
-                            +
-                            '</strong><br>'
+                    el('materialCategory').value=
+                        material.category||
+                        'Unterhaltsreinigung';
 
-                            +
+                    el('materialUse').value=
+                        material.use||'';
 
-                            esc(
-                                material.manufacturer
-                                ||
-                                ''
-                            )
+                    el('materialProductUrl').value=
+                        material.productUrl||'';
 
-                            +
+                    el('materialSafetyUrl').value=
+                        material.safetyUrl||'';
 
-                            ' · '
+                    window.scrollTo(0,0);
+                };
 
-                            +
+                item.appendChild(edit);
 
-                            esc(
-                                material.category
-                                ||
-                                ''
-                            )
+                const remove=
+                    document.createElement('button');
 
-                            +
+                remove.className='small-button';
+                remove.style.background='#d92d20';
+                remove.textContent='Löschen';
 
-                            '<br><br>'
+                remove.onclick=()=>{
 
-                            +
-
-                            esc(
-                                material.use
-                                ||
-                                ''
-                            );
-
-
-                        if(material.productUrl){
-
-                            const button=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            button.className=
-                                'small-button';
-
-
-                            button.textContent=
-                                'Produktdatenblatt';
-
-
-                            button.onclick=
-                                ()=>{
-
-                                    openExternal(
-                                        material.productUrl
-                                    );
-                                };
-
-
-                            item.appendChild(
-                                button
-                            );
-                        }
-
-
-                        if(material.safetyUrl){
-
-                            const button=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            button.className=
-                                'small-button';
-
-
-                            button.textContent=
-                                'Sicherheitsdatenblatt';
-
-
-                            button.onclick=
-                                ()=>{
-
-                                    openExternal(
-                                        material.safetyUrl
-                                    );
-                                };
-
-
-                            item.appendChild(
-                                button
-                            );
-                        }
-
-
-                        if(
-                            adminMode
-                            &&
-                            id==='materialsAdminList'
-                        ){
-
-                            const edit=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            edit.className=
-                                'small-button';
-
-
-                            edit.style.background=
-                                '#536176';
-
-
-                            edit.textContent=
-                                'Bearbeiten';
-
-
-                            edit.onclick=
-                                ()=>{
-
-                                    el('materialId').value=
-                                        material.id;
-
-
-                                    el('materialName').value=
-                                        material.name
-                                        ||
-                                        '';
-
-
-                                    el('materialManufacturer').value=
-                                        material.manufacturer
-                                        ||
-                                        '';
-
-
-                                    el('materialCategory').value=
-                                        material.category
-                                        ||
-                                        'Unterhaltsreinigung';
-
-
-                                    el('materialUse').value=
-                                        material.use
-                                        ||
-                                        '';
-
-
-                                    el('materialProductUrl').value=
-                                        material.productUrl
-                                        ||
-                                        '';
-
-
-                                    el('materialSafetyUrl').value=
-                                        material.safetyUrl
-                                        ||
-                                        '';
-
-
-                                    window.scrollTo(
-                                        0,
-                                        0
-                                    );
-                                };
-
-
-                            item.appendChild(
-                                edit
-                            );
-
-
-                            const remove=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            remove.className=
-                                'small-button';
-
-
-                            remove.style.background=
-                                '#d92d20';
-
-
-                            remove.textContent=
-                                'Löschen';
-
-
-                            remove.onclick=
-                                ()=>{
-
-                                    if(
-                                        confirm(
-                                            'Material löschen?'
-                                        )
-                                    ){
-
-                                        callAndroid(
-                                            'deleteMaterialFromFirestore',
-                                            material.id
-                                        );
-                                    }
-                                };
-
-
-                            item.appendChild(
-                                remove
-                            );
-                        }
-
-
-                        box.appendChild(
-                            item
+                    if(confirm('Material löschen?')){
+                        callAndroid(
+                            'deleteMaterialFromFirestore',
+                            material.id
                         );
                     }
-                );
-        }
-    );
+                };
+
+                item.appendChild(remove);
+            }
+
+            box.appendChild(item);
+        });
+    });
 }
 
-
-/* =====================================================
-   DOKUMENTE
-===================================================== */
+/* DOKUMENTE */
 
 function uploadDocument(){
 
-    if(!adminMode){
-
+    if(
+        !adminMode ||
+        documentUploadRunning
+    ){
         return;
     }
-
-
-    if(documentUploadRunning){
-
-        return;
-    }
-
 
     const title=
-        el('documentTitle')
-            .value
-            .trim();
-
+        el('documentTitle').value.trim();
 
     if(!title){
-
         alert(
             'Bitte zuerst einen Titel eingeben.'
         );
-
         return;
     }
-
 
     const select=
         el('documentEmployee');
 
-
     const employeeId=
         select.value;
 
-
     const employeeName=
-
-        employeeId
-        &&
+        employeeId &&
         select.selectedIndex>=0
-
         ?
-
         select.options[
             select.selectedIndex
         ].text
-
         :
-
         '';
 
-
     const id=
-
         el('documentId').value
-
         ||
+        String(Date.now());
 
-        String(
-            Date.now()
-        );
+    el('documentId').value=id;
 
-
-    el('documentId').value=
-        id;
-
-
-    documentUploadRunning=
-        true;
-
+    documentUploadRunning=true;
 
     const status=
         el('documentUploadStatus');
 
-
-    status.className=
-        'info';
-
-
-    status.textContent=
-        'Datei auswählen...';
-
-
     const button=
         el('documentUploadButton');
 
+    status.className='info';
+    status.textContent='Datei auswählen...';
 
-    button.disabled=
-        true;
-
-
+    button.disabled=true;
     button.textContent=
         'Datei wird ausgewählt...';
 
-
     callAndroid(
-
         'uploadDocument',
-
         id,
-
         title,
-
         el('documentType').value,
-
         employeeId,
-
         employeeName,
-
         el('documentNote').value
     );
 
+    setTimeout(()=>{
 
-    setTimeout(
-        ()=>{
+        if(documentUploadRunning){
 
-            if(documentUploadRunning){
+            documentUploadRunning=false;
 
-                documentUploadRunning=
-                    false;
+            button.disabled=false;
 
+            button.textContent=
+                '📎 Datei auswählen & hochladen';
+        }
 
-                button.disabled=
-                    false;
-
-
-                button.textContent=
-                    '📎 Datei auswählen & hochladen';
-            }
-
-        },
-        120000
-    );
+    },120000);
 }
-
 
 window.receiveDocumentUploadResult=
 function(result){
 
-    if(
-        typeof result==='string'
-    ){
-
-        result=
-            JSON.parse(
-                result
-            );
+    if(typeof result==='string'){
+        result=JSON.parse(result);
     }
 
-
-    documentUploadRunning=
-        false;
-
+    documentUploadRunning=false;
 
     const button=
         el('documentUploadButton');
 
-
     if(button){
-
-        button.disabled=
-            false;
-
-
+        button.disabled=false;
         button.textContent=
             '📎 Datei auswählen & hochladen';
     }
 
-
     const status=
         el('documentUploadStatus');
 
-
     if(
-        result
-        &&
+        result &&
         result.success
     ){
 
-        if(status){
+        status.className='success';
 
-            status.className=
-                'success';
+        status.textContent=
+            result.message
+            ||
+            'Dokument erfolgreich hochgeladen.';
 
-
-            status.textContent=
-
-                result.message
-                ||
-                'Dokument erfolgreich hochgeladen.';
-        }
-
-
-        clearDocumentForm(
-            true
-        );
-
-
+        clearDocumentForm(true);
         loadDocuments();
 
     }else{
 
-        if(status){
+        status.className='warning';
 
-            status.className=
-                'warning';
-
-
-            status.textContent=
-
-                result?.message
-                ||
-                'Dokument konnte nicht hochgeladen werden.';
-        }
+        status.textContent=
+            result?.message
+            ||
+            'Dokument konnte nicht hochgeladen werden.';
     }
-}
+};
 
+function clearDocumentForm(keepStatus){
 
-function clearDocumentForm(
-    keepStatus
-){
-
-    el('documentId').value=
-        '';
-
-
-    el('documentTitle').value=
-        '';
-
-
-    el('documentNote').value=
-        '';
-
-
-    el('documentType').value=
-        'Arbeitsvertrag';
-
-
-    el('documentEmployee').value=
-        '';
-
+    el('documentId').value='';
+    el('documentTitle').value='';
+    el('documentNote').value='';
+    el('documentType').value='Arbeitsvertrag';
+    el('documentEmployee').value='';
 
     if(
-        !keepStatus
-        &&
+        !keepStatus &&
         el('documentUploadStatus')
     ){
+        el('documentUploadStatus').className='info';
 
-        el('documentUploadStatus')
-            .className=
-                'info';
-
-
-        el('documentUploadStatus')
-            .textContent=
-
-                'Titel und Zuordnung ausfüllen und anschließend Datei auswählen.';
+        el('documentUploadStatus').textContent=
+            'Titel und Zuordnung ausfüllen und anschließend Datei auswählen.';
     }
 }
-
 
 function loadDocuments(){
 
     callAndroid(
-
         'loadDocumentsFromFirestore',
-
-        employeeMode
-        &&
-        currentEmployee
-
+        (
+            employeeMode &&
+            currentEmployee
+        )
         ?
-
         currentEmployee.id
-
         :
-
         ''
     );
 }
 
-
 window.receiveDocumentsFromFirestore=
 function(data){
 
-    if(
-        typeof data==='string'
-    ){
-
-        data=
-            JSON.parse(
-                data
-            );
+    if(typeof data==='string'){
+        data=JSON.parse(data);
     }
 
-
     allDocuments=
-
         Array.isArray(data)
         ?
         data
         :
         [];
 
-
     allDocuments.sort(
         (a,b)=>
-
-            String(
-                a.title
-                ||
-                ''
-            )
+            String(a.title||'')
             .localeCompare(
-
-                String(
-                    b.title
-                    ||
-                    ''
-                ),
-
+                String(b.title||''),
                 'de'
             )
     );
 
-
     renderDocuments();
-}
+};
 
-
-function openDocumentItem(
-    documentItem
-){
+function openDocumentItem(documentItem){
 
     callAndroid(
-
         'openDocument',
-
-        documentItem.storagePath
-        ||
-        '',
-
-        documentItem.fileName
-        ||
-        'dokument',
-
-        documentItem.mimeType
-        ||
-        '*/*',
-
-        documentItem.url
-        ||
-        ''
+        documentItem.storagePath||'',
+        documentItem.fileName||'dokument',
+        documentItem.mimeType||'*/*',
+        documentItem.url||''
     );
 }
-
 
 function renderDocuments(){
 
@@ -7337,417 +4297,221 @@ function renderDocuments(){
         'documentsList',
         'documentsAdminList'
     ]
-    .forEach(
-        id=>{
+    .forEach(id=>{
 
-            const box=
-                el(id);
+        const box=el(id);
 
-
-            if(!box){
-
-                return;
-            }
-
-
-            box.innerHTML='';
-
-
-            if(!allDocuments.length){
-
-                box.innerHTML=
-
-                    '<div class="info">Noch keine Dokumente hinterlegt.</div>';
-
-
-                return;
-            }
-
-
-            allDocuments
-                .forEach(
-                    documentItem=>{
-
-                        const item=
-                            document.createElement(
-                                'div'
-                            );
-
-
-                        item.className=
-                            'item';
-
-
-                        let assignment='Allgemein';
-
-
-                        if(documentItem.employeeName){
-
-                            assignment=
-
-                                'Für: '
-                                +
-                                documentItem.employeeName;
-                        }
-
-
-                        let fileInfo='';
-
-
-                        if(documentItem.fileName){
-
-                            fileInfo=
-
-                                '<div class="document-file">'
-                                +
-                                '📎 '
-                                +
-                                esc(
-                                    documentItem.fileName
-                                )
-                                +
-                                '</div>';
-                        }
-
-
-                        const cloudBadge=
-
-                            documentItem.storagePath
-
-                            ?
-
-                            '<div class="document-badge">☁ Datei gespeichert</div>'
-
-                            :
-
-                            (
-                                documentItem.url
-                                ?
-                                '<div class="document-badge">🔗 Altes Link-Dokument</div>'
-                                :
-                                ''
-                            );
-
-
-                        item.innerHTML=
-
-                            '<strong>'
-                            +
-                            esc(
-                                documentItem.title
-                                ||
-                                'Dokument'
-                            )
-                            +
-                            '</strong><br>'
-
-                            +
-
-                            esc(
-                                documentItem.type
-                                ||
-                                ''
-                            )
-
-                            +
-
-                            '<br>'
-
-                            +
-
-                            esc(
-                                assignment
-                            )
-
-                            +
-
-                            (
-                                documentItem.note
-
-                                ?
-
-                                '<br><br>'
-                                +
-                                esc(
-                                    documentItem.note
-                                )
-
-                                :
-
-                                ''
-                            )
-
-                            +
-
-                            fileInfo
-
-                            +
-
-                            cloudBadge;
-
-
-                        if(
-                            documentItem.storagePath
-                            ||
-                            documentItem.url
-                        ){
-
-                            const open=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            open.className=
-                                'small-button';
-
-
-                            open.textContent=
-                                '📄 Öffnen';
-
-
-                            open.onclick=
-                                ()=>{
-
-                                    openDocumentItem(
-                                        documentItem
-                                    );
-                                };
-
-
-                            item.appendChild(
-                                open
-                            );
-                        }
-
-
-                        if(
-                            adminMode
-                            &&
-                            id==='documentsAdminList'
-                        ){
-
-                            const replace=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            replace.className=
-                                'small-button';
-
-
-                            replace.style.background=
-                                '#536176';
-
-
-                            replace.textContent=
-                                'Datei ersetzen';
-
-
-                            replace.onclick=
-                                ()=>{
-
-                                    el('documentId').value=
-                                        documentItem.id
-                                        ||
-                                        '';
-
-
-                                    el('documentTitle').value=
-                                        documentItem.title
-                                        ||
-                                        '';
-
-
-                                    el('documentType').value=
-                                        documentItem.type
-                                        ||
-                                        'Sonstiges';
-
-
-                                    el('documentEmployee').value=
-                                        documentItem.employeeId
-                                        ||
-                                        '';
-
-
-                                    el('documentNote').value=
-                                        documentItem.note
-                                        ||
-                                        '';
-
-
-                                    if(
-                                        el('documentUploadStatus')
-                                    ){
-
-                                        el('documentUploadStatus')
-                                            .className=
-                                                'info';
-
-
-                                        el('documentUploadStatus')
-                                            .textContent=
-
-                                                'Neue Datei auswählen. Das Dokument wird unter derselben Dokument-ID gespeichert.';
-                                    }
-
-
-                                    window.scrollTo(
-                                        0,
-                                        0
-                                    );
-                                };
-
-
-                            item.appendChild(
-                                replace
-                            );
-
-
-                            const remove=
-                                document.createElement(
-                                    'button'
-                                );
-
-
-                            remove.className=
-                                'small-button';
-
-
-                            remove.style.background=
-                                '#d92d20';
-
-
-                            remove.textContent=
-                                'Löschen';
-
-
-                            remove.onclick=
-                                ()=>{
-
-                                    if(
-                                        confirm(
-                                            'Dokument wirklich löschen?'
-                                        )
-                                    ){
-
-                                        callAndroid(
-                                            'deleteDocumentFromFirestore',
-                                            documentItem.id
-                                        );
-                                    }
-                                };
-
-
-                            item.appendChild(
-                                remove
-                            );
-                        }
-
-
-                        box.appendChild(
-                            item
-                        );
-                    }
-                );
+        if(!box){
+            return;
         }
-    );
+
+        box.innerHTML='';
+
+        if(!allDocuments.length){
+            box.innerHTML=
+                '<div class="info">Noch keine Dokumente hinterlegt.</div>';
+            return;
+        }
+
+        allDocuments.forEach(
+            documentItem=>{
+
+                const item=
+                    document.createElement('div');
+
+                item.className='item';
+
+                const assignment=
+                    documentItem.employeeName
+                    ?
+                    'Für: '
+                    +
+                    documentItem.employeeName
+                    :
+                    'Allgemein';
+
+                const fileInfo=
+                    documentItem.fileName
+                    ?
+                    '<div class="document-file">📎 '
+                    +
+                    esc(documentItem.fileName)
+                    +
+                    '</div>'
+                    :
+                    '';
+
+                const badge=
+                    documentItem.storagePath
+                    ?
+                    '<div class="document-badge">☁ Datei gespeichert</div>'
+                    :
+                    (
+                        documentItem.url
+                        ?
+                        '<div class="document-badge">🔗 Link-Dokument</div>'
+                        :
+                        ''
+                    );
+
+                item.innerHTML=
+                    '<strong>'
+                    +
+                    esc(
+                        documentItem.title ||
+                        'Dokument'
+                    )
+                    +
+                    '</strong><br>'
+                    +
+                    esc(documentItem.type||'')
+                    +
+                    '<br>'
+                    +
+                    esc(assignment)
+                    +
+                    (
+                        documentItem.note
+                        ?
+                        '<br><br>'
+                        +
+                        esc(documentItem.note)
+                        :
+                        ''
+                    )
+                    +
+                    fileInfo
+                    +
+                    badge;
+
+                if(
+                    documentItem.storagePath ||
+                    documentItem.url
+                ){
+
+                    const open=
+                        document.createElement('button');
+
+                    open.className='small-button';
+                    open.textContent='📄 Öffnen';
+
+                    open.onclick=()=>{
+                        openDocumentItem(
+                            documentItem
+                        );
+                    };
+
+                    item.appendChild(open);
+                }
+
+                if(
+                    adminMode &&
+                    id==='documentsAdminList'
+                ){
+
+                    const replace=
+                        document.createElement('button');
+
+                    replace.className='small-button';
+                    replace.style.background='#536176';
+                    replace.textContent='Datei ersetzen';
+
+                    replace.onclick=()=>{
+
+                        el('documentId').value=
+                            documentItem.id||'';
+
+                        el('documentTitle').value=
+                            documentItem.title||'';
+
+                        el('documentType').value=
+                            documentItem.type||
+                            'Sonstiges';
+
+                        el('documentEmployee').value=
+                            documentItem.employeeId||'';
+
+                        el('documentNote').value=
+                            documentItem.note||'';
+
+                        el('documentUploadStatus').className='info';
+
+                        el('documentUploadStatus').textContent=
+                            'Neue Datei auswählen.';
+
+                        window.scrollTo(0,0);
+                    };
+
+                    item.appendChild(replace);
+
+                    const remove=
+                        document.createElement('button');
+
+                    remove.className='small-button';
+                    remove.style.background='#d92d20';
+                    remove.textContent='Löschen';
+
+                    remove.onclick=()=>{
+
+                        if(
+                            confirm(
+                                'Dokument wirklich löschen?'
+                            )
+                        ){
+                            callAndroid(
+                                'deleteDocumentFromFirestore',
+                                documentItem.id
+                            );
+                        }
+                    };
+
+                    item.appendChild(remove);
+                }
+
+                box.appendChild(item);
+            }
+        );
+    });
 }
 
+/* ANDROID ZURÜCK */
 
-/* =====================================================
-   BACK
-===================================================== */
+window.androidBack=function(){
 
-window.androidBack=
-function(){
+    /*
+     * Unterseite -> Übersicht.
+     * Übersicht -> App bleibt offen.
+     */
+    return goBackInsideApp();
+};
 
-    const page=
-        document.querySelector(
-            '.page.active'
-        );
-
-
-    if(!page){
-
-        return false;
-    }
-
-
-    if(
-        page.id!=='home'
-        &&
-        page.id!=='login'
-    ){
-
-        openPage(
-            'home'
-        );
-
-
-        return true;
-    }
-
-
-    return false;
-}
-
-
-/* =====================================================
-   START
-===================================================== */
+/* START */
 
 (function(){
 
-    setMode(
-        ''
-    );
+    setMode('');
 
-
-    const today=
-        new Date();
-
+    const today=new Date();
 
     el('timeMonth').value=
-
         today.getFullYear()
-
         +
-
         '-'
-
         +
+        String(today.getMonth()+1)
+        .padStart(2,'0');
 
-        String(
-            today.getMonth()+1
-        )
-        .padStart(
-            2,
-            '0'
+    updateBackButton('login');
+
+    setTimeout(()=>{
+
+        callAndroid(
+            'loadEmployeesFromFirestore'
         );
 
-
-    /*
-     * MainActivity lädt Mitarbeiter zusätzlich nach
-     * onPageFinished(). Dieser zweite Aufruf ist nur
-     * eine Absicherung.
-     */
-
-    setTimeout(
-        ()=>{
-
-            callAndroid(
-                'loadEmployeesFromFirestore'
-            );
-
-        },
-        800
-    );
+    },800);
 
 })();
-
 
 </script>
 
