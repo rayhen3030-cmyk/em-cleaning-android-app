@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f7f8">
+
 <title>E-M Cleaning Service</title>
 
 <style>
+
 :root{
     --green:#078a65;
     --green-dark:#066f52;
@@ -131,6 +133,10 @@ button{
 
 .main-button:active{
     background:var(--green-dark);
+}
+
+.main-button:disabled{
+    opacity:.55;
 }
 
 .secondary-button{
@@ -530,7 +536,30 @@ body.employee-mode .bottom-nav{
     margin-top:7px;
 }
 
+.document-file{
+    margin-top:9px;
+    padding:10px 12px;
+    border-radius:11px;
+    background:#fff;
+    border:1px solid #dfe4e8;
+    color:#475467;
+    font-size:13px;
+    word-break:break-word;
+}
+
+.document-badge{
+    display:inline-block;
+    margin-top:7px;
+    padding:5px 9px;
+    border-radius:20px;
+    background:#eef7f3;
+    color:#067647;
+    font-size:12px;
+    font-weight:800;
+}
+
 @media(max-width:520px){
+
     .admin-grid,
     .timesheet-grid{
         grid-template-columns:1fr;
@@ -540,18 +569,35 @@ body.employee-mode .bottom-nav{
         grid-column:auto;
     }
 }
+
 </style>
 </head>
 
 <body>
 
+
+<!-- =====================================================
+     LOGIN
+===================================================== -->
+
 <section id="login" class="page active">
 
     <div class="login-logo">
-        <div class="logo-circle">E-M</div>
-        <h1>E-M Cleaning</h1>
-        <p>Mitarbeiter-App</p>
+
+        <div class="logo-circle">
+            E-M
+        </div>
+
+        <h1>
+            E-M Cleaning
+        </h1>
+
+        <p>
+            Mitarbeiter-App
+        </p>
+
     </div>
+
 
     <div class="card">
 
@@ -566,15 +612,21 @@ body.employee-mode .bottom-nav{
             Mitarbeiter werden geladen...
         </div>
 
-        <label>Mitarbeiter</label>
+        <label>
+            Mitarbeiter
+        </label>
 
         <select id="loginEmployee">
+
             <option value="">
                 Wird geladen...
             </option>
+
         </select>
 
-        <label>PIN</label>
+        <label>
+            PIN
+        </label>
 
         <input
             id="loginPin"
@@ -600,7 +652,9 @@ body.employee-mode .bottom-nav{
             🔐 Verwaltung
         </div>
 
-        <label>Admin-PIN</label>
+        <label>
+            Admin-PIN
+        </label>
 
         <input
             id="adminPin"
@@ -627,7 +681,14 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     HOME
+===================================================== -->
+
 <section id="home" class="page">
+
+
+    <!-- MITARBEITER -->
 
     <div class="employee-only">
 
@@ -720,6 +781,8 @@ body.employee-mode .bottom-nav{
     </div>
 
 
+    <!-- ADMIN -->
+
     <div class="admin-only">
 
         <div class="card">
@@ -738,73 +801,132 @@ body.employee-mode .bottom-nav{
         <div class="admin-grid">
 
             <div class="admin-tile">
-                <h3>👥 Mitarbeiter</h3>
+
+                <h3>
+                    👥 Mitarbeiter
+                </h3>
+
                 <button onclick="openPage('employees')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>⏱ Stunden</h3>
+
+                <h3>
+                    ⏱ Stunden
+                </h3>
+
                 <button onclick="openPage('times')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>💬 Chat</h3>
+
+                <h3>
+                    💬 Chat
+                </h3>
+
                 <button onclick="openPage('chat')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>🎫 Tickets</h3>
+
+                <h3>
+                    🎫 Tickets
+                </h3>
+
                 <button onclick="openPage('tickets')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>🏖 Urlaub</h3>
+
+                <h3>
+                    🏖 Urlaub
+                </h3>
+
                 <button onclick="openPage('leave')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>🧹 Aufträge</h3>
+
+                <h3>
+                    🧹 Aufträge
+                </h3>
+
                 <button onclick="openPage('orders')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>💰 Pauschalpreis</h3>
+
+                <h3>
+                    💰 Pauschalpreis
+                </h3>
+
                 <button onclick="openPage('price')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>📐 Fenster</h3>
+
+                <h3>
+                    📐 Fenster
+                </h3>
+
                 <button onclick="openPage('windows')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>🧴 Materialien</h3>
+
+                <h3>
+                    🧴 Materialien
+                </h3>
+
                 <button onclick="openPage('materialsAdmin')">
                     Öffnen
                 </button>
+
             </div>
 
+
             <div class="admin-tile">
-                <h3>📄 Dokumente</h3>
+
+                <h3>
+                    📄 Dokumente
+                </h3>
+
                 <button onclick="openPage('documentsAdmin')">
                     Öffnen
                 </button>
+
             </div>
 
         </div>
@@ -829,6 +951,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     ZEITEN
+===================================================== -->
+
 <section id="times" class="page">
 
     <div class="section-title">
@@ -838,7 +964,9 @@ body.employee-mode .bottom-nav{
 
     <div class="card admin-only">
 
-        <label>Mitarbeiter</label>
+        <label>
+            Mitarbeiter
+        </label>
 
         <select
             id="timeEmployee"
@@ -882,7 +1010,9 @@ body.employee-mode .bottom-nav{
             📅 Monat
         </div>
 
-        <label>Monat</label>
+        <label>
+            Monat
+        </label>
 
         <input
             id="timeMonth"
@@ -899,7 +1029,9 @@ body.employee-mode .bottom-nav{
             ➕ Monat erstellen
         </div>
 
-        <label>Arbeitsbeginn</label>
+        <label>
+            Arbeitsbeginn
+        </label>
 
         <input
             id="defaultStart"
@@ -907,7 +1039,9 @@ body.employee-mode .bottom-nav{
             value="08:00"
         >
 
-        <label>Arbeitsende</label>
+        <label>
+            Arbeitsende
+        </label>
 
         <input
             id="defaultEnd"
@@ -915,7 +1049,9 @@ body.employee-mode .bottom-nav{
             value="16:00"
         >
 
-        <label>Pause in Minuten</label>
+        <label>
+            Pause in Minuten
+        </label>
 
         <input
             id="defaultPause"
@@ -924,14 +1060,18 @@ body.employee-mode .bottom-nav{
             min="0"
         >
 
-        <label>Objekt / Kunde</label>
+        <label>
+            Objekt / Kunde
+        </label>
 
         <input
             id="defaultObject"
             placeholder="z.B. Bürozentrum"
         >
 
-        <label>Normale Arbeitstage</label>
+        <label>
+            Normale Arbeitstage
+        </label>
 
         <div class="days">
 
@@ -1018,6 +1158,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     CHAT
+===================================================== -->
+
 <section id="chat" class="page">
 
     <div class="section-title">
@@ -1026,7 +1170,9 @@ body.employee-mode .bottom-nav{
 
     <div class="card admin-only">
 
-        <label>Mitarbeiter</label>
+        <label>
+            Mitarbeiter
+        </label>
 
         <select
             id="chatEmployee"
@@ -1066,6 +1212,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     TICKETS
+===================================================== -->
+
 <section id="tickets" class="page">
 
     <div class="section-title">
@@ -1078,26 +1228,54 @@ body.employee-mode .bottom-nav{
             Neues Ticket
         </div>
 
-        <label>Art</label>
+        <label>
+            Art
+        </label>
 
         <select id="ticketType">
-            <option>Allgemeine Anfrage</option>
-            <option>Material fehlt</option>
-            <option>Schaden am Objekt</option>
-            <option>Problem am Objekt</option>
-            <option>Krankmeldung</option>
-            <option>Arbeitszeit</option>
-            <option>Sonstiges</option>
+
+            <option>
+                Allgemeine Anfrage
+            </option>
+
+            <option>
+                Material fehlt
+            </option>
+
+            <option>
+                Schaden am Objekt
+            </option>
+
+            <option>
+                Problem am Objekt
+            </option>
+
+            <option>
+                Krankmeldung
+            </option>
+
+            <option>
+                Arbeitszeit
+            </option>
+
+            <option>
+                Sonstiges
+            </option>
+
         </select>
 
-        <label>Betreff</label>
+        <label>
+            Betreff
+        </label>
 
         <input
             id="ticketSubject"
             placeholder="Kurzer Betreff"
         >
 
-        <label>Beschreibung</label>
+        <label>
+            Beschreibung
+        </label>
 
         <textarea id="ticketDescription"></textarea>
 
@@ -1126,6 +1304,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     URLAUB
+===================================================== -->
+
 <section id="leave" class="page">
 
     <div class="section-title">
@@ -1138,21 +1320,27 @@ body.employee-mode .bottom-nav{
             Urlaubsantrag
         </div>
 
-        <label>Von</label>
+        <label>
+            Von
+        </label>
 
         <input
             id="leaveFrom"
             type="date"
         >
 
-        <label>Bis</label>
+        <label>
+            Bis
+        </label>
 
         <input
             id="leaveTo"
             type="date"
         >
 
-        <label>Bemerkung</label>
+        <label>
+            Bemerkung
+        </label>
 
         <textarea id="leaveNote"></textarea>
 
@@ -1185,6 +1373,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     MATERIALIEN MITARBEITER
+===================================================== -->
+
 <section id="materials" class="page">
 
     <div class="employee-only">
@@ -1215,6 +1407,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     DOKUMENTE MITARBEITER
+===================================================== -->
+
 <section id="documents" class="page">
 
     <div class="employee-only">
@@ -1226,7 +1422,7 @@ body.employee-mode .bottom-nav{
         <div class="card">
 
             <div class="card-subtitle">
-                Persönliche Dokumente und allgemeine Firmendokumente.
+                Hier findest du deine persönlichen Dokumente sowie allgemeine Firmendokumente.
             </div>
 
             <button
@@ -1245,6 +1441,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     ANWEISUNGEN
+===================================================== -->
+
 <section id="instructions" class="page">
 
     <div class="employee-only">
@@ -1258,6 +1458,7 @@ body.employee-mode .bottom-nav{
             <div class="warning">
                 Objektbezogene Vorgaben haben Vorrang.
             </div>
+
 
             <div class="instruction-category">
 
@@ -1366,6 +1567,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     MEHR
+===================================================== -->
+
 <section id="more" class="page">
 
     <div class="employee-only">
@@ -1418,6 +1623,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     MITARBEITER ADMIN
+===================================================== -->
+
 <section id="employees" class="page">
 
     <div class="admin-only">
@@ -1443,9 +1652,19 @@ body.employee-mode .bottom-nav{
                 id="employeeType"
                 style="margin-top:10px"
             >
-                <option>Vollzeit</option>
-                <option>Teilzeit</option>
-                <option>Minijob</option>
+
+                <option>
+                    Vollzeit
+                </option>
+
+                <option>
+                    Teilzeit
+                </option>
+
+                <option>
+                    Minijob
+                </option>
+
             </select>
 
             <input
@@ -1487,13 +1706,19 @@ body.employee-mode .bottom-nav{
         </div>
 
         <div class="card">
+
             <div id="employeeList"></div>
+
         </div>
 
     </div>
 
 </section>
 
+
+<!-- =====================================================
+     MATERIALIEN ADMIN
+===================================================== -->
 
 <section id="materialsAdmin" class="page">
 
@@ -1510,46 +1735,77 @@ body.employee-mode .bottom-nav{
                 type="hidden"
             >
 
-            <label>Produktname</label>
+            <label>
+                Produktname
+            </label>
 
             <input
                 id="materialName"
                 placeholder="z.B. Glasreiniger"
             >
 
-            <label>Hersteller</label>
+            <label>
+                Hersteller
+            </label>
 
             <input
                 id="materialManufacturer"
                 placeholder="Hersteller"
             >
 
-            <label>Kategorie</label>
+            <label>
+                Kategorie
+            </label>
 
             <select id="materialCategory">
-                <option>Unterhaltsreinigung</option>
-                <option>Sanitär</option>
-                <option>Glas</option>
-                <option>Boden</option>
-                <option>Grundreinigung</option>
-                <option>Sonstiges</option>
+
+                <option>
+                    Unterhaltsreinigung
+                </option>
+
+                <option>
+                    Sanitär
+                </option>
+
+                <option>
+                    Glas
+                </option>
+
+                <option>
+                    Boden
+                </option>
+
+                <option>
+                    Grundreinigung
+                </option>
+
+                <option>
+                    Sonstiges
+                </option>
+
             </select>
 
-            <label>Anwendung / Dosierung</label>
+            <label>
+                Anwendung / Dosierung
+            </label>
 
             <textarea
                 id="materialUse"
                 placeholder="Kurze Anweisung"
             ></textarea>
 
-            <label>Produktdatenblatt-Link</label>
+            <label>
+                Produktdatenblatt-Link
+            </label>
 
             <input
                 id="materialProductUrl"
                 placeholder="https://..."
             >
 
-            <label>Sicherheitsdatenblatt-Link</label>
+            <label>
+                Sicherheitsdatenblatt-Link
+            </label>
 
             <input
                 id="materialSafetyUrl"
@@ -1591,6 +1847,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     DOKUMENTE ADMIN
+===================================================== -->
+
 <section id="documentsAdmin" class="page">
 
     <div class="admin-only">
@@ -1599,6 +1859,7 @@ body.employee-mode .bottom-nav{
             📄 Dokumente verwalten
         </div>
 
+
         <div class="card">
 
             <input
@@ -1606,51 +1867,112 @@ body.employee-mode .bottom-nav{
                 type="hidden"
             >
 
-            <label>Titel</label>
+            <div class="card-title">
+                Dokument hochladen
+            </div>
+
+            <div class="card-subtitle">
+                Arbeitsverträge, Personalunterlagen, Zusatzblätter,
+                Unterweisungen, PDFs, Word-Dateien und Bilder direkt hochladen.
+            </div>
+
+
+            <label>
+                Titel
+            </label>
 
             <input
                 id="documentTitle"
-                placeholder="z.B. Arbeitsvertrag"
+                placeholder="z.B. Arbeitsvertrag 2026"
             >
 
-            <label>Art</label>
+
+            <label>
+                Art
+            </label>
 
             <select id="documentType">
-                <option>Arbeitsvertrag</option>
-                <option>Personal-Dokument</option>
-                <option>Unterweisung</option>
-                <option>Firmendokument</option>
-                <option>Sonstiges</option>
+
+                <option>
+                    Arbeitsvertrag
+                </option>
+
+                <option>
+                    Zusatzblatt
+                </option>
+
+                <option>
+                    Personal-Dokument
+                </option>
+
+                <option>
+                    Unterweisung
+                </option>
+
+                <option>
+                    Lohnabrechnung
+                </option>
+
+                <option>
+                    Bescheinigung
+                </option>
+
+                <option>
+                    Firmendokument
+                </option>
+
+                <option>
+                    Sonstiges
+                </option>
+
             </select>
 
-            <label>Für Mitarbeiter</label>
+
+            <label>
+                Für Mitarbeiter
+            </label>
 
             <select id="documentEmployee">
+
                 <option value="">
                     Allgemein – alle Mitarbeiter
                 </option>
+
             </select>
 
-            <label>Dokument-Link</label>
 
-            <input
-                id="documentUrl"
-                placeholder="https://..."
-            >
+            <div class="info">
+                Wenn du „Allgemein“ auswählst, können alle angemeldeten Mitarbeiter das Dokument sehen.
+                Bei einem ausgewählten Mitarbeiter ist es nur diesem Mitarbeiter zugeordnet.
+            </div>
 
-            <label>Hinweis</label>
+
+            <label>
+                Hinweis
+            </label>
 
             <textarea
                 id="documentNote"
-                placeholder="Optional"
+                placeholder="Optionaler Hinweis"
             ></textarea>
 
-            <button
-                class="main-button"
-                onclick="saveDocument()"
+
+            <div
+                id="documentUploadStatus"
+                class="info"
             >
-                Dokument speichern
+                Titel und Zuordnung ausfüllen und anschließend Datei auswählen.
+            </div>
+
+
+            <button
+                id="documentUploadButton"
+                class="main-button"
+                onclick="uploadDocument()"
+            >
+                📎 Datei auswählen & hochladen
             </button>
+
 
             <button
                 class="secondary-button"
@@ -1663,6 +1985,10 @@ body.employee-mode .bottom-nav{
 
 
         <div class="card">
+
+            <div class="card-title">
+                Gespeicherte Dokumente
+            </div>
 
             <button
                 class="secondary-button"
@@ -1679,6 +2005,10 @@ body.employee-mode .bottom-nav{
 
 </section>
 
+
+<!-- =====================================================
+     AUFTRÄGE
+===================================================== -->
 
 <section id="orders" class="page">
 
@@ -1705,11 +2035,27 @@ body.employee-mode .bottom-nav{
                 id="orderService"
                 style="margin-top:10px"
             >
-                <option>Unterhaltsreinigung</option>
-                <option>Grundreinigung</option>
-                <option>Bauendreinigung</option>
-                <option>Glasreinigung</option>
-                <option>Treppenhausreinigung</option>
+
+                <option>
+                    Unterhaltsreinigung
+                </option>
+
+                <option>
+                    Grundreinigung
+                </option>
+
+                <option>
+                    Bauendreinigung
+                </option>
+
+                <option>
+                    Glasreinigung
+                </option>
+
+                <option>
+                    Treppenhausreinigung
+                </option>
+
             </select>
 
             <input
@@ -1742,13 +2088,19 @@ body.employee-mode .bottom-nav{
         </div>
 
         <div class="card">
+
             <div id="orderList"></div>
+
         </div>
 
     </div>
 
 </section>
 
+
+<!-- =====================================================
+     PREIS
+===================================================== -->
 
 <section id="price" class="page">
 
@@ -1760,20 +2112,40 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
-            <label>Reinigungsart</label>
+            <label>
+                Reinigungsart
+            </label>
 
             <select
                 id="priceService"
                 onchange="suggestCleaningTime()"
             >
-                <option>Unterhaltsreinigung</option>
-                <option>Grundreinigung</option>
-                <option>Bauendreinigung</option>
-                <option>Glasreinigung</option>
-                <option>Treppenhausreinigung</option>
+
+                <option>
+                    Unterhaltsreinigung
+                </option>
+
+                <option>
+                    Grundreinigung
+                </option>
+
+                <option>
+                    Bauendreinigung
+                </option>
+
+                <option>
+                    Glasreinigung
+                </option>
+
+                <option>
+                    Treppenhausreinigung
+                </option>
+
             </select>
 
-            <label>Fläche in m²</label>
+            <label>
+                Fläche in m²
+            </label>
 
             <input
                 id="priceArea"
@@ -1782,23 +2154,41 @@ body.employee-mode .bottom-nav{
                 oninput="suggestCleaningTime()"
             >
 
-            <label>Verschmutzungsgrad</label>
+            <label>
+                Verschmutzungsgrad
+            </label>
 
             <select
                 id="priceDifficulty"
                 onchange="suggestCleaningTime()"
             >
-                <option value="light">Leicht</option>
-                <option value="normal" selected>Normal</option>
-                <option value="intensive">Intensiv</option>
+
+                <option value="light">
+                    Leicht
+                </option>
+
+                <option
+                    value="normal"
+                    selected
+                >
+                    Normal
+                </option>
+
+                <option value="intensive">
+                    Intensiv
+                </option>
+
             </select>
 
-            <label>Häufigkeit</label>
+            <label>
+                Häufigkeit
+            </label>
 
             <select
                 id="priceFrequency"
                 onchange="calculatePackagePrice()"
             >
+
                 <option value="1">
                     1× monatlich
                 </option>
@@ -1825,6 +2215,7 @@ body.employee-mode .bottom-nav{
                 <option value="21.65">
                     5× pro Woche
                 </option>
+
             </select>
 
 
@@ -1836,7 +2227,9 @@ body.employee-mode .bottom-nav{
             </div>
 
 
-            <label>Stunden pro Einsatz</label>
+            <label>
+                Stunden pro Einsatz
+            </label>
 
             <input
                 id="priceHoursPerVisit"
@@ -1846,7 +2239,9 @@ body.employee-mode .bottom-nav{
             >
 
 
-            <label>Verkaufspreis pro Stunde €</label>
+            <label>
+                Verkaufspreis pro Stunde €
+            </label>
 
             <input
                 id="priceHourly"
@@ -1857,7 +2252,9 @@ body.employee-mode .bottom-nav{
             >
 
 
-            <label>Anfahrt pro Einsatz €</label>
+            <label>
+                Anfahrt pro Einsatz €
+            </label>
 
             <input
                 id="priceTravel"
@@ -1868,7 +2265,9 @@ body.employee-mode .bottom-nav{
             >
 
 
-            <label>Material pro Monat €</label>
+            <label>
+                Material pro Monat €
+            </label>
 
             <input
                 id="priceMaterial"
@@ -1879,7 +2278,9 @@ body.employee-mode .bottom-nav{
             >
 
 
-            <label>Aufschlag / Reserve %</label>
+            <label>
+                Aufschlag / Reserve %
+            </label>
 
             <input
                 id="priceMarkup"
@@ -1911,6 +2312,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     FENSTER
+===================================================== -->
+
 <section id="windows" class="page">
 
     <div class="admin-only">
@@ -1934,7 +2339,9 @@ body.employee-mode .bottom-nav{
                 style="display:none"
             ></div>
 
-            <label>Anzahl Fenster</label>
+            <label>
+                Anzahl Fenster
+            </label>
 
             <input
                 id="windowCount"
@@ -1942,7 +2349,9 @@ body.employee-mode .bottom-nav{
                 value="1"
             >
 
-            <label>Preis pro Fenster €</label>
+            <label>
+                Preis pro Fenster €
+            </label>
 
             <input
                 id="windowPrice"
@@ -1970,6 +2379,10 @@ body.employee-mode .bottom-nav{
 </section>
 
 
+<!-- =====================================================
+     BOTTOM NAV
+===================================================== -->
+
 <nav class="bottom-nav">
 
     <div
@@ -1977,50 +2390,84 @@ body.employee-mode .bottom-nav{
         id="navHome"
         onclick="openPage('home')"
     >
-        <div class="nav-icon">⌂</div>
+
+        <div class="nav-icon">
+            ⌂
+        </div>
+
         Home
+
     </div>
+
 
     <div
         class="nav-btn"
         id="navTimes"
         onclick="openPage('times')"
     >
-        <div class="nav-icon">▣</div>
+
+        <div class="nav-icon">
+            ▣
+        </div>
+
         Zeiten
+
     </div>
+
 
     <div
         class="nav-btn"
         id="navChat"
         onclick="openPage('chat')"
     >
-        <div class="nav-icon">💬</div>
+
+        <div class="nav-icon">
+            💬
+        </div>
+
         Chat
+
     </div>
+
 
     <div
         class="nav-btn"
         id="navTickets"
         onclick="openPage('tickets')"
     >
-        <div class="nav-icon">🎫</div>
+
+        <div class="nav-icon">
+            🎫
+        </div>
+
         Tickets
+
     </div>
+
 
     <div
         class="nav-btn"
         id="navMore"
         onclick="openPage('more')"
     >
-        <div class="nav-icon">•••</div>
+
+        <div class="nav-icon">
+            •••
+        </div>
+
         Mehr
+
     </div>
 
 </nav>
 
 
 <script>
+
+
+/* =====================================================
+   GLOBAL
+===================================================== */
 
 let adminMode=false;
 let employeeMode=false;
@@ -2037,8 +2484,15 @@ let arWidth=0;
 let arHeight=0;
 let arArea=0;
 
+let documentUploadRunning=false;
+
+
+/* =====================================================
+   HELPER
+===================================================== */
 
 function el(id){
+
     return document.getElementById(id);
 }
 
@@ -2088,6 +2542,61 @@ function callAndroid(
 }
 
 
+window.receiveFirebaseError=
+function(error){
+
+    try{
+
+        if(
+            typeof error==='string'
+        ){
+
+            error=
+                JSON.parse(
+                    error
+                );
+        }
+
+
+        if(
+            error
+            &&
+            error.type==='EMPLOYEES'
+        ){
+
+            const box=
+                el('loginStatus');
+
+
+            if(box){
+
+                box.className=
+                    'warning';
+
+
+                box.textContent=
+
+                    'Mitarbeiter konnten nicht geladen werden: '
+                    +
+                    (
+                        error.message
+                        ||
+                        'Firebase-Fehler'
+                    );
+            }
+        }
+
+    }catch(e){
+
+        console.error(e);
+    }
+}
+
+
+/* =====================================================
+   MODE
+===================================================== */
+
 function setMode(mode){
 
     document.body
@@ -2097,11 +2606,14 @@ function setMode(mode){
             'employee-mode'
         );
 
+
     adminMode=
         mode==='admin';
 
+
     employeeMode=
         mode==='employee';
+
 
     if(adminMode){
 
@@ -2111,6 +2623,7 @@ function setMode(mode){
                 'admin-mode'
             );
     }
+
 
     if(employeeMode){
 
@@ -2122,6 +2635,10 @@ function setMode(mode){
     }
 }
 
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
 
 function openPage(id){
 
@@ -2162,7 +2679,9 @@ function openPage(id){
 
 
     document
-        .querySelectorAll('.page')
+        .querySelectorAll(
+            '.page'
+        )
         .forEach(
             page=>
                 page.classList.remove(
@@ -2295,6 +2814,7 @@ function updateBottomNav(id){
         materials:'navMore',
         documents:'navMore',
         instructions:'navMore'
+
     };
 
 
@@ -2313,14 +2833,15 @@ function updateBottomNav(id){
 }
 
 
-/* ======================================================
-   LOGIN
-====================================================== */
+/* =====================================================
+   LOGIN MITARBEITER
+===================================================== */
 
 function employeeLogin(){
 
     const employeeId=
         el('loginEmployee').value;
+
 
     const pin=
         el('loginPin')
@@ -2400,6 +2921,7 @@ function(result){
                 ||
                 'Anmeldung fehlgeschlagen.';
 
+
         return;
     }
 
@@ -2436,6 +2958,10 @@ function(result){
     );
 }
 
+
+/* =====================================================
+   ADMIN LOGIN
+===================================================== */
 
 function adminLogin(){
 
@@ -2499,11 +3025,13 @@ function(result){
                 ||
                 'Anmeldung fehlgeschlagen.';
 
+
         return;
     }
 
 
-    currentEmployee=null;
+    currentEmployee=
+        null;
 
 
     setMode(
@@ -2533,11 +3061,19 @@ function logoutEmployee(){
         'logoutEmployee'
     );
 
-    currentEmployee=null;
 
-    currentTimesheet=[];
+    currentEmployee=
+        null;
 
-    setMode('');
+
+    currentTimesheet=
+        [];
+
+
+    setMode(
+        ''
+    );
+
 
     openPage(
         'login'
@@ -2551,9 +3087,15 @@ function logoutAdmin(){
         'logoutAdmin'
     );
 
-    currentEmployee=null;
 
-    setMode('');
+    currentEmployee=
+        null;
+
+
+    setMode(
+        ''
+    );
+
 
     openPage(
         'login'
@@ -2561,9 +3103,9 @@ function logoutAdmin(){
 }
 
 
-/* ======================================================
-   EMPLOYEES
-====================================================== */
+/* =====================================================
+   MITARBEITER
+===================================================== */
 
 window.receiveEmployeesFromFirestore=
 function(data){
@@ -2580,11 +3122,33 @@ function(data){
 
 
     allEmployees=
+
         Array.isArray(data)
         ?
         data
         :
         [];
+
+
+    allEmployees.sort(
+        (a,b)=>
+
+            String(
+                a.name
+                ||
+                ''
+            )
+            .localeCompare(
+
+                String(
+                    b.name
+                    ||
+                    ''
+                ),
+
+                'de'
+            )
+    );
 
 
     populateLoginEmployees();
@@ -2598,17 +3162,28 @@ function(data){
     }
 
 
-    el('loginStatus')
-        .className=
-            'success';
+    if(el('loginStatus')){
+
+        el('loginStatus')
+            .className=
+                allEmployees.length
+                ?
+                'success'
+                :
+                'warning';
 
 
-    el('loginStatus')
-        .textContent=
+        el('loginStatus')
+            .textContent=
 
-            allEmployees.length
-            +
-            ' Mitarbeiter geladen.';
+                allEmployees.length
+                ?
+                allEmployees.length
+                +
+                ' Mitarbeiter geladen.'
+                :
+                'Keine Mitarbeiter gefunden.';
+    }
 }
 
 
@@ -2642,11 +3217,16 @@ function populateLoginEmployees(){
                         'option'
                     );
 
+
                 option.value=
                     employee.id;
 
+
                 option.textContent=
-                    employee.name;
+                    employee.name
+                    ||
+                    'Mitarbeiter';
+
 
                 select.appendChild(
                     option
@@ -2693,7 +3273,7 @@ function populateEmployeeSelects(){
                 ?
                 '<option value="">Allgemein – alle Mitarbeiter</option>'
                 :
-                '';
+                '<option value="">Bitte auswählen</option>';
 
 
             allEmployees
@@ -2737,7 +3317,23 @@ function renderEmployees(){
         el('employeeList');
 
 
+    if(!box){
+
+        return;
+    }
+
+
     box.innerHTML='';
+
+
+    if(!allEmployees.length){
+
+        box.innerHTML=
+
+            '<div class="info">Noch keine Mitarbeiter vorhanden.</div>';
+
+        return;
+    }
 
 
     allEmployees
@@ -2758,7 +3354,9 @@ function renderEmployees(){
 
                     '<strong>'
                     +
-                    esc(employee.name)
+                    esc(
+                        employee.name
+                    )
                     +
                     '</strong><br>'
 
@@ -2790,11 +3388,17 @@ function renderEmployees(){
 
                     (
                         employee.lohn
+
                         ?
-                        esc(employee.lohn)
+
+                        esc(
+                            employee.lohn
+                        )
                         +
                         ' €/Std.'
+
                         :
+
                         ''
                     );
 
@@ -2840,19 +3444,34 @@ function editEmployee(employee){
     el('editEmployeeId').value=
         employee.id;
 
+
     el('employeeName').value=
-        employee.name || '';
+        employee.name
+        ||
+        '';
+
 
     el('employeePhone').value=
-        employee.telefon || '';
+        employee.telefon
+        ||
+        '';
+
 
     el('employeeType').value=
-        employee.art || 'Teilzeit';
+        employee.art
+        ||
+        'Teilzeit';
+
 
     el('employeeWage').value=
-        employee.lohn || '';
+        employee.lohn
+        ||
+        '';
 
-    el('employeePin').value='';
+
+    el('employeePin').value=
+        '';
+
 
     window.scrollTo(
         0,
@@ -2879,6 +3498,7 @@ function saveEmployee(){
 
 
     const id=
+
         editId
         ||
         String(
@@ -2955,24 +3575,12 @@ function saveEmployee(){
 
 
     clearEmployeeForm();
-
-
-    setTimeout(
-        ()=>{
-
-            callAndroid(
-                'loadEmployeesFromFirestore'
-            );
-
-        },
-        700
-    );
 }
 
 
-/* ======================================================
-   TIMES
-====================================================== */
+/* =====================================================
+   ZEITEN
+===================================================== */
 
 function getEmployeeId(){
 
@@ -3062,6 +3670,7 @@ function(data){
 
 
     allTimesheets=
+
         Array.isArray(data)
         ?
         data
@@ -3243,11 +3852,15 @@ function renderSavedMonths(){
                     el('timeMonth').value=
                         sheet.monat;
 
+
                     loadSelectedTimesheet();
+
 
                     el('workTimesCard')
                         .scrollIntoView({
+
                             behavior:'smooth'
+
                         });
                 };
 
@@ -3278,6 +3891,7 @@ function monthName(month){
 
 
     const names=[
+
         '',
         'Januar',
         'Februar',
@@ -3291,6 +3905,7 @@ function monthName(month){
         'Oktober',
         'November',
         'Dezember'
+
     ];
 
 
@@ -3318,9 +3933,17 @@ function toMinutes(time){
         time.split(':');
 
 
-    return Number(parts[0])*60
-        +
-        Number(parts[1]);
+    return Number(
+        parts[0]
+    )
+    *
+    60
+
+    +
+
+    Number(
+        parts[1]
+    );
 }
 
 
@@ -3359,7 +3982,9 @@ function calculateHours(
 
 
     return Math.max(
+
         0,
+
         (
             b
             -
@@ -3505,7 +4130,8 @@ function createMonth(){
             year,
             mon,
             0
-        ).getDate();
+        )
+        .getDate();
 
 
     currentTimesheet=[];
@@ -3654,9 +4280,7 @@ function loadSelectedTimesheet(){
 }
 
 
-function weekdayShort(
-    dateString
-){
+function weekdayShort(dateString){
 
     try{
 
@@ -3721,6 +4345,7 @@ function renderTimesheet(){
         el('totalHours')
             .style.display=
                 'none';
+
 
         return;
     }
@@ -4053,13 +4678,13 @@ function changeDay(
     }
 
 
-    if(
-        field==='pause'
-    ){
+    if(field==='pause'){
 
         day.pause=
             Math.max(
+
                 0,
+
                 Number(
                     value
                     ||
@@ -4074,10 +4699,7 @@ function changeDay(
     }
 
 
-    if(
-        day.status===
-        'Arbeit'
-    ){
+    if(day.status==='Arbeit'){
 
         if(!day.start){
 
@@ -4101,12 +4723,9 @@ function changeDay(
             calculateHours(
 
                 day.start,
-
                 day.ende,
-
                 day.pause
             );
-
 
     }else{
 
@@ -4129,6 +4748,7 @@ function updateTotal(){
 
         box.style.display=
             'none';
+
 
         return;
     }
@@ -4204,18 +4824,6 @@ function saveTimesheet(){
             currentTimesheet
         )
     );
-
-
-    setTimeout(
-        ()=>{
-
-            callAndroid(
-                'loadTimesheetsFromFirestore'
-            );
-
-        },
-        700
-    );
 }
 
 
@@ -4246,9 +4854,9 @@ function createAndSharePdf(){
 }
 
 
-/* ======================================================
-   TODAY
-====================================================== */
+/* =====================================================
+   HEUTE
+===================================================== */
 
 function updateTodayWork(){
 
@@ -4272,7 +4880,8 @@ function updateTodayWork(){
         );
 
 
-    let found=null;
+    let found=
+        null;
 
 
     allTimesheets
@@ -4386,6 +4995,7 @@ function updateTodayWork(){
 
             '</div>';
 
+
         return;
     }
 
@@ -4489,9 +5099,9 @@ function updateTodayWork(){
 }
 
 
-/* ======================================================
+/* =====================================================
    CHAT
-====================================================== */
+===================================================== */
 
 function getChatEmployee(){
 
@@ -4505,8 +5115,18 @@ function getChatEmployee(){
     }
 
 
+    const select=
+        el('chatEmployee');
+
+
+    if(!select){
+
+        return null;
+    }
+
+
     const id=
-        el('chatEmployee').value;
+        select.value;
 
 
     return allEmployees
@@ -4555,6 +5175,7 @@ function(data){
 
 
     data=
+
         Array.isArray(data)
         ?
         data
@@ -4593,6 +5214,7 @@ function(data){
         box.innerHTML=
 
             '<div class="info">Noch keine Nachrichten.</div>';
+
 
         return;
     }
@@ -4705,18 +5327,12 @@ function sendChat(){
 
 
     el('chatText').value='';
-
-
-    setTimeout(
-        loadChat,
-        500
-    );
 }
 
 
-/* ======================================================
+/* =====================================================
    TICKETS
-====================================================== */
+===================================================== */
 
 function createTicket(){
 
@@ -4761,12 +5377,6 @@ function createTicket(){
     el('ticketSubject').value='';
 
     el('ticketDescription').value='';
-
-
-    setTimeout(
-        loadTickets,
-        600
-    );
 }
 
 
@@ -4806,6 +5416,7 @@ function(data){
 
 
     data=
+
         Array.isArray(data)
         ?
         data
@@ -4818,6 +5429,17 @@ function(data){
 
 
     box.innerHTML='';
+
+
+    if(!data.length){
+
+        box.innerHTML=
+
+            '<div class="info">Keine Tickets vorhanden.</div>';
+
+
+        return;
+    }
 
 
     data.forEach(
@@ -4946,12 +5568,6 @@ function(data){
                             ticket.id,
                             'Erledigt'
                         );
-
-
-                        setTimeout(
-                            loadTickets,
-                            500
-                        );
                     };
 
 
@@ -4969,9 +5585,9 @@ function(data){
 }
 
 
-/* ======================================================
+/* =====================================================
    URLAUB
-====================================================== */
+===================================================== */
 
 function sendLeaveRequest(){
 
@@ -5020,12 +5636,6 @@ function sendLeaveRequest(){
 
 
     el('leaveNote').value='';
-
-
-    setTimeout(
-        loadLeaveRequests,
-        600
-    );
 }
 
 
@@ -5065,6 +5675,7 @@ function(data){
 
 
     data=
+
         Array.isArray(data)
         ?
         data
@@ -5077,6 +5688,17 @@ function(data){
 
 
     box.innerHTML='';
+
+
+    if(!data.length){
+
+        box.innerHTML=
+
+            '<div class="info">Keine Urlaubsanträge vorhanden.</div>';
+
+
+        return;
+    }
 
 
     data.forEach(
@@ -5207,12 +5829,6 @@ function(data){
                             request.id,
                             'Genehmigt'
                         );
-
-
-                        setTimeout(
-                            loadLeaveRequests,
-                            500
-                        );
                     };
 
 
@@ -5242,12 +5858,6 @@ function(data){
                             request.id,
                             'Abgelehnt'
                         );
-
-
-                        setTimeout(
-                            loadLeaveRequests,
-                            500
-                        );
                     };
 
 
@@ -5270,9 +5880,9 @@ function(data){
 }
 
 
-/* ======================================================
-   ORDERS
-====================================================== */
+/* =====================================================
+   AUFTRÄGE
+===================================================== */
 
 function saveOrder(){
 
@@ -5308,18 +5918,6 @@ function saveOrder(){
 
         el('orderDescription').value
     );
-
-
-    setTimeout(
-        ()=>{
-
-            callAndroid(
-                'loadOrdersFromFirestore'
-            );
-
-        },
-        600
-    );
 }
 
 
@@ -5344,14 +5942,27 @@ function(data){
     box.innerHTML='';
 
 
-    (
+    const list=
+
         Array.isArray(data)
         ?
         data
         :
-        []
-    )
-    .forEach(
+        [];
+
+
+    if(!list.length){
+
+        box.innerHTML=
+
+            '<div class="info">Noch keine Aufträge gespeichert.</div>';
+
+
+        return;
+    }
+
+
+    list.forEach(
         order=>{
 
             const item=
@@ -5441,9 +6052,9 @@ function(data){
 }
 
 
-/* ======================================================
+/* =====================================================
    PAUSCHALPREIS
-====================================================== */
+===================================================== */
 
 function productivity(
     service,
@@ -5481,17 +6092,22 @@ function productivity(
             normal:170,
             intensive:120
         }
+
     };
 
 
     return (
+
         map[service]
         ||
         map['Unterhaltsreinigung']
+
     )[
         difficulty
     ]
+
     ||
+
     250;
 }
 
@@ -5527,6 +6143,7 @@ function suggestCleaningTime(){
             .textContent=
 
                 'Fläche eingeben – die App schätzt automatisch die Stunden pro Einsatz.';
+
 
         return;
     }
@@ -5767,9 +6384,9 @@ function calculatePackagePrice(){
 }
 
 
-/* ======================================================
+/* =====================================================
    AR
-====================================================== */
+===================================================== */
 
 function startMeasurement(){
 
@@ -5869,7 +6486,9 @@ function calculateWindows(){
 
     const count=
         Math.max(
+
             1,
+
             Number(
                 el('windowCount').value
                 ||
@@ -5910,6 +6529,10 @@ function calculateWindows(){
             price
         )
         .toFixed(2)
+        .replace(
+            '.',
+            ','
+        )
 
         +
 
@@ -5917,9 +6540,9 @@ function calculateWindows(){
 }
 
 
-/* ======================================================
+/* =====================================================
    MATERIALIEN
-====================================================== */
+===================================================== */
 
 function toggleInstruction(head){
 
@@ -5954,8 +6577,11 @@ function openExternal(url){
 function saveMaterial(){
 
     const id=
+
         el('materialId').value
+
         ||
+
         String(
             Date.now()
         );
@@ -5998,12 +6624,6 @@ function saveMaterial(){
 
 
     clearMaterialForm();
-
-
-    setTimeout(
-        loadMaterials,
-        600
-    );
 }
 
 
@@ -6053,6 +6673,7 @@ function(data){
 
 
     allMaterials=
+
         Array.isArray(data)
         ?
         data
@@ -6091,6 +6712,7 @@ function renderMaterials(){
                 box.innerHTML=
 
                     '<div class="info">Noch keine Materialien hinterlegt.</div>';
+
 
                 return;
             }
@@ -6153,9 +6775,7 @@ function renderMaterials(){
                             );
 
 
-                        if(
-                            material.productUrl
-                        ){
+                        if(material.productUrl){
 
                             const button=
                                 document.createElement(
@@ -6186,9 +6806,7 @@ function renderMaterials(){
                         }
 
 
-                        if(
-                            material.safetyUrl
-                        ){
+                        if(material.safetyUrl){
 
                             const button=
                                 document.createElement(
@@ -6249,23 +6867,42 @@ function renderMaterials(){
                                     el('materialId').value=
                                         material.id;
 
+
                                     el('materialName').value=
-                                        material.name || '';
+                                        material.name
+                                        ||
+                                        '';
+
 
                                     el('materialManufacturer').value=
-                                        material.manufacturer || '';
+                                        material.manufacturer
+                                        ||
+                                        '';
+
 
                                     el('materialCategory').value=
-                                        material.category || 'Unterhaltsreinigung';
+                                        material.category
+                                        ||
+                                        'Unterhaltsreinigung';
+
 
                                     el('materialUse').value=
-                                        material.use || '';
+                                        material.use
+                                        ||
+                                        '';
+
 
                                     el('materialProductUrl').value=
-                                        material.productUrl || '';
+                                        material.productUrl
+                                        ||
+                                        '';
+
 
                                     el('materialSafetyUrl').value=
-                                        material.safetyUrl || '';
+                                        material.safetyUrl
+                                        ||
+                                        '';
+
 
                                     window.scrollTo(
                                         0,
@@ -6330,18 +6967,22 @@ function renderMaterials(){
 }
 
 
-/* ======================================================
-   DOCUMENTS
-====================================================== */
+/* =====================================================
+   DOKUMENTE
+===================================================== */
 
-function saveDocument(){
+function uploadDocument(){
 
-    const id=
-        el('documentId').value
-        ||
-        String(
-            Date.now()
-        );
+    if(!adminMode){
+
+        return;
+    }
+
+
+    if(documentUploadRunning){
+
+        return;
+    }
 
 
     const title=
@@ -6350,20 +6991,10 @@ function saveDocument(){
             .trim();
 
 
-    const url=
-        el('documentUrl')
-            .value
-            .trim();
-
-
-    if(
-        !title
-        ||
-        !url
-    ){
+    if(!title){
 
         alert(
-            'Titel und Link sind erforderlich.'
+            'Bitte zuerst einen Titel eingeben.'
         );
 
         return;
@@ -6381,17 +7012,66 @@ function saveDocument(){
     const employeeName=
 
         employeeId
+        &&
+        select.selectedIndex>=0
+
         ?
+
         select.options[
             select.selectedIndex
         ].text
+
         :
+
         '';
+
+
+    const id=
+
+        el('documentId').value
+
+        ||
+
+        String(
+            Date.now()
+        );
+
+
+    el('documentId').value=
+        id;
+
+
+    documentUploadRunning=
+        true;
+
+
+    const status=
+        el('documentUploadStatus');
+
+
+    status.className=
+        'info';
+
+
+    status.textContent=
+        'Datei auswählen...';
+
+
+    const button=
+        el('documentUploadButton');
+
+
+    button.disabled=
+        true;
+
+
+    button.textContent=
+        'Datei wird ausgewählt...';
 
 
     callAndroid(
 
-        'saveDocumentToFirestore',
+        'uploadDocument',
 
         id,
 
@@ -6403,43 +7083,155 @@ function saveDocument(){
 
         employeeName,
 
-        url,
-
         el('documentNote').value
     );
 
 
-    clearDocumentForm();
-
-
     setTimeout(
-        loadDocuments,
-        600
+        ()=>{
+
+            if(documentUploadRunning){
+
+                documentUploadRunning=
+                    false;
+
+
+                button.disabled=
+                    false;
+
+
+                button.textContent=
+                    '📎 Datei auswählen & hochladen';
+            }
+
+        },
+        120000
     );
 }
 
 
-function clearDocumentForm(){
+window.receiveDocumentUploadResult=
+function(result){
 
-    [
-        'documentId',
-        'documentTitle',
-        'documentUrl',
-        'documentNote'
-    ]
-    .forEach(
-        id=>{
+    if(
+        typeof result==='string'
+    ){
 
-            el(id).value='';
+        result=
+            JSON.parse(
+                result
+            );
+    }
+
+
+    documentUploadRunning=
+        false;
+
+
+    const button=
+        el('documentUploadButton');
+
+
+    if(button){
+
+        button.disabled=
+            false;
+
+
+        button.textContent=
+            '📎 Datei auswählen & hochladen';
+    }
+
+
+    const status=
+        el('documentUploadStatus');
+
+
+    if(
+        result
+        &&
+        result.success
+    ){
+
+        if(status){
+
+            status.className=
+                'success';
+
+
+            status.textContent=
+
+                result.message
+                ||
+                'Dokument erfolgreich hochgeladen.';
         }
-    );
+
+
+        clearDocumentForm(
+            true
+        );
+
+
+        loadDocuments();
+
+    }else{
+
+        if(status){
+
+            status.className=
+                'warning';
+
+
+            status.textContent=
+
+                result?.message
+                ||
+                'Dokument konnte nicht hochgeladen werden.';
+        }
+    }
+}
+
+
+function clearDocumentForm(
+    keepStatus
+){
+
+    el('documentId').value=
+        '';
+
+
+    el('documentTitle').value=
+        '';
+
+
+    el('documentNote').value=
+        '';
 
 
     el('documentType').value=
         'Arbeitsvertrag';
 
 
-    el('documentEmployee').value='';
+    el('documentEmployee').value=
+        '';
+
+
+    if(
+        !keepStatus
+        &&
+        el('documentUploadStatus')
+    ){
+
+        el('documentUploadStatus')
+            .className=
+                'info';
+
+
+        el('documentUploadStatus')
+            .textContent=
+
+                'Titel und Zuordnung ausfüllen und anschließend Datei auswählen.';
+    }
 }
 
 
@@ -6479,6 +7271,7 @@ function(data){
 
 
     allDocuments=
+
         Array.isArray(data)
         ?
         data
@@ -6486,7 +7279,55 @@ function(data){
         [];
 
 
+    allDocuments.sort(
+        (a,b)=>
+
+            String(
+                a.title
+                ||
+                ''
+            )
+            .localeCompare(
+
+                String(
+                    b.title
+                    ||
+                    ''
+                ),
+
+                'de'
+            )
+    );
+
+
     renderDocuments();
+}
+
+
+function openDocumentItem(
+    documentItem
+){
+
+    callAndroid(
+
+        'openDocument',
+
+        documentItem.storagePath
+        ||
+        '',
+
+        documentItem.fileName
+        ||
+        'dokument',
+
+        documentItem.mimeType
+        ||
+        '*/*',
+
+        documentItem.url
+        ||
+        ''
+    );
 }
 
 
@@ -6518,6 +7359,7 @@ function renderDocuments(){
 
                     '<div class="info">Noch keine Dokumente hinterlegt.</div>';
 
+
                 return;
             }
 
@@ -6536,12 +7378,65 @@ function renderDocuments(){
                             'item';
 
 
+                        let assignment='Allgemein';
+
+
+                        if(documentItem.employeeName){
+
+                            assignment=
+
+                                'Für: '
+                                +
+                                documentItem.employeeName;
+                        }
+
+
+                        let fileInfo='';
+
+
+                        if(documentItem.fileName){
+
+                            fileInfo=
+
+                                '<div class="document-file">'
+                                +
+                                '📎 '
+                                +
+                                esc(
+                                    documentItem.fileName
+                                )
+                                +
+                                '</div>';
+                        }
+
+
+                        const cloudBadge=
+
+                            documentItem.storagePath
+
+                            ?
+
+                            '<div class="document-badge">☁ Datei gespeichert</div>'
+
+                            :
+
+                            (
+                                documentItem.url
+                                ?
+                                '<div class="document-badge">🔗 Altes Link-Dokument</div>'
+                                :
+                                ''
+                            );
+
+
                         item.innerHTML=
 
                             '<strong>'
                             +
                             esc(
                                 documentItem.title
+                                ||
+                                'Dokument'
                             )
                             +
                             '</strong><br>'
@@ -6556,20 +7451,12 @@ function renderDocuments(){
 
                             +
 
-                            (
-                                documentItem.employeeName
+                            '<br>'
 
-                                ?
+                            +
 
-                                '<br>Für: '
-                                +
-                                esc(
-                                    documentItem.employeeName
-                                )
-
-                                :
-
-                                '<br>Allgemein'
+                            esc(
+                                assignment
                             )
 
                             +
@@ -6588,35 +7475,50 @@ function renderDocuments(){
                                 :
 
                                 ''
-                            );
+                            )
+
+                            +
+
+                            fileInfo
+
+                            +
+
+                            cloudBadge;
 
 
-                        const open=
-                            document.createElement(
-                                'button'
-                            );
+                        if(
+                            documentItem.storagePath
+                            ||
+                            documentItem.url
+                        ){
 
-
-                        open.className=
-                            'small-button';
-
-
-                        open.textContent=
-                            'Öffnen';
-
-
-                        open.onclick=
-                            ()=>{
-
-                                openExternal(
-                                    documentItem.url
+                            const open=
+                                document.createElement(
+                                    'button'
                                 );
-                            };
 
 
-                        item.appendChild(
-                            open
-                        );
+                            open.className=
+                                'small-button';
+
+
+                            open.textContent=
+                                '📄 Öffnen';
+
+
+                            open.onclick=
+                                ()=>{
+
+                                    openDocumentItem(
+                                        documentItem
+                                    );
+                                };
+
+
+                            item.appendChild(
+                                open
+                            );
+                        }
 
 
                         if(
@@ -6625,44 +7527,72 @@ function renderDocuments(){
                             id==='documentsAdminList'
                         ){
 
-                            const edit=
+                            const replace=
                                 document.createElement(
                                     'button'
                                 );
 
 
-                            edit.className=
+                            replace.className=
                                 'small-button';
 
 
-                            edit.style.background=
+                            replace.style.background=
                                 '#536176';
 
 
-                            edit.textContent=
-                                'Bearbeiten';
+                            replace.textContent=
+                                'Datei ersetzen';
 
 
-                            edit.onclick=
+                            replace.onclick=
                                 ()=>{
 
                                     el('documentId').value=
-                                        documentItem.id;
+                                        documentItem.id
+                                        ||
+                                        '';
+
 
                                     el('documentTitle').value=
-                                        documentItem.title || '';
+                                        documentItem.title
+                                        ||
+                                        '';
+
 
                                     el('documentType').value=
-                                        documentItem.type || 'Sonstiges';
+                                        documentItem.type
+                                        ||
+                                        'Sonstiges';
+
 
                                     el('documentEmployee').value=
-                                        documentItem.employeeId || '';
+                                        documentItem.employeeId
+                                        ||
+                                        '';
 
-                                    el('documentUrl').value=
-                                        documentItem.url || '';
 
                                     el('documentNote').value=
-                                        documentItem.note || '';
+                                        documentItem.note
+                                        ||
+                                        '';
+
+
+                                    if(
+                                        el('documentUploadStatus')
+                                    ){
+
+                                        el('documentUploadStatus')
+                                            .className=
+                                                'info';
+
+
+                                        el('documentUploadStatus')
+                                            .textContent=
+
+                                                'Neue Datei auswählen. Das Dokument wird unter derselben Dokument-ID gespeichert.';
+                                    }
+
 
                                     window.scrollTo(
                                         0,
@@ -6672,7 +7602,7 @@ function renderDocuments(){
 
 
                             item.appendChild(
-                                edit
+                                replace
                             );
 
 
@@ -6699,7 +7629,7 @@ function renderDocuments(){
 
                                     if(
                                         confirm(
-                                            'Dokument löschen?'
+                                            'Dokument wirklich löschen?'
                                         )
                                     ){
 
@@ -6727,9 +7657,9 @@ function renderDocuments(){
 }
 
 
-/* ======================================================
+/* =====================================================
    BACK
-====================================================== */
+===================================================== */
 
 window.androidBack=
 function(){
@@ -6756,6 +7686,7 @@ function(){
             'home'
         );
 
+
         return true;
     }
 
@@ -6764,13 +7695,15 @@ function(){
 }
 
 
-/* ======================================================
+/* =====================================================
    START
-====================================================== */
+===================================================== */
 
 (function(){
 
-    setMode('');
+    setMode(
+        ''
+    );
 
 
     const today=
@@ -6796,6 +7729,12 @@ function(){
         );
 
 
+    /*
+     * MainActivity lädt Mitarbeiter zusätzlich nach
+     * onPageFinished(). Dieser zweite Aufruf ist nur
+     * eine Absicherung.
+     */
+
     setTimeout(
         ()=>{
 
@@ -6804,10 +7743,11 @@ function(){
             );
 
         },
-        350
+        800
     );
 
 })();
+
 
 </script>
 
