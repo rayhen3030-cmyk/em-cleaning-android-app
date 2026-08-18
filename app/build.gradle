@@ -28,7 +28,7 @@ dependencies {
     // ARCore für Fenster-/Kameramessung
     implementation 'com.google.ar:core:1.54.0'
 
-    // Firebase
+    // Firebase BOM
     implementation platform('com.google.firebase:firebase-bom:34.0.0')
 
     // Firebase Authentication
@@ -36,4 +36,7 @@ dependencies {
 
     // Cloud Firestore
     implementation 'com.google.firebase:firebase-firestore'
+
+    // Firebase Storage für Dokumente / PDFs / Arbeitsverträge
+    implementation 'com.google.firebase:firebase-storage'
 }
