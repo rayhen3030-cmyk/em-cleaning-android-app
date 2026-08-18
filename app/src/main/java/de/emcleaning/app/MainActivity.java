@@ -1,8 +1,9 @@
-    package de.emcleaning.app;
+package de.emcleaning.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -18,6 +20,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
+
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -25,10 +29,14 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.HashMap;
@@ -43,6 +51,7 @@ public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final int AR_MEASURE_REQUEST = 2001;
     private static final int PDF_CREATE_REQUEST = 3001;
+    private static final int DOCUMENT_PICK_REQUEST = 4001;
 
     private static final String ADMIN_PIN = "2012";
 
@@ -58,6 +67,16 @@ public class MainActivity extends Activity {
 
     private Uri lastSavedPdfUri = null;
 
+    /*
+     * Informationen für einen Dokument-Upload.
+     */
+    private String pendingDocumentId = "";
+    private String pendingDocumentTitle = "";
+    private String pendingDocumentType = "";
+    private String pendingDocumentEmployeeId = "";
+    private String pendingDocumentEmployeeName = "";
+    private String pendingDocumentNote = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +84,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
+
         setContentView(webView);
 
         WebSettings settings =
@@ -73,20 +93,16 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
 
-        /*
-         * Wichtig:
-         * Alte index.html nicht aus dem WebView-Cache laden.
-         */
         settings.setCacheMode(
                 WebSettings.LOAD_NO_CACHE
         );
-
-        webView.clearCache(true);
 
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setSupportMultipleWindows(false);
+
+        webView.clearCache(true);
 
 
         webView.setWebViewClient(
@@ -122,15 +138,10 @@ public class MainActivity extends Activity {
                         if (
                                 url != null
                                         &&
-                                        url.contains(
-                                                "index.html"
-                                        )
+                                url.contains(
+                                        "index.html"
+                                )
                         ) {
-
-                            /*
-                             * Erst jetzt Firebase / Mitarbeiter laden,
-                             * weil JavaScript jetzt sicher vorhanden ist.
-                             */
 
                             ensureFirebaseAuth(
                                     () -> {
@@ -284,20 +295,20 @@ public class MainActivity extends Activity {
     }
 
 
-    /*
-     * Mitarbeiter zentral laden.
-     *
-     * Wird beim Start nach onPageFinished()
-     * und über JavaScript verwendet.
-     */
+    private FirebaseStorage storage() {
+
+        return FirebaseStorage.getInstance();
+    }
+
+
+    /* =====================================================
+       MITARBEITER INTERN LADEN
+    ===================================================== */
+
     private void loadEmployeesInternal() {
 
         ensureFirebaseAuth(
                 () -> {
-
-                    toast(
-                            "Mitarbeiter-Abfrage gestartet..."
-                    );
 
                     db()
                             .collection(
@@ -311,6 +322,7 @@ public class MainActivity extends Activity {
                                         JSONArray result =
                                                 new JSONArray();
 
+
                                         for (
                                                 QueryDocumentSnapshot doc :
                                                 snapshots
@@ -321,6 +333,7 @@ public class MainActivity extends Activity {
                                                 JSONObject item =
                                                         new JSONObject();
 
+
                                                 String id =
                                                         safe(
                                                                 doc.getString(
@@ -328,16 +341,19 @@ public class MainActivity extends Activity {
                                                                 )
                                                         );
 
+
                                                 if (id.isEmpty()) {
 
                                                     id =
                                                             doc.getId();
                                                 }
 
+
                                                 item.put(
                                                         "id",
                                                         id
                                                 );
+
 
                                                 item.put(
                                                         "name",
@@ -348,10 +364,12 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
+
                                                 Boolean pinSet =
                                                         doc.getBoolean(
                                                                 "pinSet"
                                                         );
+
 
                                                 item.put(
                                                         "pinSet",
@@ -372,6 +390,7 @@ public class MainActivity extends Activity {
                                                             )
                                                     );
 
+
                                                     item.put(
                                                             "art",
                                                             safe(
@@ -380,6 +399,7 @@ public class MainActivity extends Activity {
                                                                     )
                                                             )
                                                     );
+
 
                                                     item.put(
                                                             "lohn",
@@ -403,13 +423,6 @@ public class MainActivity extends Activity {
                                         }
 
 
-                                        toast(
-                                                "Mitarbeiter geladen: "
-                                                        +
-                                                        result.length()
-                                        );
-
-
                                         sendJs(
                                                 "receiveEmployeesFromFirestore",
                                                 result
@@ -421,18 +434,9 @@ public class MainActivity extends Activity {
                                     e -> {
 
                                         String message =
-                                                e.getMessage() == null
-                                                        ?
-                                                        "Unbekannter Firestore-Fehler"
-                                                        :
-                                                        e.getMessage();
-
-
-                                        toast(
-                                                "Firestore-Fehler: "
-                                                        +
-                                                        message
-                                        );
+                                                safe(
+                                                        e.getMessage()
+                                                );
 
 
                                         sendFirebaseError(
@@ -444,6 +448,13 @@ public class MainActivity extends Activity {
                                         sendJs(
                                                 "receiveEmployeesFromFirestore",
                                                 new JSONArray()
+                                        );
+
+
+                                        toast(
+                                                "Mitarbeiter konnten nicht geladen werden: "
+                                                        +
+                                                        message
                                         );
                                     }
                             );
@@ -462,15 +473,18 @@ public class MainActivity extends Activity {
             JSONObject error =
                     new JSONObject();
 
+
             error.put(
                     "type",
                     safe(type)
             );
 
+
             error.put(
                     "message",
                     safe(message)
             );
+
 
             sendJs(
                     "receiveFirebaseError",
@@ -484,7 +498,7 @@ public class MainActivity extends Activity {
 
 
     /* =====================================================
-       HELPER
+       HELFER
     ===================================================== */
 
     private void toast(
@@ -636,8 +650,718 @@ public class MainActivity extends Activity {
     }
 
 
+    private String getFileName(
+            Uri uri
+    ) {
+
+        String result =
+                "datei";
+
+
+        try {
+
+            if (
+                    "content".equals(
+                            uri.getScheme()
+                    )
+            ) {
+
+                Cursor cursor =
+                        getContentResolver()
+                                .query(
+                                        uri,
+                                        null,
+                                        null,
+                                        null,
+                                        null
+                                );
+
+
+                if (cursor != null) {
+
+                    try {
+
+                        int index =
+                                cursor.getColumnIndex(
+                                        OpenableColumns.DISPLAY_NAME
+                                );
+
+
+                        if (
+                                index >= 0
+                                        &&
+                                cursor.moveToFirst()
+                        ) {
+
+                            result =
+                                    cursor.getString(
+                                            index
+                                    );
+                        }
+
+                    } finally {
+
+                        cursor.close();
+                    }
+                }
+            }
+
+
+            if (
+                    result == null
+                            ||
+                    result.trim().isEmpty()
+            ) {
+
+                result =
+                        uri.getLastPathSegment();
+            }
+
+        } catch (Exception ignored) {
+
+        }
+
+
+        if (
+                result == null
+                        ||
+                result.trim().isEmpty()
+        ) {
+
+            result =
+                    "dokument";
+        }
+
+
+        return result;
+    }
+
+
+    private String cleanStorageName(
+            String fileName
+    ) {
+
+        String cleaned =
+                safe(fileName)
+                        .replaceAll(
+                                "[^a-zA-Z0-9ÄÖÜäöüß._-]",
+                                "_"
+                        );
+
+
+        if (cleaned.isEmpty()) {
+
+            cleaned =
+                    "dokument";
+        }
+
+
+        return cleaned;
+    }
+
+
     /* =====================================================
-       ANDROID BRIDGE
+       DOKUMENT UPLOAD
+    ===================================================== */
+
+    private void openDocumentPicker() {
+
+        runOnUiThread(
+                () -> {
+
+                    Intent intent =
+                            new Intent(
+                                    Intent.ACTION_OPEN_DOCUMENT
+                            );
+
+
+                    intent.addCategory(
+                            Intent.CATEGORY_OPENABLE
+                    );
+
+
+                    intent.setType(
+                            "*/*"
+                    );
+
+
+                    intent.putExtra(
+                            Intent.EXTRA_MIME_TYPES,
+                            new String[]{
+                                    "application/pdf",
+                                    "application/msword",
+                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    "image/jpeg",
+                                    "image/png"
+                            }
+                    );
+
+
+                    try {
+
+                        startActivityForResult(
+                                intent,
+                                DOCUMENT_PICK_REQUEST
+                        );
+
+                    } catch (Exception e) {
+
+                        toast(
+                                "Dateiauswahl konnte nicht geöffnet werden."
+                        );
+                    }
+                }
+        );
+    }
+
+
+    private void uploadDocumentFile(
+            Uri fileUri
+    ) {
+
+        if (!adminLoggedIn) {
+
+            toast(
+                    "Nur die Verwaltung darf Dokumente hochladen."
+            );
+
+            return;
+        }
+
+
+        if (fileUri == null) {
+
+            toast(
+                    "Keine Datei ausgewählt."
+            );
+
+            return;
+        }
+
+
+        ensureFirebaseAuth(
+                () -> {
+
+                    String documentId =
+                            pendingDocumentId;
+
+
+                    if (
+                            documentId == null
+                                    ||
+                            documentId.trim().isEmpty()
+                    ) {
+
+                        documentId =
+                                String.valueOf(
+                                        System.currentTimeMillis()
+                                );
+                    }
+
+
+                    final String finalDocumentId =
+                            documentId;
+
+
+                    String originalFileName =
+                            getFileName(
+                                    fileUri
+                            );
+
+
+                    String cleanFileName =
+                            cleanStorageName(
+                                    originalFileName
+                            );
+
+
+                    String folder =
+
+                            pendingDocumentEmployeeId
+                                    .trim()
+                                    .isEmpty()
+
+                                    ?
+
+                                    "general"
+
+                                    :
+
+                                    "employees/"
+                                            +
+                                            cleanStorageName(
+                                                    pendingDocumentEmployeeId
+                                            );
+
+
+                    String storagePath =
+
+                            "documents/"
+                                    +
+                                    folder
+                                    +
+                                    "/"
+                                    +
+                                    finalDocumentId
+                                    +
+                                    "_"
+                                    +
+                                    cleanFileName;
+
+
+                    StorageReference reference =
+                            storage()
+                                    .getReference()
+                                    .child(
+                                            storagePath
+                                    );
+
+
+                    String mimeType =
+                            getContentResolver()
+                                    .getType(
+                                            fileUri
+                                    );
+
+
+                    if (
+                            mimeType == null
+                                    ||
+                            mimeType.trim().isEmpty()
+                    ) {
+
+                        mimeType =
+                                "application/octet-stream";
+                    }
+
+
+                    StorageMetadata metadata =
+                            new StorageMetadata.Builder()
+                                    .setContentType(
+                                            mimeType
+                                    )
+                                    .setCustomMetadata(
+                                            "documentId",
+                                            finalDocumentId
+                                    )
+                                    .setCustomMetadata(
+                                            "employeeId",
+                                            pendingDocumentEmployeeId
+                                    )
+                                    .build();
+
+
+                    toast(
+                            "Dokument wird hochgeladen..."
+                    );
+
+
+                    final String finalMimeType =
+                            mimeType;
+
+
+                    reference
+                            .putFile(
+                                    fileUri,
+                                    metadata
+                            )
+
+                            .addOnSuccessListener(
+                                    taskSnapshot -> {
+
+                                        saveUploadedDocumentMetadata(
+                                                finalDocumentId,
+                                                originalFileName,
+                                                finalMimeType,
+                                                storagePath
+                                        );
+                                    }
+                            )
+
+                            .addOnFailureListener(
+                                    e -> {
+
+                                        toast(
+                                                "Upload fehlgeschlagen: "
+                                                        +
+                                                        safe(
+                                                                e.getMessage()
+                                                        )
+                                        );
+
+
+                                        sendDocumentUploadResult(
+                                                false,
+                                                "Dokument konnte nicht hochgeladen werden."
+                                        );
+                                    }
+                            );
+                }
+        );
+    }
+
+
+    private void saveUploadedDocumentMetadata(
+            String documentId,
+            String fileName,
+            String mimeType,
+            String storagePath
+    ) {
+
+        Map<String, Object> map =
+                new HashMap<>();
+
+
+        map.put(
+                "id",
+                documentId
+        );
+
+
+        map.put(
+                "title",
+                pendingDocumentTitle
+        );
+
+
+        map.put(
+                "type",
+                pendingDocumentType
+        );
+
+
+        map.put(
+                "employeeId",
+                pendingDocumentEmployeeId
+        );
+
+
+        map.put(
+                "employeeName",
+                pendingDocumentEmployeeName
+        );
+
+
+        map.put(
+                "note",
+                pendingDocumentNote
+        );
+
+
+        map.put(
+                "fileName",
+                fileName
+        );
+
+
+        map.put(
+                "mimeType",
+                mimeType
+        );
+
+
+        map.put(
+                "storagePath",
+                storagePath
+        );
+
+
+        /*
+         * Alte Link-Funktion bleibt kompatibel.
+         */
+        map.put(
+                "url",
+                ""
+        );
+
+
+        map.put(
+                "updatedAt",
+                FieldValue.serverTimestamp()
+        );
+
+
+        db()
+                .collection(
+                        "companyDocuments"
+                )
+                .document(
+                        documentId
+                )
+                .set(
+                        map
+                )
+
+                .addOnSuccessListener(
+                        unused -> {
+
+                            toast(
+                                    "Dokument hochgeladen ✅"
+                            );
+
+
+                            sendDocumentUploadResult(
+                                    true,
+                                    "Dokument wurde erfolgreich hochgeladen."
+                            );
+
+
+                            clearPendingDocument();
+
+
+                            new AndroidBridge()
+                                    .loadDocumentsFromFirestore(
+                                            ""
+                                    );
+                        }
+                )
+
+                .addOnFailureListener(
+                        e -> {
+
+                            /*
+                             * Falls Firestore fehlschlägt,
+                             * hochgeladene Datei wieder entfernen.
+                             */
+                            storage()
+                                    .getReference()
+                                    .child(
+                                            storagePath
+                                    )
+                                    .delete();
+
+
+                            toast(
+                                    "Dokument konnte nicht gespeichert werden: "
+                                            +
+                                            safe(
+                                                    e.getMessage()
+                                            )
+                            );
+
+
+                            sendDocumentUploadResult(
+                                    false,
+                                    "Dokumentdaten konnten nicht gespeichert werden."
+                            );
+                        }
+                );
+    }
+
+
+    private void sendDocumentUploadResult(
+            boolean success,
+            String message
+    ) {
+
+        try {
+
+            JSONObject result =
+                    new JSONObject();
+
+
+            result.put(
+                    "success",
+                    success
+            );
+
+
+            result.put(
+                    "message",
+                    message
+            );
+
+
+            sendJs(
+                    "receiveDocumentUploadResult",
+                    result
+            );
+
+        } catch (Exception ignored) {
+
+        }
+    }
+
+
+    private void clearPendingDocument() {
+
+        pendingDocumentId =
+                "";
+
+        pendingDocumentTitle =
+                "";
+
+        pendingDocumentType =
+                "";
+
+        pendingDocumentEmployeeId =
+                "";
+
+        pendingDocumentEmployeeName =
+                "";
+
+        pendingDocumentNote =
+                "";
+    }
+
+
+    private void openStoredDocument(
+            String storagePath,
+            String fileName,
+            String mimeType
+    ) {
+
+        String cleanPath =
+                safe(storagePath).trim();
+
+
+        if (cleanPath.isEmpty()) {
+
+            toast(
+                    "Dokument-Datei wurde nicht gefunden."
+            );
+
+            return;
+        }
+
+
+        ensureFirebaseAuth(
+                () -> {
+
+                    try {
+
+                        File directory =
+                                new File(
+                                        getCacheDir(),
+                                        "documents"
+                                );
+
+
+                        if (!directory.exists()) {
+
+                            directory.mkdirs();
+                        }
+
+
+                        String safeName =
+                                cleanStorageName(
+                                        fileName
+                                );
+
+
+                        if (safeName.isEmpty()) {
+
+                            safeName =
+                                    "dokument";
+                        }
+
+
+                        File localFile =
+                                new File(
+                                        directory,
+                                        safeName
+                                );
+
+
+                        toast(
+                                "Dokument wird geöffnet..."
+                        );
+
+
+                        storage()
+                                .getReference()
+                                .child(
+                                        cleanPath
+                                )
+                                .getFile(
+                                        localFile
+                                )
+
+                                .addOnSuccessListener(
+                                        taskSnapshot -> {
+
+                                            try {
+
+                                                Uri contentUri =
+                                                        FileProvider.getUriForFile(
+                                                                MainActivity.this,
+                                                                getPackageName()
+                                                                        +
+                                                                        ".fileprovider",
+                                                                localFile
+                                                        );
+
+
+                                                Intent intent =
+                                                        new Intent(
+                                                                Intent.ACTION_VIEW
+                                                        );
+
+
+                                                String type =
+                                                        safe(
+                                                                mimeType
+                                                        );
+
+
+                                                if (type.isEmpty()) {
+
+                                                    type =
+                                                            "*/*";
+                                                }
+
+
+                                                intent.setDataAndType(
+                                                        contentUri,
+                                                        type
+                                                );
+
+
+                                                intent.addFlags(
+                                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                                );
+
+
+                                                startActivity(
+                                                        Intent.createChooser(
+                                                                intent,
+                                                                "Dokument öffnen"
+                                                        )
+                                                );
+
+                                            } catch (Exception e) {
+
+                                                toast(
+                                                        "Für diese Datei wurde keine passende App gefunden."
+                                                );
+                                            }
+                                        }
+                                )
+
+                                .addOnFailureListener(
+                                        e ->
+                                                toast(
+                                                        "Dokument konnte nicht geladen werden: "
+                                                                +
+                                                                safe(
+                                                                        e.getMessage()
+                                                                )
+                                                )
+                                );
+
+                    } catch (Exception e) {
+
+                        toast(
+                                "Dokument konnte nicht geöffnet werden."
+                        );
+                    }
+                }
+        );
+    }
+
+
+    /* =====================================================
+       JAVASCRIPT BRIDGE
     ===================================================== */
 
     private class AndroidBridge {
@@ -667,8 +1391,10 @@ public class MainActivity extends Activity {
                     adminLoggedIn =
                             true;
 
+
                     loggedEmployeeId =
                             "";
+
 
                     loggedEmployeeName =
                             "";
@@ -678,6 +1404,7 @@ public class MainActivity extends Activity {
                             "success",
                             true
                     );
+
 
                     result.put(
                             "message",
@@ -694,6 +1421,7 @@ public class MainActivity extends Activity {
                             "success",
                             false
                     );
+
 
                     result.put(
                             "message",
@@ -790,7 +1518,7 @@ public class MainActivity extends Activity {
                         if (
                                 !cleanPin.isEmpty()
                                         &&
-                                        !cleanPin.matches(
+                                !cleanPin.matches(
                                                 "\\d{4}"
                                         )
                         ) {
@@ -866,6 +1594,7 @@ public class MainActivity extends Activity {
                                                         )
                                                 );
 
+
                                                 map.put(
                                                         "pinSet",
                                                         true
@@ -885,6 +1614,7 @@ public class MainActivity extends Activity {
                                                             "pinHash",
                                                             oldHash
                                                     );
+
 
                                                     map.put(
                                                             "pinSet",
@@ -918,6 +1648,7 @@ public class MainActivity extends Activity {
                                                                         "Mitarbeiter gespeichert ✅"
                                                                 );
 
+
                                                                 loadEmployeesInternal();
                                                             }
                                                     )
@@ -933,17 +1664,6 @@ public class MainActivity extends Activity {
                                                                     )
                                                     );
                                         }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Mitarbeiter konnte nicht geprüft werden: "
-                                                                +
-                                                                safe(
-                                                                        e.getMessage()
-                                                                )
-                                                )
                                 );
                     }
             );
@@ -966,6 +1686,7 @@ public class MainActivity extends Activity {
                         String id =
                                 safe(employeeId).trim();
 
+
                         String cleanPin =
                                 safe(pin).trim();
 
@@ -973,9 +1694,9 @@ public class MainActivity extends Activity {
                         if (
                                 id.isEmpty()
                                         ||
-                                        !cleanPin.matches(
-                                                "\\d{4}"
-                                        )
+                                !cleanPin.matches(
+                                        "\\d{4}"
+                                )
                         ) {
 
                             sendEmployeeLogin(
@@ -1021,7 +1742,7 @@ public class MainActivity extends Activity {
                                             if (
                                                     stored == null
                                                             ||
-                                                            stored.trim().isEmpty()
+                                                    stored.trim().isEmpty()
                                             ) {
 
                                                 sendEmployeeLogin(
@@ -1206,6 +1927,7 @@ public class MainActivity extends Activity {
             loggedEmployeeId =
                     "";
 
+
             loggedEmployeeName =
                     "";
         }
@@ -1245,7 +1967,7 @@ public class MainActivity extends Activity {
                         if (
                                 finalId.isEmpty()
                                         ||
-                                        safe(month).trim().isEmpty()
+                                safe(month).trim().isEmpty()
                         ) {
 
                             toast(
@@ -1326,6 +2048,7 @@ public class MainActivity extends Activity {
                                                     "Stundenzettel gespeichert ✅"
                                             );
 
+
                                             loadTimesheetsFromFirestore();
                                         }
                                 )
@@ -1354,7 +2077,7 @@ public class MainActivity extends Activity {
                         if (
                                 !adminLoggedIn
                                         &&
-                                        loggedEmployeeId.isEmpty()
+                                loggedEmployeeId.isEmpty()
                         ) {
 
                             return;
@@ -1371,17 +2094,6 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTimesheets
-                                    )
-
-                                    .addOnFailureListener(
-                                            e ->
-                                                    toast(
-                                                            "Stundenzettel konnten nicht geladen werden: "
-                                                                    +
-                                                                    safe(
-                                                                            e.getMessage()
-                                                                    )
-                                                    )
                                     );
 
                         } else {
@@ -1398,17 +2110,6 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTimesheets
-                                    )
-
-                                    .addOnFailureListener(
-                                            e ->
-                                                    toast(
-                                                            "Stundenzettel konnten nicht geladen werden: "
-                                                                    +
-                                                                    safe(
-                                                                            e.getMessage()
-                                                                    )
-                                                    )
                                     );
                         }
                     }
@@ -1484,7 +2185,7 @@ public class MainActivity extends Activity {
                     if (
                             tageJson == null
                                     ||
-                                    tageJson.trim().isEmpty()
+                            tageJson.trim().isEmpty()
                     ) {
 
                         item.put(
@@ -1565,8 +2266,10 @@ public class MainActivity extends Activity {
                             finalEmployeeId =
                                     safe(employeeId);
 
+
                             finalEmployeeName =
                                     safe(employeeName);
+
 
                             sender =
                                     "admin";
@@ -1576,8 +2279,10 @@ public class MainActivity extends Activity {
                             finalEmployeeId =
                                     loggedEmployeeId;
 
+
                             finalEmployeeName =
                                     loggedEmployeeName;
+
 
                             sender =
                                     "employee";
@@ -1636,17 +2341,6 @@ public class MainActivity extends Activity {
                                         unused ->
                                                 loadChatMessages(
                                                         finalEmployeeId
-                                                )
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Nachricht konnte nicht gesendet werden: "
-                                                                +
-                                                                safe(
-                                                                        e.getMessage()
-                                                                )
                                                 )
                                 );
                     }
@@ -1775,17 +2469,6 @@ public class MainActivity extends Activity {
                                                     result
                                             );
                                         }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Chat konnte nicht geladen werden: "
-                                                                +
-                                                                safe(
-                                                                        e.getMessage()
-                                                                )
-                                                )
                                 );
                     }
             );
@@ -1827,7 +2510,7 @@ public class MainActivity extends Activity {
                         if (
                                 finalId.isEmpty()
                                         ||
-                                        safe(subject).trim().isEmpty()
+                                safe(subject).trim().isEmpty()
                         ) {
 
                             toast(
@@ -1899,21 +2582,11 @@ public class MainActivity extends Activity {
                                                     "Ticket gesendet ✅"
                                             );
 
+
                                             loadTickets(
                                                     finalId
                                             );
                                         }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Ticket konnte nicht gesendet werden: "
-                                                                +
-                                                                safe(
-                                                                        e.getMessage()
-                                                                )
-                                                )
                                 );
                     }
             );
@@ -2110,6 +2783,7 @@ public class MainActivity extends Activity {
                                         "Ticket aktualisiert ✅"
                                 );
 
+
                                 loadTickets(
                                         ""
                                 );
@@ -2153,9 +2827,9 @@ public class MainActivity extends Activity {
                         if (
                                 finalId.isEmpty()
                                         ||
-                                        safe(from).isEmpty()
+                                safe(from).isEmpty()
                                         ||
-                                        safe(to).isEmpty()
+                                safe(to).isEmpty()
                         ) {
 
                             toast(
@@ -2226,6 +2900,7 @@ public class MainActivity extends Activity {
                                             toast(
                                                     "Urlaubsantrag gesendet ✅"
                                             );
+
 
                                             loadLeaveRequests(
                                                     finalId
@@ -2426,6 +3101,7 @@ public class MainActivity extends Activity {
                                 toast(
                                         "Urlaubsantrag aktualisiert ✅"
                                 );
+
 
                                 loadLeaveRequests(
                                         ""
@@ -2733,6 +3409,7 @@ public class MainActivity extends Activity {
                                         "Material gespeichert ✅"
                                 );
 
+
                                 loadMaterialsFromFirestore();
                             }
                     );
@@ -2898,6 +3575,7 @@ public class MainActivity extends Activity {
                                         "Material gelöscht."
                                 );
 
+
                                 loadMaterialsFromFirestore();
                             }
                     );
@@ -2905,9 +3583,84 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           DOKUMENTE
+           DOKUMENTE - NEUER DATEI-UPLOAD
         ================================================= */
 
+        @JavascriptInterface
+        public void uploadDocument(
+                String id,
+                String title,
+                String type,
+                String employeeId,
+                String employeeName,
+                String note
+        ) {
+
+            if (!adminLoggedIn) {
+
+                toast(
+                        "Nur die Verwaltung darf Dokumente hochladen."
+                );
+
+                return;
+            }
+
+
+            String cleanTitle =
+                    safe(title).trim();
+
+
+            if (cleanTitle.isEmpty()) {
+
+                toast(
+                        "Bitte zuerst einen Dokumenttitel eingeben."
+                );
+
+                return;
+            }
+
+
+            pendingDocumentId =
+                    safe(id).trim();
+
+
+            if (pendingDocumentId.isEmpty()) {
+
+                pendingDocumentId =
+                        String.valueOf(
+                                System.currentTimeMillis()
+                        );
+            }
+
+
+            pendingDocumentTitle =
+                    cleanTitle;
+
+
+            pendingDocumentType =
+                    safe(type);
+
+
+            pendingDocumentEmployeeId =
+                    safe(employeeId).trim();
+
+
+            pendingDocumentEmployeeName =
+                    safe(employeeName).trim();
+
+
+            pendingDocumentNote =
+                    safe(note);
+
+
+            openDocumentPicker();
+        }
+
+
+        /*
+         * Alte Methode bleibt bestehen,
+         * falls alte Dokumente mit URL vorhanden sind.
+         */
         @JavascriptInterface
         public void saveDocumentToFirestore(
                 String id,
@@ -3008,6 +3761,7 @@ public class MainActivity extends Activity {
                                         "Dokument gespeichert ✅"
                                 );
 
+
                                 loadDocumentsFromFirestore(
                                         ""
                                 );
@@ -3073,9 +3827,9 @@ public class MainActivity extends Activity {
                                                     if (
                                                             !assigned.isEmpty()
                                                                     &&
-                                                                    !assigned.equals(
-                                                                            loggedEmployeeId
-                                                                    )
+                                                            !assigned.equals(
+                                                                    loggedEmployeeId
+                                                            )
                                                     ) {
 
                                                         continue;
@@ -3084,89 +3838,10 @@ public class MainActivity extends Activity {
 
                                                     try {
 
-                                                        JSONObject item =
-                                                                new JSONObject();
-
-
-                                                        String id =
-                                                                safe(
-                                                                        doc.getString(
-                                                                                "id"
-                                                                        )
-                                                                );
-
-
-                                                        if (id.isEmpty()) {
-
-                                                            id =
-                                                                    doc.getId();
-                                                        }
-
-
-                                                        item.put(
-                                                                "id",
-                                                                id
-                                                        );
-
-
-                                                        item.put(
-                                                                "title",
-                                                                safe(
-                                                                        doc.getString(
-                                                                                "title"
-                                                                        )
-                                                                )
-                                                        );
-
-
-                                                        item.put(
-                                                                "type",
-                                                                safe(
-                                                                        doc.getString(
-                                                                                "type"
-                                                                        )
-                                                                )
-                                                        );
-
-
-                                                        item.put(
-                                                                "employeeId",
-                                                                assigned
-                                                        );
-
-
-                                                        item.put(
-                                                                "employeeName",
-                                                                safe(
-                                                                        doc.getString(
-                                                                                "employeeName"
-                                                                        )
-                                                                )
-                                                        );
-
-
-                                                        item.put(
-                                                                "url",
-                                                                safe(
-                                                                        doc.getString(
-                                                                                "url"
-                                                                        )
-                                                                )
-                                                        );
-
-
-                                                        item.put(
-                                                                "note",
-                                                                safe(
-                                                                        doc.getString(
-                                                                                "note"
-                                                                        )
-                                                                )
-                                                        );
-
-
                                                         result.put(
-                                                                item
+                                                                documentJson(
+                                                                        doc
+                                                                )
                                                         );
 
                                                     } catch (Exception e) {
@@ -3203,93 +3878,10 @@ public class MainActivity extends Activity {
 
                 try {
 
-                    JSONObject item =
-                            new JSONObject();
-
-
-                    String id =
-                            safe(
-                                    doc.getString(
-                                            "id"
-                                    )
-                            );
-
-
-                    if (id.isEmpty()) {
-
-                        id =
-                                doc.getId();
-                    }
-
-
-                    item.put(
-                            "id",
-                            id
-                    );
-
-
-                    item.put(
-                            "title",
-                            safe(
-                                    doc.getString(
-                                            "title"
-                                    )
-                            )
-                    );
-
-
-                    item.put(
-                            "type",
-                            safe(
-                                    doc.getString(
-                                            "type"
-                                    )
-                            )
-                    );
-
-
-                    item.put(
-                            "employeeId",
-                            safe(
-                                    doc.getString(
-                                            "employeeId"
-                                    )
-                            )
-                    );
-
-
-                    item.put(
-                            "employeeName",
-                            safe(
-                                    doc.getString(
-                                            "employeeName"
-                                    )
-                            )
-                    );
-
-
-                    item.put(
-                            "url",
-                            safe(
-                                    doc.getString(
-                                            "url"
-                                    )
-                            )
-                    );
-
-
-                    item.put(
-                            "note",
-                            safe(
-                                    doc.getString(
-                                            "note"
-                                    )
-                            )
-                    );
-
-
                     result.put(
-                            item
+                            documentJson(
+                                    doc
+                            )
                     );
 
                 } catch (Exception e) {
@@ -3306,6 +3898,162 @@ public class MainActivity extends Activity {
         }
 
 
+        private JSONObject documentJson(
+                QueryDocumentSnapshot doc
+        ) throws Exception {
+
+            JSONObject item =
+                    new JSONObject();
+
+
+            String id =
+                    safe(
+                            doc.getString(
+                                    "id"
+                            )
+                    );
+
+
+            if (id.isEmpty()) {
+
+                id =
+                        doc.getId();
+            }
+
+
+            item.put(
+                    "id",
+                    id
+            );
+
+
+            item.put(
+                    "title",
+                    safe(
+                            doc.getString(
+                                    "title"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "type",
+                    safe(
+                            doc.getString(
+                                    "type"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "employeeId",
+                    safe(
+                            doc.getString(
+                                    "employeeId"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "employeeName",
+                    safe(
+                            doc.getString(
+                                    "employeeName"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "note",
+                    safe(
+                            doc.getString(
+                                    "note"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "url",
+                    safe(
+                            doc.getString(
+                                    "url"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "storagePath",
+                    safe(
+                            doc.getString(
+                                    "storagePath"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "fileName",
+                    safe(
+                            doc.getString(
+                                    "fileName"
+                            )
+                    )
+            );
+
+
+            item.put(
+                    "mimeType",
+                    safe(
+                            doc.getString(
+                                    "mimeType"
+                            )
+                    )
+            );
+
+
+            return item;
+        }
+
+
+        @JavascriptInterface
+        public void openDocument(
+                String storagePath,
+                String fileName,
+                String mimeType,
+                String fallbackUrl
+        ) {
+
+            String path =
+                    safe(storagePath).trim();
+
+
+            if (!path.isEmpty()) {
+
+                openStoredDocument(
+                        path,
+                        fileName,
+                        mimeType
+                );
+
+                return;
+            }
+
+
+            /*
+             * Alte Dokumente mit Link weiterhin öffnen.
+             */
+            openExternalUrl(
+                    fallbackUrl
+            );
+        }
+
+
         @JavascriptInterface
         public void deleteDocumentFromFirestore(
                 String id
@@ -3317,32 +4065,83 @@ public class MainActivity extends Activity {
             }
 
 
+            final String documentId =
+                    safe(id);
+
+
             db()
                     .collection(
                             "companyDocuments"
                     )
                     .document(
-                            safe(id)
+                            documentId
                     )
-                    .delete()
+                    .get()
 
                     .addOnSuccessListener(
-                            unused -> {
+                            snapshot -> {
 
-                                toast(
-                                        "Dokument gelöscht."
-                                );
+                                String storagePath =
+                                        safe(
+                                                snapshot.getString(
+                                                        "storagePath"
+                                                )
+                                        );
 
-                                loadDocumentsFromFirestore(
-                                        ""
-                                );
+
+                                Runnable deleteFirestore =
+                                        () ->
+
+                                                db()
+                                                        .collection(
+                                                                "companyDocuments"
+                                                        )
+                                                        .document(
+                                                                documentId
+                                                        )
+                                                        .delete()
+
+                                                        .addOnSuccessListener(
+                                                                unused -> {
+
+                                                                    toast(
+                                                                            "Dokument gelöscht."
+                                                                    );
+
+
+                                                                    loadDocumentsFromFirestore(
+                                                                            ""
+                                                                    );
+                                                                }
+                                                        );
+
+
+                                if (storagePath.isEmpty()) {
+
+                                    deleteFirestore.run();
+
+                                    return;
+                                }
+
+
+                                storage()
+                                        .getReference()
+                                        .child(
+                                                storagePath
+                                        )
+                                        .delete()
+
+                                        .addOnCompleteListener(
+                                                task ->
+                                                        deleteFirestore.run()
+                                        );
                             }
                     );
         }
 
 
         /* =================================================
-           LINKS
+           EXTERNE LINKS
         ================================================= */
 
         @JavascriptInterface
@@ -3357,7 +4156,7 @@ public class MainActivity extends Activity {
             if (value.isEmpty()) {
 
                 toast(
-                        "Kein Link hinterlegt."
+                        "Kein Dokument hinterlegt."
                 );
 
                 return;
@@ -3389,7 +4188,7 @@ public class MainActivity extends Activity {
                         } catch (Exception e) {
 
                             toast(
-                                    "Link konnte nicht geöffnet werden."
+                                    "Dokument konnte nicht geöffnet werden."
                             );
                         }
                     }
@@ -3460,7 +4259,7 @@ public class MainActivity extends Activity {
             if (
                     !adminLoggedIn
                             &&
-                            loggedEmployeeId.isEmpty()
+                    loggedEmployeeId.isEmpty()
             ) {
 
                 toast(
@@ -3484,9 +4283,7 @@ public class MainActivity extends Activity {
                                         ).trim();
 
 
-                        if (
-                                pendingPdfEmployee.isEmpty()
-                        ) {
+                        if (pendingPdfEmployee.isEmpty()) {
 
                             pendingPdfEmployee =
                                     "Mitarbeiter";
@@ -3497,9 +4294,7 @@ public class MainActivity extends Activity {
                                 safe(month).trim();
 
 
-                        if (
-                                pendingPdfMonth.isEmpty()
-                        ) {
+                        if (pendingPdfMonth.isEmpty()) {
 
                             toast(
                                     "Bitte zuerst einen Monat auswählen."
@@ -3525,9 +4320,7 @@ public class MainActivity extends Activity {
                                     );
 
 
-                            if (
-                                    test.length() == 0
-                            ) {
+                            if (test.length() == 0) {
 
                                 toast(
                                         "Der Stundenzettel enthält keine Einträge."
@@ -3580,7 +4373,6 @@ public class MainActivity extends Activity {
 
                         intent.putExtra(
                                 Intent.EXTRA_TITLE,
-
                                 "Stundenzettel_"
                                         +
                                         safeEmployee
@@ -3632,12 +4424,8 @@ public class MainActivity extends Activity {
             if (
                     !adminLoggedIn
                             &&
-                            loggedEmployeeId.isEmpty()
+                    loggedEmployeeId.isEmpty()
             ) {
-
-                toast(
-                        "Bitte zuerst anmelden."
-                );
 
                 return;
             }
@@ -3646,9 +4434,7 @@ public class MainActivity extends Activity {
             runOnUiThread(
                     () -> {
 
-                        if (
-                                lastSavedPdfUri == null
-                        ) {
+                        if (lastSavedPdfUri == null) {
 
                             toast(
                                     "Es wurde noch keine PDF erstellt."
@@ -3688,7 +4474,52 @@ public class MainActivity extends Activity {
         if (
                 requestCode
                         ==
-                        FILE_CHOOSER_REQUEST
+                DOCUMENT_PICK_REQUEST
+        ) {
+
+            if (
+                    resultCode == RESULT_OK
+                            &&
+                    data != null
+                            &&
+                    data.getData() != null
+            ) {
+
+                Uri uri =
+                        data.getData();
+
+
+                try {
+
+                    getContentResolver()
+                            .takePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            );
+
+                } catch (Exception ignored) {
+
+                }
+
+
+                uploadDocumentFile(
+                        uri
+                );
+
+            } else {
+
+                clearPendingDocument();
+            }
+
+
+            return;
+        }
+
+
+        if (
+                requestCode
+                        ==
+                FILE_CHOOSER_REQUEST
         ) {
 
             if (filePathCallback == null) {
@@ -3729,15 +4560,15 @@ public class MainActivity extends Activity {
         if (
                 requestCode
                         ==
-                        PDF_CREATE_REQUEST
+                PDF_CREATE_REQUEST
         ) {
 
             if (
                     resultCode == RESULT_OK
                             &&
-                            data != null
+                    data != null
                             &&
-                            data.getData() != null
+                    data.getData() != null
             ) {
 
                 lastSavedPdfUri =
@@ -3757,7 +4588,7 @@ public class MainActivity extends Activity {
         if (
                 requestCode
                         ==
-                        AR_MEASURE_REQUEST
+                AR_MEASURE_REQUEST
         ) {
 
             arMeasurementRunning =
@@ -3767,7 +4598,7 @@ public class MainActivity extends Activity {
             if (
                     resultCode == RESULT_OK
                             &&
-                            data != null
+                    data != null
             ) {
 
                 double width =
@@ -4010,7 +4841,7 @@ public class MainActivity extends Activity {
             while (
                     index < rows.length()
                             ||
-                            first
+                    first
             ) {
 
                 first =
@@ -4066,7 +4897,7 @@ public class MainActivity extends Activity {
                 canvas.drawText(
                         "Mitarbeiter: "
                                 +
-                                pendingPdfEmployee,
+                        pendingPdfEmployee,
                         margin,
                         y,
                         bold
@@ -4080,7 +4911,7 @@ public class MainActivity extends Activity {
                 canvas.drawText(
                         "Monat: "
                                 +
-                                pendingPdfMonth,
+                        pendingPdfMonth,
                         margin,
                         y,
                         bold
@@ -4195,7 +5026,7 @@ public class MainActivity extends Activity {
                 while (
                         index < rows.length()
                                 &&
-                                y < 720
+                        y < 720
                 ) {
 
                     JSONObject row =
@@ -4353,13 +5184,13 @@ public class MainActivity extends Activity {
                     canvas.drawText(
                             "Gesamtstunden: "
                                     +
-                                    String.format(
-                                            Locale.GERMANY,
-                                            "%.2f",
-                                            total
-                                    )
+                            String.format(
+                                    Locale.GERMANY,
+                                    "%.2f",
+                                    total
+                            )
                                     +
-                                    " Stunden",
+                            " Stunden",
                             margin,
                             y,
                             totalPaint
@@ -4370,7 +5201,7 @@ public class MainActivity extends Activity {
                 canvas.drawText(
                         "Seite "
                                 +
-                                pageNo,
+                        pageNo,
                         pageWidth - 70,
                         pageHeight - 20,
                         normal
@@ -4423,9 +5254,9 @@ public class MainActivity extends Activity {
             toast(
                     "PDF-Fehler: "
                             +
-                            safe(
-                                    e.getMessage()
-                            )
+                    safe(
+                            e.getMessage()
+                    )
             );
 
         } finally {
@@ -4519,27 +5350,25 @@ public class MainActivity extends Activity {
 
             intent.putExtra(
                     Intent.EXTRA_SUBJECT,
-
                     "Stundenzettel "
                             +
-                            pendingPdfEmployee
+                    pendingPdfEmployee
                             +
-                            " "
+                    " "
                             +
-                            pendingPdfMonth
+                    pendingPdfMonth
             );
 
 
             intent.putExtra(
                     Intent.EXTRA_TEXT,
-
                     "Stundenzettel von "
                             +
-                            pendingPdfEmployee
+                    pendingPdfEmployee
                             +
-                            " für "
+                    " für "
                             +
-                            pendingPdfMonth
+                    pendingPdfMonth
             );
 
 
@@ -4575,11 +5404,7 @@ public class MainActivity extends Activity {
         }
 
 
-        if (
-                value.length()
-                        <=
-                        max
-        ) {
+        if (value.length() <= max) {
 
             return value;
         }
@@ -4593,7 +5418,7 @@ public class MainActivity extends Activity {
                 )
         )
                 +
-                "…";
+        "…";
     }
 
 
@@ -4650,12 +5475,11 @@ public class MainActivity extends Activity {
                 value -> {
 
                     boolean handled =
-
                             value != null
                                     &&
-                                    value.contains(
-                                            "true"
-                                    );
+                            value.contains(
+                                    "true"
+                            );
 
 
                     if (handled) {
@@ -4704,4 +5528,4 @@ public class MainActivity extends Activity {
 
         super.onDestroy();
     }
-}           
+}
