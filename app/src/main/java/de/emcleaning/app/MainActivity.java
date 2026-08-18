@@ -67,15 +67,17 @@ public class MainActivity extends Activity {
 
     private Uri lastSavedPdfUri = null;
 
-    /*
-     * Informationen für einen Dokument-Upload.
-     */
     private String pendingDocumentId = "";
     private String pendingDocumentTitle = "";
     private String pendingDocumentType = "";
     private String pendingDocumentEmployeeId = "";
     private String pendingDocumentEmployeeName = "";
     private String pendingDocumentNote = "";
+
+    /*
+     * Für die neue Zurück-Funktion.
+     */
+    private long lastBackPressTime = 0;
 
 
     @Override
@@ -84,7 +86,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         webView = new WebView(this);
-
         setContentView(webView);
 
         WebSettings settings =
@@ -967,15 +968,13 @@ public class MainActivity extends Activity {
                             )
 
                             .addOnSuccessListener(
-                                    taskSnapshot -> {
-
-                                        saveUploadedDocumentMetadata(
-                                                finalDocumentId,
-                                                originalFileName,
-                                                finalMimeType,
-                                                storagePath
-                                        );
-                                    }
+                                    taskSnapshot ->
+                                            saveUploadedDocumentMetadata(
+                                                    finalDocumentId,
+                                                    originalFileName,
+                                                    finalMimeType,
+                                                    storagePath
+                                            )
                             )
 
                             .addOnFailureListener(
@@ -1066,9 +1065,6 @@ public class MainActivity extends Activity {
         );
 
 
-        /*
-         * Alte Link-Funktion bleibt kompatibel.
-         */
         map.put(
                 "url",
                 ""
@@ -1119,10 +1115,6 @@ public class MainActivity extends Activity {
                 .addOnFailureListener(
                         e -> {
 
-                            /*
-                             * Falls Firestore fehlschlägt,
-                             * hochgeladene Datei wieder entfernen.
-                             */
                             storage()
                                     .getReference()
                                     .child(
@@ -1185,23 +1177,12 @@ public class MainActivity extends Activity {
 
     private void clearPendingDocument() {
 
-        pendingDocumentId =
-                "";
-
-        pendingDocumentTitle =
-                "";
-
-        pendingDocumentType =
-                "";
-
-        pendingDocumentEmployeeId =
-                "";
-
-        pendingDocumentEmployeeName =
-                "";
-
-        pendingDocumentNote =
-                "";
+        pendingDocumentId = "";
+        pendingDocumentTitle = "";
+        pendingDocumentType = "";
+        pendingDocumentEmployeeId = "";
+        pendingDocumentEmployeeName = "";
+        pendingDocumentNote = "";
     }
 
 
@@ -1391,10 +1372,8 @@ public class MainActivity extends Activity {
                     adminLoggedIn =
                             true;
 
-
                     loggedEmployeeId =
                             "";
-
 
                     loggedEmployeeName =
                             "";
@@ -1519,8 +1498,8 @@ public class MainActivity extends Activity {
                                 !cleanPin.isEmpty()
                                         &&
                                 !cleanPin.matches(
-                                                "\\d{4}"
-                                        )
+                                        "\\d{4}"
+                                )
                         ) {
 
                             toast(
@@ -1927,7 +1906,6 @@ public class MainActivity extends Activity {
             loggedEmployeeId =
                     "";
 
-
             loggedEmployeeName =
                     "";
         }
@@ -2266,10 +2244,8 @@ public class MainActivity extends Activity {
                             finalEmployeeId =
                                     safe(employeeId);
 
-
                             finalEmployeeName =
                                     safe(employeeName);
-
 
                             sender =
                                     "admin";
@@ -2279,10 +2255,8 @@ public class MainActivity extends Activity {
                             finalEmployeeId =
                                     loggedEmployeeId;
 
-
                             finalEmployeeName =
                                     loggedEmployeeName;
-
 
                             sender =
                                     "employee";
@@ -3583,7 +3557,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           DOKUMENTE - NEUER DATEI-UPLOAD
+           DOKUMENTE
         ================================================= */
 
         @JavascriptInterface
@@ -3657,10 +3631,6 @@ public class MainActivity extends Activity {
         }
 
 
-        /*
-         * Alte Methode bleibt bestehen,
-         * falls alte Dokumente mit URL vorhanden sind.
-         */
         @JavascriptInterface
         public void saveDocumentToFirestore(
                 String id,
@@ -4045,9 +4015,6 @@ public class MainActivity extends Activity {
             }
 
 
-            /*
-             * Alte Dokumente mit Link weiterhin öffnen.
-             */
             openExternalUrl(
                     fallbackUrl
             );
@@ -4686,10 +4653,8 @@ public class MainActivity extends Activity {
             final int pageWidth =
                     595;
 
-
             final int pageHeight =
                     842;
-
 
             final int margin =
                     28;
@@ -5446,7 +5411,7 @@ public class MainActivity extends Activity {
 
 
     /* =====================================================
-       BACK
+       BACK - NEU
     ===================================================== */
 
     @Override
@@ -5454,12 +5419,14 @@ public class MainActivity extends Activity {
 
         if (webView == null) {
 
-            super.onBackPressed();
-
             return;
         }
 
 
+        /*
+         * Wenn die AR-Messung geöffnet ist,
+         * darf Android normal zurück.
+         */
         if (arMeasurementRunning) {
 
             super.onBackPressed();
@@ -5468,34 +5435,103 @@ public class MainActivity extends Activity {
         }
 
 
+        /*
+         * Zuerst wird die JavaScript-Navigation
+         * in index.html verwendet.
+         *
+         * Unterseite -> Home
+         */
         webView.evaluateJavascript(
 
-                "if(typeof window.androidBack==='function'){window.androidBack();}else{false;}",
+                "(function(){"
+                        +
+                        "try{"
+                        +
+                        "if(typeof window.androidBack==='function'){"
+                        +
+                        "return window.androidBack();"
+                        +
+                        "}"
+                        +
+                        "}catch(e){}"
+                        +
+                        "return false;"
+                        +
+                        "})()",
 
                 value -> {
 
                     boolean handled =
+
                             value != null
                                     &&
-                            value.contains(
-                                    "true"
+                            (
+                                    value.equals("true")
+                                            ||
+                                    value.contains("true")
                             );
 
 
+                    /*
+                     * JavaScript hat bereits zurück navigiert.
+                     */
                     if (handled) {
+
+                        lastBackPressTime =
+                                0;
 
                         return;
                     }
 
 
-                    if (webView.canGoBack()) {
+                    /*
+                     * WICHTIG:
+                     *
+                     * Hier wird NICHT webView.goBack()
+                     * verwendet.
+                     *
+                     * Dadurch springt der WebView nicht
+                     * aus deiner internen App-Navigation.
+                     */
 
-                        webView.goBack();
 
-                    } else {
+                    long now =
+                            System.currentTimeMillis();
 
-                        MainActivity.super.onBackPressed();
+
+                    /*
+                     * Erster Zurück-Druck auf Home/Login:
+                     * App bleibt offen.
+                     */
+                    if (
+                            now - lastBackPressTime
+                                    >
+                            2000
+                    ) {
+
+                        lastBackPressTime =
+                                now;
+
+
+                        toast(
+                                "Zum Beenden noch einmal Zurück drücken."
+                        );
+
+
+                        return;
                     }
+
+
+                    /*
+                     * Zweiter Zurück-Druck innerhalb
+                     * von zwei Sekunden:
+                     * App schließen.
+                     */
+                    lastBackPressTime =
+                            0;
+
+
+                    finish();
                 }
         );
     }
