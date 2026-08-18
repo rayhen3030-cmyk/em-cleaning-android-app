@@ -1,4 +1,4 @@
-   package de.emcleaning.app;
+package de.emcleaning.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -54,18 +54,20 @@ public class MainActivity extends Activity {
     private String pendingPdfEmployee = "";
     private String pendingPdfMonth = "";
     private String pendingPdfJson = "[]";
+
     private Uri lastSavedPdfUri = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
 
-        ensureFirebaseAuth(null);
-
         webView = new WebView(this);
+
         setContentView(webView);
 
-        WebSettings settings = webView.getSettings();
+        WebSettings settings =
+                webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -89,6 +91,7 @@ public class MainActivity extends Activity {
                     ) {
 
                         if (filePathCallback != null) {
+
                             filePathCallback.onReceiveValue(null);
                         }
 
@@ -109,6 +112,11 @@ public class MainActivity extends Activity {
                         } catch (Exception e) {
 
                             filePathCallback = null;
+
+                            toast(
+                                    "Datei konnte nicht geöffnet werden."
+                            );
+
                             return false;
                         }
                     }
@@ -118,6 +126,12 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(
                 new AndroidBridge(),
                 "Android"
+        );
+
+        ensureFirebaseAuth(
+                () -> toast(
+                        "Firebase verbunden ✅"
+                )
         );
 
         if (savedInstanceState != null) {
@@ -149,6 +163,7 @@ public class MainActivity extends Activity {
         if (auth.getCurrentUser() != null) {
 
             if (action != null) {
+
                 action.run();
             }
 
@@ -161,24 +176,76 @@ public class MainActivity extends Activity {
                         result -> {
 
                             if (action != null) {
+
                                 action.run();
                             }
                         }
                 )
 
                 .addOnFailureListener(
-                        e -> toast(
-                                "Firebase-Anmeldung fehlgeschlagen: "
-                                        + e.getMessage()
-                        )
+                        e -> {
+
+                            String message =
+                                    e.getMessage() == null
+                                            ?
+                                            "Unbekannter Fehler"
+                                            :
+                                            e.getMessage();
+
+                            toast(
+                                    "Firebase-Anmeldung fehlgeschlagen: "
+                                            + message
+                            );
+
+                            sendFirebaseError(
+                                    "AUTH",
+                                    message
+                            );
+                        }
                 );
     }
 
 
     private FirebaseFirestore db() {
+
         return FirebaseFirestore.getInstance();
     }
 
+
+    private void sendFirebaseError(
+            String type,
+            String message
+    ) {
+
+        try {
+
+            JSONObject error =
+                    new JSONObject();
+
+            error.put(
+                    "type",
+                    safe(type)
+            );
+
+            error.put(
+                    "message",
+                    safe(message)
+            );
+
+            sendJs(
+                    "receiveFirebaseError",
+                    error
+            );
+
+        } catch (Exception ignored) {
+
+        }
+    }
+
+
+    /* =====================================================
+       HELPER
+    ===================================================== */
 
     private void toast(
             String text
@@ -200,8 +267,10 @@ public class MainActivity extends Activity {
     ) {
 
         return value == null
-                ? ""
-                : value;
+                ?
+                ""
+                :
+                value;
     }
 
 
@@ -214,8 +283,10 @@ public class MainActivity extends Activity {
 
             String value =
                     safe(employeeId)
-                            + ":"
-                            + safe(pin);
+                            +
+                            ":"
+                            +
+                            safe(pin);
 
             MessageDigest digest =
                     MessageDigest.getInstance(
@@ -265,6 +336,7 @@ public class MainActivity extends Activity {
                     );
 
             if (timestamp == null) {
+
                 return 0;
             }
 
@@ -285,18 +357,25 @@ public class MainActivity extends Activity {
     ) {
 
         if (webView == null) {
+
             return;
         }
 
         String javascript =
 
                 "if(typeof window."
-                        + function
-                        + "==='function'){window."
-                        + function
-                        + "("
-                        + json.toString()
-                        + ");}";
+                        +
+                        function
+                        +
+                        "==='function'){window."
+                        +
+                        function
+                        +
+                        "("
+                        +
+                        json.toString()
+                        +
+                        ");}";
 
         webView.post(
                 () ->
@@ -309,14 +388,14 @@ public class MainActivity extends Activity {
 
 
     /* =====================================================
-       ANDROID BRIDGE
+       JAVASCRIPT BRIDGE
     ===================================================== */
 
     private class AndroidBridge {
 
 
         /* =================================================
-           ADMIN LOGIN
+           ADMIN
         ================================================= */
 
         @JavascriptInterface
@@ -324,10 +403,10 @@ public class MainActivity extends Activity {
                 String pin
         ) {
 
-            JSONObject result =
-                    new JSONObject();
-
             try {
+
+                JSONObject result =
+                        new JSONObject();
 
                 if (
                         ADMIN_PIN.equals(
@@ -385,7 +464,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           MITARBEITER
+           MITARBEITER SPEICHERN
         ================================================= */
 
         @JavascriptInterface
@@ -549,24 +628,51 @@ public class MainActivity extends Activity {
                                             )
 
                                                     .addOnSuccessListener(
-                                                            unused ->
-                                                                    toast(
-                                                                            "Mitarbeiter gespeichert ✅"
-                                                                    )
+                                                            unused -> {
+
+                                                                toast(
+                                                                        "Mitarbeiter gespeichert ✅"
+                                                                );
+
+                                                                loadEmployeesFromFirestore();
+                                                            }
                                                     )
 
                                                     .addOnFailureListener(
-                                                            e ->
-                                                                    toast(
-                                                                            "Mitarbeiter konnte nicht gespeichert werden."
-                                                                    )
+                                                            e -> {
+
+                                                                String message =
+                                                                        safe(
+                                                                                e.getMessage()
+                                                                        );
+
+                                                                toast(
+                                                                        "Mitarbeiter konnte nicht gespeichert werden: "
+                                                                                +
+                                                                                message
+                                                                );
+                                                            }
                                                     );
                                         }
+                                )
+
+                                .addOnFailureListener(
+                                        e -> toast(
+                                                "Mitarbeiter konnte nicht geprüft werden: "
+                                                        +
+                                                        safe(
+                                                                e.getMessage()
+                                                        )
+                                        )
                                 );
                     }
             );
         }
 
+
+        /* =================================================
+           MITARBEITER LADEN
+        ================================================= */
 
         @JavascriptInterface
         public void loadEmployeesFromFirestore() {
@@ -675,9 +781,43 @@ public class MainActivity extends Activity {
                                                     }
                                                 }
 
+                                                toast(
+                                                        "Mitarbeiter geladen: "
+                                                                +
+                                                                result.length()
+                                                );
+
                                                 sendJs(
                                                         "receiveEmployeesFromFirestore",
                                                         result
+                                                );
+                                            }
+                                    )
+
+                                    .addOnFailureListener(
+                                            e -> {
+
+                                                String message =
+                                                        e.getMessage() == null
+                                                                ?
+                                                                "Unbekannter Firestore-Fehler"
+                                                                :
+                                                                e.getMessage();
+
+                                                toast(
+                                                        "Firestore-Fehler Mitarbeiter: "
+                                                                +
+                                                                message
+                                                );
+
+                                                sendFirebaseError(
+                                                        "EMPLOYEES",
+                                                        message
+                                                );
+
+                                                sendJs(
+                                                        "receiveEmployeesFromFirestore",
+                                                        new JSONArray()
                                                 );
                                             }
                                     )
@@ -866,7 +1006,11 @@ public class MainActivity extends Activity {
                                                 sendEmployeeLogin(
                                                         false,
                                                         null,
-                                                        "Mitarbeiter konnte nicht geladen werden."
+                                                        "Mitarbeiter konnte nicht geladen werden: "
+                                                                +
+                                                                safe(
+                                                                        e.getMessage()
+                                                                )
                                                 )
                                 );
                     }
@@ -1033,10 +1177,13 @@ public class MainActivity extends Activity {
                                 )
 
                                 .addOnFailureListener(
-                                        e ->
-                                                toast(
-                                                        "Stundenzettel konnte nicht gespeichert werden."
-                                                )
+                                        e -> toast(
+                                                "Stundenzettel konnte nicht gespeichert werden: "
+                                                        +
+                                                        safe(
+                                                                e.getMessage()
+                                                        )
+                                        )
                                 );
                     }
             );
@@ -1068,6 +1215,16 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTimesheets
+                                    )
+
+                                    .addOnFailureListener(
+                                            e -> toast(
+                                                    "Stundenzettel konnten nicht geladen werden: "
+                                                            +
+                                                            safe(
+                                                                    e.getMessage()
+                                                            )
+                                            )
                                     );
 
                         } else {
@@ -1084,6 +1241,16 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTimesheets
+                                    )
+
+                                    .addOnFailureListener(
+                                            e -> toast(
+                                                    "Stundenzettel konnten nicht geladen werden: "
+                                                            +
+                                                            safe(
+                                                                    e.getMessage()
+                                                            )
+                                            )
                                     );
                         }
                     }
@@ -1292,6 +1459,16 @@ public class MainActivity extends Activity {
                                                 loadChatMessages(
                                                         finalEmployeeId
                                                 )
+                                )
+
+                                .addOnFailureListener(
+                                        e -> toast(
+                                                "Nachricht konnte nicht gesendet werden: "
+                                                        +
+                                                        safe(
+                                                                e.getMessage()
+                                                        )
+                                        )
                                 );
                     }
             );
@@ -1408,6 +1585,16 @@ public class MainActivity extends Activity {
                                                     result
                                             );
                                         }
+                                )
+
+                                .addOnFailureListener(
+                                        e -> toast(
+                                                "Chat konnte nicht geladen werden: "
+                                                        +
+                                                        safe(
+                                                                e.getMessage()
+                                                        )
+                                        )
                                 );
                     }
             );
@@ -1514,6 +1701,16 @@ public class MainActivity extends Activity {
                                                     finalId
                                             );
                                         }
+                                )
+
+                                .addOnFailureListener(
+                                        e -> toast(
+                                                "Ticket konnte nicht gesendet werden: "
+                                                        +
+                                                        safe(
+                                                                e.getMessage()
+                                                        )
+                                        )
                                 );
                     }
             );
@@ -1538,6 +1735,12 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTickets
+                                    )
+
+                                    .addOnFailureListener(
+                                            e -> toast(
+                                                    "Tickets konnten nicht geladen werden."
+                                            )
                                     );
 
                         } else {
@@ -1559,6 +1762,12 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendTickets
+                                    )
+
+                                    .addOnFailureListener(
+                                            e -> toast(
+                                                    "Tickets konnten nicht geladen werden."
+                                            )
                                     );
                         }
                     }
@@ -1701,6 +1910,12 @@ public class MainActivity extends Activity {
                                         ""
                                 );
                             }
+                    )
+
+                    .addOnFailureListener(
+                            e -> toast(
+                                    "Ticket konnte nicht aktualisiert werden."
+                            )
                     );
         }
 
@@ -1807,6 +2022,12 @@ public class MainActivity extends Activity {
                                                     finalId
                                             );
                                         }
+                                )
+
+                                .addOnFailureListener(
+                                        e -> toast(
+                                                "Urlaubsantrag konnte nicht gespeichert werden."
+                                        )
                                 );
                     }
             );
@@ -1994,6 +2215,12 @@ public class MainActivity extends Activity {
                                         ""
                                 );
                             }
+                    )
+
+                    .addOnFailureListener(
+                            e -> toast(
+                                    "Urlaubsantrag konnte nicht aktualisiert werden."
+                            )
                     );
         }
 
@@ -2066,6 +2293,12 @@ public class MainActivity extends Activity {
                     .addOnSuccessListener(
                             unused ->
                                     loadOrdersFromFirestore()
+                    )
+
+                    .addOnFailureListener(
+                            e -> toast(
+                                    "Auftrag konnte nicht gespeichert werden."
+                            )
                     );
         }
 
@@ -2267,6 +2500,12 @@ public class MainActivity extends Activity {
 
                                 loadMaterialsFromFirestore();
                             }
+                    )
+
+                    .addOnFailureListener(
+                            e -> toast(
+                                    "Material konnte nicht gespeichert werden."
+                            )
                     );
         }
 
@@ -2821,7 +3060,7 @@ public class MainActivity extends Activity {
 
 
         /* =================================================
-           EXTERNE LINKS
+           LINKS
         ================================================= */
 
         @JavascriptInterface
@@ -2949,7 +3188,9 @@ public class MainActivity extends Activity {
                                         ?
                                         safe(employee).trim()
                                         :
-                                        safe(loggedEmployeeName).trim();
+                                        safe(
+                                                loggedEmployeeName
+                                        ).trim();
 
                         if (
                                 pendingPdfEmployee.isEmpty()
@@ -3090,6 +3331,10 @@ public class MainActivity extends Activity {
                             loggedEmployeeId.isEmpty()
             ) {
 
+                toast(
+                        "Bitte zuerst anmelden."
+                );
+
                 return;
             }
 
@@ -3132,7 +3377,6 @@ public class MainActivity extends Activity {
                 resultCode,
                 data
         );
-
 
         if (
                 requestCode
@@ -3266,7 +3510,7 @@ public class MainActivity extends Activity {
 
 
     /* =====================================================
-       PDF GENERATOR
+       PDF
     ===================================================== */
 
     private void createPdfFile(
@@ -3295,7 +3539,6 @@ public class MainActivity extends Activity {
             final int margin =
                     28;
 
-
             Paint green =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
@@ -3317,7 +3560,6 @@ public class MainActivity extends Activity {
                     true
             );
 
-
             Paint bold =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
@@ -3335,7 +3577,6 @@ public class MainActivity extends Activity {
                     true
             );
 
-
             Paint normal =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
@@ -3349,7 +3590,6 @@ public class MainActivity extends Activity {
                     8f
             );
 
-
             Paint line =
                     new Paint(
                             Paint.ANTI_ALIAS_FLAG
@@ -3358,7 +3598,6 @@ public class MainActivity extends Activity {
             line.setColor(
                     Color.LTGRAY
             );
-
 
             Paint totalPaint =
                     new Paint(
@@ -3381,10 +3620,8 @@ public class MainActivity extends Activity {
                     true
             );
 
-
             double total =
                     0;
-
 
             for (
                     int i = 0;
@@ -3413,7 +3650,6 @@ public class MainActivity extends Activity {
                 }
             }
 
-
             int pageNo =
                     1;
 
@@ -3422,7 +3658,6 @@ public class MainActivity extends Activity {
 
             boolean first =
                     true;
-
 
             while (
                     index < rows.length()
@@ -3452,7 +3687,6 @@ public class MainActivity extends Activity {
                 float y =
                         38;
 
-
                 canvas.drawText(
                         "E-M Cleaning Service",
                         margin,
@@ -3463,7 +3697,6 @@ public class MainActivity extends Activity {
                 y +=
                         25;
 
-
                 canvas.drawText(
                         "Stundenzettel",
                         margin,
@@ -3473,7 +3706,6 @@ public class MainActivity extends Activity {
 
                 y +=
                         15;
-
 
                 canvas.drawText(
                         "Mitarbeiter: "
@@ -3487,7 +3719,6 @@ public class MainActivity extends Activity {
                 y +=
                         15;
 
-
                 canvas.drawText(
                         "Monat: "
                                 +
@@ -3499,7 +3730,6 @@ public class MainActivity extends Activity {
 
                 y +=
                         25;
-
 
                 float xDate =
                         margin;
@@ -3521,7 +3751,6 @@ public class MainActivity extends Activity {
 
                 float xObject =
                         355;
-
 
                 canvas.drawText(
                         "Datum",
@@ -3572,10 +3801,8 @@ public class MainActivity extends Activity {
                         bold
                 );
 
-
                 y +=
                         11;
-
 
                 canvas.drawLine(
                         margin,
@@ -3585,10 +3812,8 @@ public class MainActivity extends Activity {
                         line
                 );
 
-
                 y +=
                         15;
-
 
                 while (
                         index < rows.length()
@@ -3639,7 +3864,6 @@ public class MainActivity extends Activity {
                             row.optString(
                                     "objekt"
                             );
-
 
                     canvas.drawText(
                             shorten(
@@ -3709,10 +3933,8 @@ public class MainActivity extends Activity {
                             normal
                     );
 
-
                     y +=
                             18;
-
 
                     canvas.drawLine(
                             margin,
@@ -3722,10 +3944,8 @@ public class MainActivity extends Activity {
                             line
                     );
 
-
                     index++;
                 }
-
 
                 if (
                         index >= rows.length()
@@ -3733,7 +3953,6 @@ public class MainActivity extends Activity {
 
                     y +=
                             24;
-
 
                     canvas.drawText(
                             "Gesamtstunden: "
@@ -3751,7 +3970,6 @@ public class MainActivity extends Activity {
                     );
                 }
 
-
                 canvas.drawText(
                         "Seite "
                                 +
@@ -3761,22 +3979,18 @@ public class MainActivity extends Activity {
                         normal
                 );
 
-
                 document.finishPage(
                         page
                 );
 
-
                 pageNo++;
             }
-
 
             outputStream =
                     getContentResolver()
                             .openOutputStream(
                                     uri
                             );
-
 
             if (outputStream == null) {
 
@@ -3785,24 +3999,19 @@ public class MainActivity extends Activity {
                 );
             }
 
-
             document.writeTo(
                     outputStream
             );
 
-
             outputStream.flush();
-
 
             toast(
                     "PDF gespeichert ✅"
             );
 
-
             showShareDialog(
                     uri
             );
-
 
         } catch (Exception e) {
 
@@ -3813,7 +4022,6 @@ public class MainActivity extends Activity {
                                     e.getMessage()
                             )
             );
-
 
         } finally {
 
@@ -3883,7 +4091,6 @@ public class MainActivity extends Activity {
             return;
         }
 
-
         try {
 
             Intent intent =
@@ -3891,17 +4098,14 @@ public class MainActivity extends Activity {
                             Intent.ACTION_SEND
                     );
 
-
             intent.setType(
                     "application/pdf"
             );
-
 
             intent.putExtra(
                     Intent.EXTRA_STREAM,
                     uri
             );
-
 
             intent.putExtra(
                     Intent.EXTRA_SUBJECT,
@@ -3915,7 +4119,6 @@ public class MainActivity extends Activity {
                             pendingPdfMonth
             );
 
-
             intent.putExtra(
                     Intent.EXTRA_TEXT,
 
@@ -3928,11 +4131,9 @@ public class MainActivity extends Activity {
                             pendingPdfMonth
             );
 
-
             intent.addFlags(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             );
-
 
             startActivity(
                     Intent.createChooser(
@@ -3940,7 +4141,6 @@ public class MainActivity extends Activity {
                             "Stundenzettel teilen"
                     )
             );
-
 
         } catch (Exception e) {
 
@@ -3961,7 +4161,6 @@ public class MainActivity extends Activity {
             return "";
         }
 
-
         if (
                 value.length()
                         <=
@@ -3970,7 +4169,6 @@ public class MainActivity extends Activity {
 
             return value;
         }
-
 
         return value.substring(
                 0,
@@ -4012,14 +4210,12 @@ public class MainActivity extends Activity {
             return;
         }
 
-
         if (arMeasurementRunning) {
 
             super.onBackPressed();
 
             return;
         }
-
 
         webView.evaluateJavascript(
 
@@ -4035,12 +4231,10 @@ public class MainActivity extends Activity {
                                             "true"
                                     );
 
-
                     if (handled) {
 
                         return;
                     }
-
 
                     if (webView.canGoBack()) {
 
@@ -4073,4 +4267,4 @@ public class MainActivity extends Activity {
 
         super.onDestroy();
     }
-}    
+}
