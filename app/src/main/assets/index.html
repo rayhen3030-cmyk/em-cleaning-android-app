@@ -536,9 +536,104 @@ body.employee-mode .bottom-nav{
     font-size:22px;
 }
 
+/* PAUSCHALPREIS NEU */
+
+.price-task-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+}
+
+.price-task{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:1px solid #dfe4e8;
+    background:#f8fafb;
+    border-radius:14px;
+    padding:12px;
+    font-weight:800;
+}
+
+.price-task input{
+    width:auto;
+    transform:scale(1.15);
+}
+
+.price-count-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.price-breakdown{
+    margin-top:12px;
+    border-top:1px solid #dfe4e8;
+    padding-top:10px;
+}
+
+.price-breakdown-row{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:6px 0;
+    font-size:14px;
+}
+
+.price-breakdown-row strong{
+    white-space:nowrap;
+}
+
+.price-range{
+    font-size:18px;
+    font-weight:900;
+    color:#067647;
+    margin-top:8px;
+}
+
+.material-summary{
+    margin-top:14px;
+    padding:14px;
+    border-radius:14px;
+    background:#f8fafb;
+    border:1px solid #dfe4e8;
+}
+
+.material-summary h4{
+    margin-bottom:8px;
+    font-size:17px;
+}
+
+.material-total{
+    margin-top:10px;
+    font-size:21px;
+    font-weight:900;
+    color:#067647;
+}
+
+.material-note{
+    margin-top:8px;
+    font-size:12px;
+    color:#667085;
+}
+
+.auto-badge{
+    display:inline-block;
+    margin-top:8px;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#eaf7f2;
+    color:#067647;
+    font-size:12px;
+    font-weight:900;
+}
+
 @media(max-width:520px){
     .admin-grid,
-    .timesheet-grid{
+    .timesheet-grid,
+    .price-task-grid,
+    .price-count-grid{
         grid-template-columns:1fr;
     }
 
@@ -1577,11 +1672,19 @@ body.employee-mode .bottom-nav{
 
         <div class="card">
 
+            <div class="card-title">
+                Reinigungszeit kalkulieren
+            </div>
+
+            <div class="card-subtitle">
+                Fläche, Reinigungstage und Leistungen eingeben – Zeit und Material werden automatisch berechnet.
+            </div>
+
             <label>Reinigungsart</label>
 
             <select
                 id="priceService"
-                onchange="suggestCleaningTime()"
+                onchange="recalculateAll()"
             >
                 <option>Unterhaltsreinigung</option>
                 <option>Grundreinigung</option>
@@ -1595,58 +1698,256 @@ body.employee-mode .bottom-nav{
             <input
                 id="priceArea"
                 type="number"
-                oninput="suggestCleaningTime()"
+                min="0"
+                step="1"
+                placeholder="z.B. 500"
+                oninput="recalculateAll()"
+            >
+
+            <label>Reinigungstage pro Monat</label>
+
+            <input
+                id="cleaningDays"
+                type="number"
+                min="1"
+                max="31"
+                step="1"
+                value="12"
+                oninput="recalculateAll()"
             >
 
             <label>Verschmutzungsgrad</label>
 
             <select
                 id="priceDifficulty"
-                onchange="suggestCleaningTime()"
+                onchange="recalculateAll()"
             >
                 <option value="light">Leicht</option>
                 <option value="normal" selected>Normal</option>
                 <option value="intensive">Intensiv</option>
             </select>
 
-            <label>Häufigkeit</label>
+            <label>Was wird gereinigt?</label>
 
-            <select
-                id="priceFrequency"
-                onchange="calculatePackagePrice()"
-            >
-                <option value="1">1× monatlich</option>
-                <option value="2.165">Alle 2 Wochen</option>
-                <option value="4.33" selected>1× pro Woche</option>
-                <option value="8.66">2× pro Woche</option>
-                <option value="12.99">3× pro Woche</option>
-                <option value="21.65">5× pro Woche</option>
-            </select>
+            <div class="price-task-grid">
 
-            <div id="timeSuggestion" class="info">
-                Fläche eingeben – die App schätzt die Stunden pro Einsatz.
+                <label class="price-task">
+                    <input
+                        id="taskBins"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    🗑 Mülleimer leeren
+                </label>
+
+                <label class="price-task">
+                    <input
+                        id="taskDesks"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    🧽 Tische / Oberflächen
+                </label>
+
+                <label class="price-task">
+                    <input
+                        id="taskVacuum"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    🧹 Staubsaugen
+                </label>
+
+                <label class="price-task">
+                    <input
+                        id="taskMop"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    🪣 Boden wischen
+                </label>
+
+                <label class="price-task">
+                    <input
+                        id="taskSanitary"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    🚻 Toiletten / Sanitär
+                </label>
+
+                <label class="price-task">
+                    <input
+                        id="taskKitchen"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    ☕ Küche / Teeküche
+                </label>
+
+                <label class="price-task">
+                    <input
+                        id="taskContacts"
+                        type="checkbox"
+                        checked
+                        onchange="recalculateAll()"
+                    >
+                    🚪 Kontaktflächen
+                </label>
+
             </div>
 
-            <label>Stunden pro Einsatz</label>
-            <input id="priceHoursPerVisit" type="number" step="0.1" oninput="calculatePackagePrice()">
+            <label>Mengen / Anzahl</label>
+
+            <div class="price-count-grid">
+
+                <div>
+                    <label>Arbeitsplätze / Tische</label>
+                    <input
+                        id="priceDesks"
+                        type="number"
+                        min="0"
+                        value="20"
+                        oninput="recalculateAll()"
+                    >
+                </div>
+
+                <div>
+                    <label>Mülleimer</label>
+                    <input
+                        id="priceBins"
+                        type="number"
+                        min="0"
+                        value="8"
+                        oninput="recalculateAll()"
+                    >
+                </div>
+
+                <div>
+                    <label>Toiletten</label>
+                    <input
+                        id="priceToilets"
+                        type="number"
+                        min="0"
+                        value="2"
+                        oninput="recalculateAll()"
+                    >
+                </div>
+
+                <div>
+                    <label>Waschbecken</label>
+                    <input
+                        id="priceSinks"
+                        type="number"
+                        min="0"
+                        value="2"
+                        oninput="recalculateAll()"
+                    >
+                </div>
+
+                <div>
+                    <label>Küchen / Teeküchen</label>
+                    <input
+                        id="priceKitchens"
+                        type="number"
+                        min="0"
+                        value="1"
+                        oninput="recalculateAll()"
+                    >
+                </div>
+
+            </div>
+
+            <div id="timeSuggestion" class="info">
+                Fläche eingeben – danach berechnet die App die Zeit automatisch.
+            </div>
+
+            <label>Empfohlene Stunden pro Einsatz</label>
+
+            <input
+                id="priceHoursPerVisit"
+                type="number"
+                step="0.1"
+                oninput="calculatePackagePrice()"
+            >
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                🧻 Material automatisch
+            </div>
+
+            <div class="card-subtitle">
+                Toilettenpapier, Papierhandtücher, Handseife, Müllbeutel und Reinigungsmittel werden automatisch berechnet.
+            </div>
+
+            <div class="auto-badge">
+                Keine Materialpreiseingabe nötig
+            </div>
+
+            <div
+                id="materialCalculation"
+                class="material-summary"
+            >
+                Material wird automatisch berechnet.
+            </div>
+
+            <input
+                id="priceMaterial"
+                type="hidden"
+                value="0"
+            >
+
+        </div>
+
+        <div class="card">
+
+            <div class="card-title">
+                Preis berechnen
+            </div>
 
             <label>Verkaufspreis pro Stunde €</label>
-            <input id="priceHourly" type="number" value="35" oninput="calculatePackagePrice()">
 
-            <label>Anfahrt pro Einsatz €</label>
-            <input id="priceTravel" type="number" value="0" oninput="calculatePackagePrice()">
+            <input
+                id="priceHourly"
+                type="number"
+                step="0.5"
+                value="35"
+                oninput="calculatePackagePrice()"
+            >
 
-            <label>Material pro Monat €</label>
-            <input id="priceMaterial" type="number" value="0" oninput="calculatePackagePrice()">
+            <label>Anfahrt pro Reinigungstag €</label>
+
+            <input
+                id="priceTravel"
+                type="number"
+                step="0.5"
+                value="0"
+                oninput="calculatePackagePrice()"
+            >
 
             <label>Aufschlag / Reserve %</label>
-            <input id="priceMarkup" type="number" value="10" oninput="calculatePackagePrice()">
+
+            <input
+                id="priceMarkup"
+                type="number"
+                value="10"
+                oninput="calculatePackagePrice()"
+            >
 
             <button
                 class="main-button"
-                onclick="calculatePackagePrice()"
+                onclick="recalculateAll()"
             >
-                Pauschalpreis berechnen
+                Alles neu berechnen
             </button>
 
             <div
@@ -1905,6 +2206,13 @@ function openPage(id){
         );
     }
 
+    if(
+        id==='price' &&
+        adminMode
+    ){
+        recalculateAll();
+    }
+
     window.scrollTo(0,0);
 }
 
@@ -1943,9 +2251,6 @@ function goBackInsideApp(){
         return true;
     }
 
-    /*
-     * Auf der Hauptseite bleibt die App offen.
-     */
     if(
         page.id==='home' &&
         (
@@ -3644,148 +3949,786 @@ function(data){
     });
 };
 
-/* PAUSCHALPREIS */
+/* PAUSCHALPREIS NEU */
 
-function productivity(service,difficulty){
+const MATERIAL_PRICES={
+    toiletRoll:1.20,
+    towelPack:7.50,
+    soapLiter:6.50,
+    trashBag:0.30,
+    cleanerLiter:5.80
+};
+
+const MATERIAL_RESERVE_FACTOR=1.15;
+
+function numberValue(id){
+
+    const input=el(id);
+
+    if(!input){
+        return 0;
+    }
+
+    return Math.max(
+        0,
+        Number(input.value||0)
+    );
+}
+
+function isChecked(id){
+
+    const input=el(id);
+
+    return !!(
+        input &&
+        input.checked
+    );
+}
+
+function difficultyFactor(){
+
+    const difficulty=
+        el('priceDifficulty').value;
+
+    if(difficulty==='light'){
+        return 0.90;
+    }
+
+    if(difficulty==='intensive'){
+        return 1.30;
+    }
+
+    return 1.00;
+}
+
+function serviceFactor(service){
 
     const map={
-        'Unterhaltsreinigung':{
-            light:300,
-            normal:250,
-            intensive:180
-        },
-        'Grundreinigung':{
-            light:90,
-            normal:70,
-            intensive:50
-        },
-        'Bauendreinigung':{
-            light:80,
-            normal:60,
-            intensive:40
-        },
-        'Glasreinigung':{
-            light:45,
-            normal:35,
-            intensive:25
-        },
-        'Treppenhausreinigung':{
-            light:220,
-            normal:170,
-            intensive:120
-        }
+        'Unterhaltsreinigung':1.00,
+        'Treppenhausreinigung':1.05,
+        'Grundreinigung':1.70,
+        'Bauendreinigung':1.90,
+        'Glasreinigung':1.45
     };
 
-    return (
-        map[service] ||
-        map['Unterhaltsreinigung']
-    )[difficulty] || 250;
+    return map[service]||1.00;
+}
+
+function calculateCleaningTimeDetails(){
+
+    const area=
+        numberValue('priceArea');
+
+    const service=
+        el('priceService').value;
+
+    const factor=
+        difficultyFactor()
+        *
+        serviceFactor(service);
+
+    const desks=
+        numberValue('priceDesks');
+
+    const bins=
+        numberValue('priceBins');
+
+    const toilets=
+        numberValue('priceToilets');
+
+    const sinks=
+        numberValue('priceSinks');
+
+    const kitchens=
+        numberValue('priceKitchens');
+
+    const parts=[];
+
+    const setupHours=
+        area>0
+        ?
+        0.25+Math.min(
+            0.35,
+            area/2500
+        )
+        :
+        0;
+
+    parts.push({
+        name:'Vorbereitung / Wege / Abschluss',
+        hours:setupHours
+    });
+
+    if(
+        isChecked('taskVacuum')
+    ){
+        parts.push({
+            name:'Staubsaugen',
+            hours:area/600
+        });
+    }
+
+    if(
+        isChecked('taskMop')
+    ){
+        parts.push({
+            name:'Boden wischen',
+            hours:area/500
+        });
+    }
+
+    if(
+        isChecked('taskDesks')
+    ){
+        parts.push({
+            name:'Tische / Oberflächen',
+            hours:desks*0.0175
+        });
+    }
+
+    if(
+        isChecked('taskBins')
+    ){
+        parts.push({
+            name:'Mülleimer',
+            hours:bins*0.020
+        });
+    }
+
+    if(
+        isChecked('taskSanitary')
+    ){
+        parts.push({
+            name:'Sanitär',
+            hours:
+                toilets*0.10
+                +
+                sinks*0.067
+        });
+    }
+
+    if(
+        isChecked('taskKitchen')
+    ){
+        parts.push({
+            name:'Küche / Teeküche',
+            hours:kitchens*0.15
+        });
+    }
+
+    if(
+        isChecked('taskContacts')
+    ){
+        parts.push({
+            name:'Kontaktflächen',
+            hours:
+                Math.min(
+                    0.30,
+                    area*0.00030
+                )
+        });
+    }
+
+    let rawHours=0;
+
+    parts.forEach(part=>{
+        rawHours+=part.hours;
+    });
+
+    let adjustedHours=
+        rawHours*factor;
+
+    if(
+        area>0 &&
+        adjustedHours<0.75
+    ){
+        adjustedHours=0.75;
+    }
+
+    const low=
+        adjustedHours*0.92;
+
+    const high=
+        adjustedHours*1.08;
+
+    const recommended=
+        Math.ceil(
+            adjustedHours*4
+        )/4;
+
+    return {
+        area,
+        service,
+        parts,
+        low,
+        high,
+        recommended
+    };
 }
 
 function suggestCleaningTime(){
 
     const area=
-        Number(el('priceArea').value||0);
+        numberValue('priceArea');
 
-    const performance=
-        productivity(
-            el('priceService').value,
-            el('priceDifficulty').value
-        );
+    const box=
+        el('timeSuggestion');
 
     if(area<=0){
-        el('timeSuggestion').textContent=
-            'Fläche eingeben – die App schätzt die Stunden pro Einsatz.';
+
+        box.className='info';
+
+        box.innerHTML=
+            'Fläche eingeben – danach berechnet die App die Zeit automatisch.';
+
+        el('priceHoursPerVisit').value='';
+
         return;
     }
 
-    const hours=
-        area/performance;
+    const result=
+        calculateCleaningTimeDetails();
 
     el('priceHoursPerVisit').value=
-        hours.toFixed(1);
+        result.recommended.toFixed(2);
 
-    el('timeSuggestion').innerHTML=
-        'Geschätzte Leistung: <strong>'
-        +
-        performance
-        +
-        ' m²/Std.</strong><br>Vorschlag: <strong>'
-        +
-        hours.toFixed(1).replace('.',',')
-        +
-        ' Stunden pro Einsatz</strong>';
+    let breakdown='';
 
-    calculatePackagePrice();
+    result.parts.forEach(part=>{
+
+        if(part.hours<=0){
+            return;
+        }
+
+        breakdown+=
+            '<div class="price-breakdown-row">'
+            +
+            '<span>'
+            +
+            esc(part.name)
+            +
+            '</span>'
+            +
+            '<strong>'
+            +
+            part.hours
+            .toFixed(2)
+            .replace('.',',')
+            +
+            ' h</strong>'
+            +
+            '</div>';
+    });
+
+    box.className='success';
+
+    box.innerHTML=
+        '<strong>'
+        +
+        esc(result.service)
+        +
+        ' · '
+        +
+        result.area
+        +
+        ' m²'
+        +
+        '</strong>'
+        +
+        '<div class="price-range">'
+        +
+        'Geschätzte Zeit: '
+        +
+        result.low
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' – '
+        +
+        result.high
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' Stunden'
+        +
+        '</div>'
+        +
+        '<div style="margin-top:6px">'
+        +
+        'Empfehlung: <strong>'
+        +
+        result.recommended
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' Stunden</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown">'
+        +
+        breakdown
+        +
+        '</div>';
+}
+
+function calculateMaterialCosts(){
+
+    const days=
+        Math.max(
+            1,
+            numberValue('cleaningDays')
+        );
+
+    const area=
+        numberValue('priceArea');
+
+    const toilets=
+        numberValue('priceToilets');
+
+    const sinks=
+        numberValue('priceSinks');
+
+    const bins=
+        numberValue('priceBins');
+
+    const kitchens=
+        numberValue('priceKitchens');
+
+    const toiletRolls=
+        isChecked('taskSanitary')
+        ?
+        Math.ceil(
+            toilets
+            *
+            days
+            *
+            0.60
+        )
+        :
+        0;
+
+    const towelPacks=
+        isChecked('taskSanitary')
+        ?
+        Math.ceil(
+            sinks
+            *
+            days
+            *
+            0.35
+        )
+        :
+        0;
+
+    const soapLiters=
+        isChecked('taskSanitary')
+        ?
+        sinks
+        *
+        days
+        *
+        0.08
+        :
+        0;
+
+    const trashBags=
+        isChecked('taskBins')
+        ?
+        Math.ceil(
+            bins*days
+        )
+        :
+        0;
+
+    let cleanerLiters=
+        area
+        *
+        days
+        *
+        0.00045;
+
+    if(
+        el('priceDifficulty').value==='intensive'
+    ){
+        cleanerLiters*=1.35;
+    }
+
+    if(
+        el('priceService').value==='Grundreinigung'
+        ||
+        el('priceService').value==='Bauendreinigung'
+    ){
+        cleanerLiters*=1.45;
+    }
+
+    cleanerLiters+=
+        kitchens
+        *
+        days
+        *
+        0.025;
+
+    const toiletCost=
+        toiletRolls
+        *
+        MATERIAL_PRICES.toiletRoll;
+
+    const towelCost=
+        towelPacks
+        *
+        MATERIAL_PRICES.towelPack;
+
+    const soapCost=
+        soapLiters
+        *
+        MATERIAL_PRICES.soapLiter;
+
+    const bagCost=
+        trashBags
+        *
+        MATERIAL_PRICES.trashBag;
+
+    const cleanerCost=
+        cleanerLiters
+        *
+        MATERIAL_PRICES.cleanerLiter;
+
+    const materialSubtotal=
+        toiletCost
+        +
+        towelCost
+        +
+        soapCost
+        +
+        bagCost
+        +
+        cleanerCost;
+
+    const total=
+        materialSubtotal
+        *
+        MATERIAL_RESERVE_FACTOR;
+
+    el('priceMaterial').value=
+        total.toFixed(2);
+
+    const box=
+        el('materialCalculation');
+
+    box.innerHTML=
+        '<h4>'
+        +
+        days
+        +
+        ' Reinigungstage / Monat'
+        +
+        '</h4>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>🧻 Toilettenpapier</span>'
+        +
+        '<strong>'
+        +
+        toiletRolls
+        +
+        ' Rollen · '
+        +
+        toiletCost
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>🧻 Papierhandtücher</span>'
+        +
+        '<strong>'
+        +
+        towelPacks
+        +
+        ' Pack. · '
+        +
+        towelCost
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>🧼 Handseife</span>'
+        +
+        '<strong>'
+        +
+        soapLiters
+        .toFixed(1)
+        .replace('.',',')
+        +
+        ' L · '
+        +
+        soapCost
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>🗑 Müllbeutel</span>'
+        +
+        '<strong>'
+        +
+        trashBags
+        +
+        ' Stk. · '
+        +
+        bagCost
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>🧴 Reinigungsmittel</span>'
+        +
+        '<strong>'
+        +
+        cleanerLiters
+        .toFixed(1)
+        .replace('.',',')
+        +
+        ' L · '
+        +
+        cleanerCost
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>Material-Zwischensumme</span>'
+        +
+        '<strong>'
+        +
+        materialSubtotal
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="price-breakdown-row">'
+        +
+        '<span>15 % Materialreserve</span>'
+        +
+        '<strong>'
+        +
+        (
+            total-materialSubtotal
+        )
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong>'
+        +
+        '</div>'
+        +
+        '<div class="material-total">'
+        +
+        'Material gesamt: '
+        +
+        total
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' € / Monat'
+        +
+        '</div>'
+        +
+        '<div class="material-note">'
+        +
+        'Die Preise sind bewusst nicht zu niedrig angesetzt. '
+        +
+        'So bleibt ein Puffer für teureres Papier, Seife, '
+        +
+        'Reinigungsmittel und Mehrverbrauch.'
+        +
+        '</div>';
+
+    return total;
 }
 
 function calculatePackagePrice(){
 
     const hours=
-        Number(el('priceHoursPerVisit').value||0);
+        numberValue('priceHoursPerVisit');
 
-    const visits=
-        Number(el('priceFrequency').value||0);
+    const days=
+        Math.max(
+            1,
+            numberValue('cleaningDays')
+        );
 
     const hourly=
-        Number(el('priceHourly').value||0);
+        numberValue('priceHourly');
 
     const travel=
-        Number(el('priceTravel').value||0);
+        numberValue('priceTravel');
 
     const material=
-        Number(el('priceMaterial').value||0);
+        numberValue('priceMaterial');
 
     const markup=
-        Number(el('priceMarkup').value||0);
+        numberValue('priceMarkup');
 
     const monthlyHours=
-        hours*visits;
+        hours*days;
+
+    const labor=
+        monthlyHours*hourly;
+
+    const travelMonthly=
+        travel*days;
 
     const base=
-        monthlyHours*hourly
+        labor
         +
-        travel*visits
+        travelMonthly
         +
         material;
 
+    const reserve=
+        base*(markup/100);
+
     const netto=
-        base*(1+markup/100);
+        base+reserve;
 
     const vat=
-        netto*.19;
+        netto*0.19;
 
     const gross=
         netto+vat;
 
-    const box=el('priceResult');
+    const box=
+        el('priceResult');
+
+    if(
+        hours<=0 ||
+        days<=0
+    ){
+        box.style.display='none';
+        return;
+    }
 
     box.style.display='block';
 
     box.innerHTML=
-        'Monatsstunden: <strong>'
+        '<strong>Komplette Monatskalkulation</strong>'
         +
-        monthlyHours.toFixed(1).replace('.',',')
+        '<br><br>'
+        +
+        'Stunden je Reinigung: <strong>'
+        +
+        hours
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' h</strong><br>'
+        +
+        'Reinigungstage: <strong>'
+        +
+        days
         +
         '</strong><br>'
         +
-        'Netto: <strong>'
+        'Monatsstunden: <strong>'
         +
-        netto.toFixed(2).replace('.',',')
+        monthlyHours
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' h</strong><br><br>'
+        +
+        'Arbeitsleistung: '
+        +
+        labor
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €<br>'
+        +
+        'Anfahrt: '
+        +
+        travelMonthly
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €<br>'
+        +
+        'Verbrauchsmaterial: <strong>'
+        +
+        material
+        .toFixed(2)
+        .replace('.',',')
         +
         ' €</strong><br>'
         +
-        'MwSt.: '
+        'Reserve / Aufschlag: '
         +
-        vat.toFixed(2).replace('.',',')
+        reserve
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €<br><br>'
+        +
+        'Monatspauschale netto: <strong>'
+        +
+        netto
+        .toFixed(2)
+        .replace('.',',')
+        +
+        ' €</strong><br>'
+        +
+        '19 % MwSt.: '
+        +
+        vat
+        .toFixed(2)
+        .replace('.',',')
         +
         ' €'
         +
         '<div class="big-result">'
         +
-        gross.toFixed(2).replace('.',',')
+        gross
+        .toFixed(2)
+        .replace('.',',')
         +
         ' € brutto</div>';
+}
+
+function recalculateAll(){
+
+    suggestCleaningTime();
+
+    calculateMaterialCosts();
+
+    calculatePackagePrice();
 }
 
 /* AR */
@@ -4478,10 +5421,6 @@ function renderDocuments(){
 
 window.androidBack=function(){
 
-    /*
-     * Unterseite -> Übersicht.
-     * Übersicht -> App bleibt offen.
-     */
     return goBackInsideApp();
 };
 
