@@ -341,7 +341,7 @@ public class MainActivity extends Activity {
     ===================================================== */
 
     private void loadEmployeesInternal() {
-
+        if (!adminLoggedIn) return;
         ensureFirebaseAuth(
                 () -> {
 
@@ -617,7 +617,7 @@ public class MainActivity extends Activity {
                         +
                         "("
                         +
-                        json.toString()
+                        (json instanceof String ? JSONObject.quote((String) json) : String.valueOf(json))
                         +
                         ");}";
 
@@ -1458,9 +1458,7 @@ public class MainActivity extends Activity {
                                             );
 
 
-                                            ref.set(
-                                                    map
-                                            )
+                                            ref.set(map, com.google.firebase.firestore.SetOptions.merge())
 
                                                     .addOnSuccessListener(
                                                             unused -> {
