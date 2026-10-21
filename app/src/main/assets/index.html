@@ -5197,6 +5197,17 @@ function loadDocuments(){
     );
 }
 
+window.receiveDocumentLoadError = function(message) {
+    const text = typeof message === 'string' ? message : 'Dokumente konnten nicht geladen werden.';
+    ['documentsList', 'documentsAdminList'].forEach(id => {
+        const target = el(id);
+        if (target) {
+            target.textContent = text;
+            target.className = 'warning';
+        }
+    });
+};
+
 window.receiveDocumentsFromFirestore=
 function(data){
 
