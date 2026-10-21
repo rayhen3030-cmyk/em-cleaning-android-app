@@ -18,7 +18,7 @@ Abmeldung beendet die Firebase-Sitzung, entfernt Dokumentdateien aus dem App-Cac
 
 Android 7+ (API 24), Ziel-API 35. `gradle assembleDebug testDebugUnitTest lintDebug` baut eine Debug-APK und führt die vorhandenen Android-Prüfungen aus. Es gab im Ausgangsprojekt keine nativen Unit- oder Instrumentierungstests. GitHub Actions führt zusätzlich die Firebase-Tests aus und speichert APK/Prüfberichte als Artefakt. Kein Store-Upload und keine Release-Signierung. Maßgeblich für den aktuellen Commit sind die GitHub-Checks in PR #1; die Berichte enthalten auch verbliebene Lint-Warnungen.
 
-Die Debug-Variante ist ausdrücklich ein Emulator-Testbuild: separates `google-services.json` für `demo-em-cleaning`, Firebase Auth/Firestore/Storage ausschließlich über `10.0.2.2`, kein echter FCM-Tokenabruf. Produktivkonfiguration bleibt für Release bestehen. Der Testbuild läuft nicht gegen die produktiven Mitarbeiterdaten und zeigt „E-M Cleaning TEST“ an. Auf einem physischen Telefon ist `10.0.2.2` nicht erreichbar; dafür ist eine gesonderte Staging-Konfiguration erforderlich.
+Die Debug-Variante ist ausdrücklich ein Emulator-Testbuild: separates `google-services.json` für `demo-em-cleaning`, Firebase Auth/Firestore/Storage ausschließlich über `10.0.2.2`, kein echter FCM-Tokenabruf. Produktivkonfiguration bleibt für Release bestehen. Der Testbuild läuft nicht gegen die produktiven Mitarbeiterdaten, zeigt „E-M Cleaning TEST“ an und hat die eigene Paketkennung `de.emcleaning.app.debug`. Er kann neben der bisherigen Mitarbeiter-App installiert werden. Auf einem physischen Telefon ist `10.0.2.2` nicht erreichbar; dafür ist eine gesonderte Staging-Konfiguration erforderlich.
 
 Lokal starten:
 
