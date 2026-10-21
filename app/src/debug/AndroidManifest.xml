@@ -1,3 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:networkSecurityConfig="@xml/emulator_network_security" android:label="E-M Cleaning TEST" xmlns:tools="http://schemas.android.com/tools" tools:replace="android:label" />
+    <application android:networkSecurityConfig="@xml/emulator_network_security" android:label="E-M Cleaning TEST" xmlns:tools="http://schemas.android.com/tools" tools:replace="android:label">
+        <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false" />
+    </application>
 </manifest>

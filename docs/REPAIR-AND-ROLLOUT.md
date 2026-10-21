@@ -16,7 +16,7 @@ Abmeldung beendet die Firebase-Sitzung, entfernt Dokumentdateien aus dem App-Cac
 
 ## Android und Tests
 
-Android 7+ (API 24), Ziel-API 35. `gradle assembleDebug testDebugUnitTest lintDebug` baut eine Debug-APK und führt die vorhandenen Android-Prüfungen aus. Es gab im Ausgangsprojekt keine nativen Unit- oder Instrumentierungstests. GitHub Actions führt zusätzlich die Firebase-Tests aus und speichert APK/Prüfberichte als Artefakt. Kein Store-Upload und keine Release-Signierung.
+Android 7+ (API 24), Ziel-API 35. `gradle assembleDebug testDebugUnitTest lintDebug` baut eine Debug-APK und führt die vorhandenen Android-Prüfungen aus. Es gab im Ausgangsprojekt keine nativen Unit- oder Instrumentierungstests. GitHub Actions führt zusätzlich die Firebase-Tests aus und speichert APK/Prüfberichte als Artefakt. Kein Store-Upload und keine Release-Signierung. Maßgeblich für den aktuellen Commit sind die GitHub-Checks in PR #1; die Berichte enthalten auch verbliebene Lint-Warnungen.
 
 Die Debug-Variante ist ausdrücklich ein Emulator-Testbuild: separates `google-services.json` für `demo-em-cleaning`, Firebase Auth/Firestore/Storage ausschließlich über `10.0.2.2`, kein echter FCM-Tokenabruf. Produktivkonfiguration bleibt für Release bestehen. Der Testbuild läuft nicht gegen die produktiven Mitarbeiterdaten und zeigt „E-M Cleaning TEST“ an. Auf einem physischen Telefon ist `10.0.2.2` nicht erreichbar; dafür ist eine gesonderte Staging-Konfiguration erforderlich.
 
@@ -39,7 +39,7 @@ npm test
 npm run test:rules
 ```
 
-Vier Tests für Ereignisrouting und acht Tests mit echten Firestore/Storage-Emulatoren bestanden lokal. Abgedeckt: Eigentümerzugriff, Fremdzugriff, ungefilterte Abfragen, anonyme/nicht zugeordnete Konten, Dateiuploads, Rollenmanipulation, gefälschter Nachrichtensender, Anträge, Admin-Dateien und Token-Eigentümerschaft. Die negativen Tests erzeugen erwartete PERMISSION_DENIED-Logs. Keine produktiven Dienste werden für diese Tests angesprochen.
+Vier Tests für Ereignisrouting, acht Tests mit echten Firestore/Storage-Emulatoren und zwei Integrationstests mit echter E-Mail/Passwort-Anmeldung gegen den Auth-Emulator bestanden lokal. Insgesamt 14 Tests erfolgreich. Die Integrationstests prüfen beide Mitarbeiterkonten, Testvertrag und Testabrechnung einschließlich Dateidownload, Fremdzugriff, Abmeldung, falsches Passwort und Admin-Anmeldung. Abgedeckt: Eigentümerzugriff, Fremdzugriff, ungefilterte Abfragen, anonyme/nicht zugeordnete Konten, Dateiuploads, Rollenmanipulation, gefälschter Nachrichtensender, Anträge, Admin-Dateien und Token-Eigentümerschaft. Die negativen Tests erzeugen erwartete PERMISSION_DENIED-Logs. Auch das Anlegen der synthetischen Demo-Konten und Testdateien wurde erfolgreich ausgeführt. Keine produktiven Dienste werden für diese Tests angesprochen.
 
 ## Push
 
