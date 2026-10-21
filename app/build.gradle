@@ -6,6 +6,7 @@ plugins {
 android {
     namespace 'de.emcleaning.app'
     compileSdk 35
+    buildFeatures { buildConfig true }
 
     defaultConfig {
         applicationId "de.emcleaning.app"

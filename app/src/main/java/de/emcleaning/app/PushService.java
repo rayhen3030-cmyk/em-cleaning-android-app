@@ -24,6 +24,7 @@ public class PushService extends FirebaseMessagingService {
                 .createNotificationChannel(new NotificationChannel(CHANNEL, "Mitarbeiter-App", NotificationManager.IMPORTANCE_DEFAULT));
     }
     static void register() {
+        if (BuildConfig.DEBUG) return; // Emulator builds must never contact production FCM.
         final var user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || user.isAnonymous()) return;
         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token -> {
@@ -37,6 +38,7 @@ public class PushService extends FirebaseMessagingService {
         });
     }
     static void unregister() {
+        if (BuildConfig.DEBUG) return;
         final var user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token ->
                 FirebaseFirestore.getInstance().collection("pushRecipients").document(user.getUid())

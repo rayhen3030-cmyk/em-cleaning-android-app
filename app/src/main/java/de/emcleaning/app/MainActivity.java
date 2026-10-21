@@ -86,6 +86,11 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
+        if (BuildConfig.DEBUG) {
+            FirebaseAuth.getInstance().useEmulator("10.0.2.2", 9099);
+            FirebaseFirestore.getInstance().useEmulator("10.0.2.2", 8080);
+            FirebaseStorage.getInstance().useEmulator("10.0.2.2", 9199);
+        }
         // No disk persistence for payroll or personnel data on shared devices.
         FirebaseFirestore.getInstance().setFirestoreSettings(
                 new com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()

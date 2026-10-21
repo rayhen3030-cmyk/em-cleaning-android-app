@@ -1,7 +1,7 @@
 name: Verify employee app
 on:
   push:
-    branches: [main, 'repair/**', 'fix/**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -16,6 +16,8 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
