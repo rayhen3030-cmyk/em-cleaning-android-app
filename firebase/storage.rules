@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    function admin() { return signedIn() && request.auth.token.get('admin', false) == true; }
+    match /documents/employees/{employeeId}/{file} {
+      allow read: if admin() || (signedIn() && employeeId != ''
+        && request.auth.token.get('employeeId', '') == employeeId);
+      allow create, update: if admin() && request.resource.size < 25 * 1024 * 1024
+        && request.resource.metadata.employeeId == employeeId;
+      allow delete: if admin();
+    }
+    match /{file=**} { allow read, write: if false; }
+  }
+}

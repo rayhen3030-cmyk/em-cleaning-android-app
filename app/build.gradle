@@ -25,6 +25,9 @@ android {
 
 dependencies {
 
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'com.google.firebase:firebase-messaging'
+
     // ARCore für Fenster-/Kameramessung
     implementation 'com.google.ar:core:1.54.0'
 

@@ -53,7 +53,8 @@ public class MainActivity extends Activity {
     private static final int PDF_CREATE_REQUEST = 3001;
     private static final int DOCUMENT_PICK_REQUEST = 4001;
 
-    private static final String ADMIN_PIN = "2012";
+    private int sessionGeneration = 0;
+    private boolean loginInProgress = false;
 
     private boolean adminLoggedIn = false;
     private boolean arMeasurementRunning = false;
@@ -85,6 +86,12 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
+        // No disk persistence for payroll or personnel data on shared devices.
+        FirebaseFirestore.getInstance().setFirestoreSettings(
+                new com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()
+                        .setPersistenceEnabled(false).build());
+        FirebaseAuth.getInstance().signOut();
+        PushService.createChannel(this);
         webView = new WebView(this);
         setContentView(webView);
 
@@ -109,6 +116,12 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(
 
                 new WebViewClient() {
+
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+                        // The privileged bridge must never be exposed to remote pages.
+                        return !"file:///android_asset/index.html".equals(request.getUrl().toString());
+                    }
 
                     @Override
                     public void onPageStarted(
@@ -144,16 +157,7 @@ public class MainActivity extends Activity {
                                 )
                         ) {
 
-                            ensureFirebaseAuth(
-                                    () -> {
-
-                                        toast(
-                                                "Firebase verbunden ✅"
-                                        );
-
-                                        loadEmployeesInternal();
-                                    }
-                            );
+                            sendJs("receiveAuthReady", "Bitte mit Ihrem persönlichen Konto anmelden.");
                         }
                     }
                 }
@@ -215,18 +219,9 @@ public class MainActivity extends Activity {
         );
 
 
-        if (savedInstanceState != null) {
+        // Always return to login after process/activity recreation; never restore personnel UI.
+        webView.loadUrl("file:///android_asset/index.html");
 
-            webView.restoreState(
-                    savedInstanceState
-            );
-
-        } else {
-
-            webView.loadUrl(
-                    "file:///android_asset/index.html"
-            );
-        }
     }
 
 
@@ -234,59 +229,103 @@ public class MainActivity extends Activity {
        FIREBASE
     ===================================================== */
 
-    private void ensureFirebaseAuth(
-            Runnable action
-    ) {
-
-        FirebaseAuth auth =
-                FirebaseAuth.getInstance();
-
-
-        if (auth.getCurrentUser() != null) {
-
-            if (action != null) {
-
-                action.run();
-            }
-
+    private void ensureFirebaseAuth(Runnable action) {
+        com.google.firebase.auth.FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || user.isAnonymous() || (!adminLoggedIn && loggedEmployeeId.isEmpty())) {
+            sendFirebaseError("AUTH", "Bitte mit Ihrem persönlichen Konto anmelden.");
             return;
         }
+        if (action != null) action.run();
+    }
 
+    private void endSession() {
+        sessionGeneration++;
+        PushService.unregister();
+        FirebaseAuth.getInstance().signOut();
+        adminLoggedIn = false;
+        loggedEmployeeId = "";
+        loggedEmployeeName = "";
+        clearPendingDocument();
+        File directory = new File(getCacheDir(), "documents");
+        File[] files = directory.listFiles();
+        if (files != null) for (File file : files) file.delete();
+        runOnUiThread(() -> {
+            webView.removeJavascriptInterface("Android");
+            webView.destroy();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        });
+    }
 
-        auth.signInAnonymously()
-
-                .addOnSuccessListener(
-                        result -> {
-
-                            if (action != null) {
-
-                                action.run();
+    private void authenticate(String email, String password, boolean administrator) {
+        if (loginInProgress) return;
+        loginInProgress = true;
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            loginInProgress = false;
+            return;
+        }
+        sessionGeneration++;
+        final int generation = sessionGeneration;
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth.signInWithEmailAndPassword(safe(email).trim(), safe(password))
+                .addOnSuccessListener(result -> result.getUser().getIdToken(true)
+                        .addOnSuccessListener(token -> {
+                            if (generation != sessionGeneration) { loginInProgress = false; return; }
+                            boolean admin = Boolean.TRUE.equals(token.getClaims().get("admin"));
+                            Object claim = token.getClaims().get("employeeId");
+                            String employeeId = claim instanceof String ? (String) claim : "";
+                            if (administrator ? !admin : employeeId.isEmpty()) {
+                                authenticationFailed(administrator); return;
                             }
-                        }
-                )
+                            if (administrator) {
+                                adminLoggedIn = true;
+                                loginInProgress = false;
+                                enablePush();
+                                sendJs("receiveAdminLogin", authResult(true, "Verwaltung geöffnet."));
+                            } else {
+                                db().collection("employees").document(employeeId).get()
+                                        .addOnSuccessListener(profile -> {
+                                            if (generation != sessionGeneration) { loginInProgress = false; return; }
+                                            if (!profile.exists()) { authenticationFailed(false); return; }
+                                            try {
+                                                loggedEmployeeId = employeeId;
+                                                loggedEmployeeName = safe(profile.getString("name"));
+                                                JSONObject employee = new JSONObject();
+                                                employee.put("id", employeeId);
+                                                for (String key : new String[]{"name", "telefon", "art", "lohn"})
+                                                    employee.put(key, profile.get(key));
+                                                loginInProgress = false;
+                                                enablePush();
+                                                new AndroidBridge().sendEmployeeLogin(true, employee, "Anmeldung erfolgreich.");
+                                            } catch (Exception e) { authenticationFailed(false); }
+                                        }).addOnFailureListener(e -> authenticationFailed(false));
+                            }
+                        }).addOnFailureListener(e -> authenticationFailed(administrator)))
+                .addOnFailureListener(e -> authenticationFailed(administrator));
+    }
 
-                .addOnFailureListener(
-                        e -> {
+    private void enablePush() {
+        PushService.register();
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+                checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            runOnUiThread(() -> requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 5001));
+        }
+    }
 
-                            String message =
-                                    e.getMessage() == null
-                                            ?
-                                            "Unbekannter Fehler"
-                                            :
-                                            e.getMessage();
+    private JSONObject authResult(boolean success, String message) {
+        JSONObject result = new JSONObject();
+        try { result.put("success", success); result.put("message", message); } catch (Exception ignored) { }
+        return result;
+    }
 
-                            toast(
-                                    "Firebase-Anmeldung fehlgeschlagen: "
-                                            +
-                                            message
-                            );
-
-                            sendFirebaseError(
-                                    "AUTH",
-                                    message
-                            );
-                        }
-                );
+    private void authenticationFailed(boolean administrator) {
+        FirebaseAuth.getInstance().signOut();
+        adminLoggedIn = false;
+        loggedEmployeeId = "";
+        loggedEmployeeName = "";
+        loginInProgress = false;
+        sendJs(administrator ? "receiveAdminLogin" : "receiveEmployeeLogin",
+                authResult(false, "Anmeldung fehlgeschlagen. Konto, Passwort und Freigabe prüfen."));
     }
 
 
@@ -840,6 +879,10 @@ public class MainActivity extends Activity {
         }
 
 
+        if (!adminLoggedIn || !pendingDocumentEmployeeId.matches("[A-Za-z0-9_-]+")) {
+            sendDocumentUploadResult(false, "Dokument muss einem Mitarbeiter zugeordnet sein.");
+            return;
+        }
         ensureFirebaseAuth(
                 () -> {
 
@@ -1211,6 +1254,7 @@ public class MainActivity extends Activity {
 
                     try {
 
+                        final int downloadGeneration = sessionGeneration;
                         File directory =
                                 new File(
                                         getCacheDir(),
@@ -1260,7 +1304,7 @@ public class MainActivity extends Activity {
 
                                 .addOnSuccessListener(
                                         taskSnapshot -> {
-
+                                            if (downloadGeneration != sessionGeneration) { localFile.delete(); return; }
                                             try {
 
                                                 Uri contentUri =
@@ -1353,80 +1397,11 @@ public class MainActivity extends Activity {
         ================================================= */
 
         @JavascriptInterface
-        public void loginAdmin(
-                String pin
-        ) {
-
-            try {
-
-                JSONObject result =
-                        new JSONObject();
-
-
-                if (
-                        ADMIN_PIN.equals(
-                                safe(pin).trim()
-                        )
-                ) {
-
-                    adminLoggedIn =
-                            true;
-
-                    loggedEmployeeId =
-                            "";
-
-                    loggedEmployeeName =
-                            "";
-
-
-                    result.put(
-                            "success",
-                            true
-                    );
-
-
-                    result.put(
-                            "message",
-                            "Verwaltung geöffnet."
-                    );
-
-                } else {
-
-                    adminLoggedIn =
-                            false;
-
-
-                    result.put(
-                            "success",
-                            false
-                    );
-
-
-                    result.put(
-                            "message",
-                            "Admin-PIN ist falsch."
-                    );
-                }
-
-
-                sendJs(
-                        "receiveAdminLogin",
-                        result
-                );
-
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-        }
+        public void loginAdmin(String email, String password) { authenticate(email, password, true); }
 
 
         @JavascriptInterface
-        public void logoutAdmin() {
-
-            adminLoggedIn =
-                    false;
-        }
+        public void logoutAdmin() { endSession(); }
 
 
         /* =================================================
@@ -1480,35 +1455,7 @@ public class MainActivity extends Activity {
                                 safe(name).trim();
 
 
-                        String cleanPin =
-                                safe(pin).trim();
-
-
-                        if (employeeName.isEmpty()) {
-
-                            toast(
-                                    "Name fehlt."
-                            );
-
-                            return;
-                        }
-
-
-                        if (
-                                !cleanPin.isEmpty()
-                                        &&
-                                !cleanPin.matches(
-                                        "\\d{4}"
-                                )
-                        ) {
-
-                            toast(
-                                    "PIN muss aus genau 4 Ziffern bestehen."
-                            );
-
-                            return;
-                        }
-
+                        if (employeeName.isEmpty()) { toast("Name fehlt."); return; }
 
                         final String finalId =
                                 employeeId;
@@ -1563,53 +1510,6 @@ public class MainActivity extends Activity {
                                             );
 
 
-                                            if (!cleanPin.isEmpty()) {
-
-                                                map.put(
-                                                        "pinHash",
-                                                        pinHash(
-                                                                finalId,
-                                                                cleanPin
-                                                        )
-                                                );
-
-
-                                                map.put(
-                                                        "pinSet",
-                                                        true
-                                                );
-
-                                            } else {
-
-                                                Object oldHash =
-                                                        snapshot.get(
-                                                                "pinHash"
-                                                        );
-
-
-                                                if (oldHash != null) {
-
-                                                    map.put(
-                                                            "pinHash",
-                                                            oldHash
-                                                    );
-
-
-                                                    map.put(
-                                                            "pinSet",
-                                                            true
-                                                    );
-
-                                                } else {
-
-                                                    map.put(
-                                                            "pinSet",
-                                                            false
-                                                    );
-                                                }
-                                            }
-
-
                                             map.put(
                                                     "updatedAt",
                                                     FieldValue.serverTimestamp()
@@ -1654,205 +1554,7 @@ public class MainActivity extends Activity {
         ================================================= */
 
         @JavascriptInterface
-        public void loginEmployee(
-                String employeeId,
-                String pin
-        ) {
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        String id =
-                                safe(employeeId).trim();
-
-
-                        String cleanPin =
-                                safe(pin).trim();
-
-
-                        if (
-                                id.isEmpty()
-                                        ||
-                                !cleanPin.matches(
-                                        "\\d{4}"
-                                )
-                        ) {
-
-                            sendEmployeeLogin(
-                                    false,
-                                    null,
-                                    "Bitte Mitarbeiter und 4-stellige PIN eingeben."
-                            );
-
-                            return;
-                        }
-
-
-                        db()
-                                .collection(
-                                        "employees"
-                                )
-                                .document(
-                                        id
-                                )
-                                .get()
-
-                                .addOnSuccessListener(
-                                        snapshot -> {
-
-                                            if (!snapshot.exists()) {
-
-                                                sendEmployeeLogin(
-                                                        false,
-                                                        null,
-                                                        "Mitarbeiter nicht gefunden."
-                                                );
-
-                                                return;
-                                            }
-
-
-                                            String stored =
-                                                    snapshot.getString(
-                                                            "pinHash"
-                                                    );
-
-
-                                            if (
-                                                    stored == null
-                                                            ||
-                                                    stored.trim().isEmpty()
-                                            ) {
-
-                                                sendEmployeeLogin(
-                                                        false,
-                                                        null,
-                                                        "Für diesen Mitarbeiter wurde noch keine PIN eingerichtet."
-                                                );
-
-                                                return;
-                                            }
-
-
-                                            String entered =
-                                                    pinHash(
-                                                            id,
-                                                            cleanPin
-                                                    );
-
-
-                                            if (!stored.equals(entered)) {
-
-                                                sendEmployeeLogin(
-                                                        false,
-                                                        null,
-                                                        "PIN ist falsch."
-                                                );
-
-                                                return;
-                                            }
-
-
-                                            try {
-
-                                                JSONObject employee =
-                                                        new JSONObject();
-
-
-                                                employee.put(
-                                                        "id",
-                                                        id
-                                                );
-
-
-                                                employee.put(
-                                                        "name",
-                                                        safe(
-                                                                snapshot.getString(
-                                                                        "name"
-                                                                )
-                                                        )
-                                                );
-
-
-                                                employee.put(
-                                                        "telefon",
-                                                        safe(
-                                                                snapshot.getString(
-                                                                        "telefon"
-                                                                )
-                                                        )
-                                                );
-
-
-                                                employee.put(
-                                                        "art",
-                                                        safe(
-                                                                snapshot.getString(
-                                                                        "art"
-                                                                )
-                                                        )
-                                                );
-
-
-                                                employee.put(
-                                                        "lohn",
-                                                        safe(
-                                                                snapshot.getString(
-                                                                        "lohn"
-                                                                )
-                                                        )
-                                                );
-
-
-                                                loggedEmployeeId =
-                                                        id;
-
-
-                                                loggedEmployeeName =
-                                                        safe(
-                                                                snapshot.getString(
-                                                                        "name"
-                                                                )
-                                                        );
-
-
-                                                adminLoggedIn =
-                                                        false;
-
-
-                                                sendEmployeeLogin(
-                                                        true,
-                                                        employee,
-                                                        "Anmeldung erfolgreich."
-                                                );
-
-                                            } catch (Exception e) {
-
-                                                sendEmployeeLogin(
-                                                        false,
-                                                        null,
-                                                        "Login-Fehler."
-                                                );
-                                            }
-                                        }
-                                )
-
-                                .addOnFailureListener(
-                                        e ->
-                                                sendEmployeeLogin(
-                                                        false,
-                                                        null,
-                                                        "Mitarbeiter konnte nicht geladen werden: "
-                                                                +
-                                                                safe(
-                                                                        e.getMessage()
-                                                                )
-                                                )
-                                );
-                    }
-            );
-        }
+        public void loginEmployee(String email, String password) { authenticate(email, password, false); }
 
 
         private void sendEmployeeLogin(
@@ -1901,14 +1603,7 @@ public class MainActivity extends Activity {
 
 
         @JavascriptInterface
-        public void logoutEmployee() {
-
-            loggedEmployeeId =
-                    "";
-
-            loggedEmployeeName =
-                    "";
-        }
+        public void logoutEmployee() { endSession(); }
 
 
         /* =================================================
@@ -3295,10 +2990,8 @@ public class MainActivity extends Activity {
         ) {
 
             if (!adminLoggedIn) {
-
                 return;
             }
-
 
             String finalId =
                     safe(id).trim();
@@ -3643,196 +3336,28 @@ public class MainActivity extends Activity {
         ) {
 
             if (!adminLoggedIn) {
-
                 return;
             }
 
-
-            String finalId =
-                    safe(id).trim();
-
-
-            if (finalId.isEmpty()) {
-
-                finalId =
-                        String.valueOf(
-                                System.currentTimeMillis()
-                        );
-            }
-
-
-            Map<String, Object> map =
-                    new HashMap<>();
-
-
-            map.put(
-                    "id",
-                    finalId
-            );
-
-
-            map.put(
-                    "title",
-                    safe(title)
-            );
-
-
-            map.put(
-                    "type",
-                    safe(type)
-            );
-
-
-            map.put(
-                    "employeeId",
-                    safe(employeeId)
-            );
-
-
-            map.put(
-                    "employeeName",
-                    safe(employeeName)
-            );
-
-
-            map.put(
-                    "url",
-                    safe(url)
-            );
-
-
-            map.put(
-                    "note",
-                    safe(note)
-            );
-
-
-            map.put(
-                    "updatedAt",
-                    FieldValue.serverTimestamp()
-            );
-
-
-            db()
-                    .collection(
-                            "companyDocuments"
-                    )
-                    .document(
-                            finalId
-                    )
-                    .set(
-                            map
-                    )
-
-                    .addOnSuccessListener(
-                            unused -> {
-
-                                toast(
-                                        "Dokument gespeichert ✅"
-                                );
-
-
-                                loadDocumentsFromFirestore(
-                                        ""
-                                );
-                            }
-                    );
+            toast("Bitte Dokument als Datei hochladen und einem Mitarbeiter zuordnen.");
         }
+
+        /* Legacy URL-only document writes are intentionally disabled. */
+
 
 
         @JavascriptInterface
-        public void loadDocumentsFromFirestore(
-                String employeeId
-        ) {
-
-            ensureFirebaseAuth(
-                    () -> {
-
-                        if (adminLoggedIn) {
-
-                            db()
-                                    .collection(
-                                            "companyDocuments"
-                                    )
-                                    .get()
-
-                                    .addOnSuccessListener(
-                                            this::sendDocuments
-                                    )
-                                    .addOnFailureListener(e -> reportDocumentLoadError(e));
-
-                        } else {
-
-                            if (loggedEmployeeId.isEmpty()) {
-
-                                sendJs("receiveDocumentLoadError", "Mitarbeiterkennung fehlt. Bitte erneut anmelden.");
-                                return;
-                            }
-
-
-                            db()
-                                    .collection(
-                                            "companyDocuments"
-                                    )
-                                    .get()
-
-                                    .addOnSuccessListener(
-                                            snapshots -> {
-
-                                                JSONArray result =
-                                                        new JSONArray();
-
-
-                                                for (
-                                                        QueryDocumentSnapshot doc :
-                                                        snapshots
-                                                ) {
-
-                                                    String assigned =
-                                                            safe(
-                                                                    doc.getString(
-                                                                            "employeeId"
-                                                                    )
-                                                            );
-
-
-                                                    if (
-                                                            !assigned.isEmpty()
-                                                                    &&
-                                                            !assigned.equals(
-                                                                    loggedEmployeeId
-                                                            )
-                                                    ) {
-
-                                                        continue;
-                                                    }
-
-
-                                                    try {
-
-                                                        result.put(
-                                                                documentJson(
-                                                                        doc
-                                                                )
-                                                        );
-
-                                                    } catch (Exception e) {
-
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-
-
-                                                sendJs(
-                                                        "receiveDocumentsFromFirestore",
-                                                        result
-                                                );
-                                            }
-                                    )
-                                    .addOnFailureListener(e -> reportDocumentLoadError(e));
-                        }
-                    }
-            );
+        public void loadDocumentsFromFirestore(String ignoredEmployeeId) {
+            ensureFirebaseAuth(() -> {
+                final int generation = sessionGeneration;
+                com.google.firebase.firestore.Query query = db().collection("companyDocuments");
+                if (!adminLoggedIn) query = query.whereEqualTo("employeeId", loggedEmployeeId);
+                query.get().addOnSuccessListener(snapshots -> {
+                    if (generation == sessionGeneration) sendDocuments(snapshots);
+                }).addOnFailureListener(e -> {
+                    if (generation == sessionGeneration) reportDocumentLoadError(e);
+                });
+            });
         }
 
 
@@ -4023,9 +3548,7 @@ public class MainActivity extends Activity {
             }
 
 
-            openExternalUrl(
-                    fallbackUrl
-            );
+            toast("Dieses Dokument benötigt eine geschützte Storage-Datei. Bitte Verwaltung kontaktieren.");
         }
 
 
@@ -4138,6 +3661,10 @@ public class MainActivity extends Activity {
             }
 
 
+            Uri checked = Uri.parse(value);
+            if (!"https".equalsIgnoreCase(checked.getScheme())) {
+                toast("Nur HTTPS-Links sind erlaubt."); return;
+            }
             runOnUiThread(
                     () -> {
 

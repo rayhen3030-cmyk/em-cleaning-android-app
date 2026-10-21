@@ -671,24 +671,14 @@ body.employee-mode .bottom-nav{
         </div>
 
         <div id="loginStatus" class="info">
-            Mitarbeiter werden geladen...
+            Bitte mit Ihrem persönlichen Konto anmelden.
         </div>
 
-        <label>Mitarbeiter</label>
-
-        <select id="loginEmployee">
-            <option value="">Wird geladen...</option>
-        </select>
-
-        <label>PIN</label>
-
-        <input
-            id="loginPin"
-            type="password"
-            inputmode="numeric"
-            maxlength="4"
-            placeholder="4-stellige PIN"
-        >
+        <label>E-Mail</label>
+        <input id="loginEmail" type="email" autocomplete="username" placeholder="E-Mail-Adresse">
+        <select id="loginEmployee" hidden><option value=""></option></select>
+        <label>Passwort</label>
+        <input id="loginPin" type="password" autocomplete="current-password" placeholder="Persönliches Passwort">
 
         <button
             class="main-button"
@@ -705,15 +695,10 @@ body.employee-mode .bottom-nav{
             🔐 Verwaltung
         </div>
 
-        <label>Admin-PIN</label>
-
-        <input
-            id="adminPin"
-            type="password"
-            inputmode="numeric"
-            maxlength="4"
-            placeholder="Admin-PIN"
-        >
+        <label>Verwaltung: E-Mail</label>
+        <input id="adminEmail" type="email" autocomplete="username">
+        <label>Passwort</label>
+        <input id="adminPin" type="password" autocomplete="current-password">
 
         <button
             class="secondary-button"
@@ -1390,11 +1375,11 @@ body.employee-mode .bottom-nav{
             >
 
             <input
-                id="employeePin"
+                disabled id="employeePin"
                 type="password"
                 inputmode="numeric"
                 maxlength="4"
-                placeholder="4-stellige PIN"
+                placeholder="Persönliches Firebase-Konto erforderlich"
                 style="margin-top:10px"
             >
 
@@ -1539,7 +1524,7 @@ body.employee-mode .bottom-nav{
 
             <select id="documentEmployee">
                 <option value="">
-                    Allgemein – alle Mitarbeiter
+                    Bitte Mitarbeiter zuordnen
                 </option>
             </select>
 
@@ -2294,33 +2279,14 @@ function updateBottomNav(id){
 
 /* LOGIN */
 
+window.receiveAuthReady=function(message){ el('loginStatus').textContent=message; };
 function employeeLogin(){
-
-    const employeeId=
-        el('loginEmployee').value;
-
-    const pin=
-        el('loginPin').value.trim();
-
-    if(!employeeId){
-        alert('Bitte Mitarbeiter auswählen.');
-        return;
-    }
-
-    if(!/^\d{4}$/.test(pin)){
-        alert('Bitte 4-stellige PIN eingeben.');
-        return;
-    }
-
-    el('loginStatus').className='info';
-    el('loginStatus').textContent=
-        'Anmeldung wird geprüft...';
-
-    callAndroid(
-        'loginEmployee',
-        employeeId,
-        pin
-    );
+    const email=el('loginEmail').value.trim();
+    const password=el('loginPin').value;
+    if(!email || !password){ alert('Bitte E-Mail und Passwort eingeben.'); return; }
+    el('loginStatus').textContent='Anmeldung wird geprüft...';
+    callAndroid('loginEmployee', email, password);
+    el('loginPin').value='';
 }
 
 window.receiveEmployeeLogin=function(result){
@@ -2358,19 +2324,11 @@ window.receiveEmployeeLogin=function(result){
 };
 
 function adminLogin(){
-
-    const pin=
-        el('adminPin').value.trim();
-
-    if(!pin){
-        alert('Bitte Admin-PIN eingeben.');
-        return;
-    }
-
-    callAndroid(
-        'loginAdmin',
-        pin
-    );
+    const email=el('adminEmail').value.trim();
+    const password=el('adminPin').value;
+    if(!email || !password){ alert('Bitte E-Mail und Passwort eingeben.'); return; }
+    callAndroid('loginAdmin', email, password);
+    el('adminPin').value='';
 }
 
 window.receiveAdminLogin=function(result){
@@ -2557,7 +2515,7 @@ function populateEmployeeSelects(){
         select.innerHTML=
             id==='documentEmployee'
             ?
-            '<option value="">Allgemein – alle Mitarbeiter</option>'
+            '<option value="">Bitte Mitarbeiter zuordnen</option>'
             :
             '<option value="">Bitte auswählen</option>';
 
@@ -2692,7 +2650,7 @@ function saveEmployee(){
         !/^\d{4}$/.test(pin)
     ){
         alert(
-            'Neue Mitarbeiter brauchen eine 4-stellige PIN.'
+            'Neue Mitarbeiter brauchen eine Persönliches Firebase-Konto erforderlich.'
         );
         return;
     }
