@@ -9,6 +9,7 @@
         android:required="false" />
 
     <application
+        android:name=".CleaningApplication"
         android:allowBackup="false"
         android:label="E-M Cleaning"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"

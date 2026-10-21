@@ -38,7 +38,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.OutputStream;
-import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -53,14 +52,14 @@ public class MainActivity extends Activity {
     private static final int PDF_CREATE_REQUEST = 3001;
     private static final int DOCUMENT_PICK_REQUEST = 4001;
 
-    private int sessionGeneration = 0;
-    private boolean loginInProgress = false;
+    private volatile int sessionGeneration = 0;
+    private volatile boolean loginInProgress = false;
 
-    private boolean adminLoggedIn = false;
+    private volatile boolean adminLoggedIn = false;
     private boolean arMeasurementRunning = false;
 
-    private String loggedEmployeeId = "";
-    private String loggedEmployeeName = "";
+    private volatile String loggedEmployeeId = "";
+    private volatile String loggedEmployeeName = "";
 
     private String pendingPdfEmployee = "";
     private String pendingPdfMonth = "";
@@ -86,15 +85,6 @@ public class MainActivity extends Activity {
 
         super.onCreate(savedInstanceState);
 
-        if (BuildConfig.DEBUG) {
-            FirebaseAuth.getInstance().useEmulator("10.0.2.2", 9099);
-            FirebaseFirestore.getInstance().useEmulator("10.0.2.2", 8080);
-            FirebaseStorage.getInstance().useEmulator("10.0.2.2", 9199);
-        }
-        // No disk persistence for payroll or personnel data on shared devices.
-        FirebaseFirestore.getInstance().setFirestoreSettings(
-                new com.google.firebase.firestore.FirebaseFirestoreSettings.Builder()
-                        .setPersistenceEnabled(false).build());
         FirebaseAuth.getInstance().signOut();
         PushService.createChannel(this);
         webView = new WebView(this);
@@ -110,9 +100,9 @@ public class MainActivity extends Activity {
                 WebSettings.LOAD_NO_CACHE
         );
 
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setAllowFileAccess(false);
+        settings.setAllowContentAccess(false);
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
 
         webView.clearCache(true);
@@ -572,59 +562,6 @@ public class MainActivity extends Activity {
                 value;
     }
 
-
-    private String pinHash(
-            String employeeId,
-            String pin
-    ) {
-
-        try {
-
-            String value =
-                    safe(employeeId)
-                            +
-                            ":"
-                            +
-                            safe(pin);
-
-
-            MessageDigest digest =
-                    MessageDigest.getInstance(
-                            "SHA-256"
-                    );
-
-
-            byte[] bytes =
-                    digest.digest(
-                            value.getBytes(
-                                    "UTF-8"
-                            )
-                    );
-
-
-            StringBuilder result =
-                    new StringBuilder();
-
-
-            for (byte b : bytes) {
-
-                result.append(
-                        String.format(
-                                Locale.US,
-                                "%02x",
-                                b & 0xff
-                        )
-                );
-            }
-
-
-            return result.toString();
-
-        } catch (Exception e) {
-
-            return "";
-        }
-    }
 
 
     private long timestampMillis(
@@ -4935,14 +4872,6 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(
             Bundle outState
     ) {
-
-        if (webView != null) {
-
-            webView.saveState(
-                    outState
-            );
-        }
-
 
         super.onSaveInstanceState(
                 outState

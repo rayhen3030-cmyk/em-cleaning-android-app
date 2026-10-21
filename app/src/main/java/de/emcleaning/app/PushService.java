@@ -56,7 +56,7 @@ public class PushService extends FirebaseMessagingService {
         var notification = new NotificationCompat.Builder(this, CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_dialog_info).setContentTitle("E-M Cleaning")
                 .setContentText("Eine neue Aktualisierung ist verfügbar. Bitte in der App anmelden.")
-                .setContentIntent(tap).setAutoCancel(true).build();
+                .setContentIntent(tap).setOnlyAlertOnce(true).setAutoCancel(true).build();
         getSystemService(NotificationManager.class).notify(message.getData().getOrDefault("eventId", "update"), 1, notification);
     }
 }

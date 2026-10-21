@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f7f8">
 <title>E-M Cleaning Service</title>
@@ -1374,14 +1375,8 @@ body.employee-mode .bottom-nav{
                 style="margin-top:10px"
             >
 
-            <input
-                disabled id="employeePin"
-                type="password"
-                inputmode="numeric"
-                maxlength="4"
-                placeholder="Persönliches Firebase-Konto erforderlich"
-                style="margin-top:10px"
-            >
+            <p class="info">Die Anmeldung benötigt ein separat freigegebenes persönliches Konto.</p>
+            <input id="employeePin" type="hidden" value="">
 
             <input id="editEmployeeId" type="hidden">
 
@@ -2642,24 +2637,6 @@ function saveEmployee(){
 
     if(!name){
         alert('Bitte Namen eingeben.');
-        return;
-    }
-
-    if(
-        !editId &&
-        !/^\d{4}$/.test(pin)
-    ){
-        alert(
-            'Neue Mitarbeiter brauchen eine Persönliches Firebase-Konto erforderlich.'
-        );
-        return;
-    }
-
-    if(
-        pin &&
-        !/^\d{4}$/.test(pin)
-    ){
-        alert('PIN muss vier Ziffern haben.');
         return;
     }
 
