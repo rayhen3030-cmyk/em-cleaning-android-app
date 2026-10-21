@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    function admin() { return signedIn() && request.auth.token.get('admin', false) == true; }
+    function owner(id) {
+      return signedIn() && id is string && id != '' && request.auth.token.get('employeeId', '') == id;
+    }
+    match /employees/{id} {
+      allow get: if admin() || owner(id);
+      allow list, write: if admin();
+    }
+    match /companyDocuments/{id} {
+      allow read: if admin() || owner(resource.data.employeeId);
+      allow create, update: if admin() && request.resource.data.employeeId is string
+        && request.resource.data.employeeId.matches('[A-Za-z0-9_-]+')
+        && request.resource.data.storagePath is string
+        && request.resource.data.storagePath.matches('documents/employees/' + request.resource.data.employeeId + '/[^/]+')
+        && request.resource.data.get('url', '') == '';
+      allow delete: if admin();
+    }
+    match /timesheets/{id} {
+      allow read: if admin() || owner(resource.data.mitarbeiterId);
+      allow create: if admin() || (owner(request.resource.data.mitarbeiterId)
+        && request.resource.data.keys().hasOnly(['key', 'mitarbeiterId', 'mitarbeiter', 'monat', 'tageJson', 'updatedAt'])
+        && request.resource.data.tageJson is string && request.resource.data.tageJson.size() < 200000);
+      allow update: if admin() || (owner(resource.data.mitarbeiterId)
+        && request.resource.data.mitarbeiterId == resource.data.mitarbeiterId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mitarbeiter', 'monat', 'tageJson', 'updatedAt'])
+        && request.resource.data.tageJson is string && request.resource.data.tageJson.size() < 200000);
+      allow delete: if admin();
+    }
+    match /messages/{id} {
+      allow read: if admin() || owner(resource.data.employeeId);
+      allow create: if admin() || (owner(request.resource.data.employeeId)
+        && request.resource.data.keys().hasOnly(['employeeId', 'employeeName', 'sender', 'message', 'createdAt'])
+        && request.resource.data.sender == 'employee'
+        && request.resource.data.message is string && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 10000 && request.resource.data.createdAt == request.time);
+      allow update, delete: if admin();
+    }
+    match /{kind}/{id} {
+      allow read: if kind in ['tickets', 'leaveRequests'] && (admin() || owner(resource.data.employeeId));
+      allow create: if kind in ['tickets', 'leaveRequests'] && (admin() || (
+        owner(request.resource.data.employeeId) && request.resource.data.status == 'Offen'
+        && request.resource.data.createdAt == request.time
+        && ((kind == 'tickets' && request.resource.data.keys().hasOnly(['employeeId', 'employeeName', 'type', 'subject', 'description', 'status', 'createdAt'])
+          && request.resource.data.subject is string && request.resource.data.subject.size() > 0 && request.resource.data.subject.size() <= 500
+          && request.resource.data.description is string && request.resource.data.description.size() <= 10000)
+        || (kind == 'leaveRequests' && request.resource.data.keys().hasOnly(['employeeId', 'employeeName', 'from', 'to', 'note', 'status', 'createdAt'])
+          && request.resource.data.from is string && request.resource.data.to is string
+          && request.resource.data.note is string && request.resource.data.note.size() <= 10000))));
+      allow update, delete: if kind in ['tickets', 'leaveRequests'] && admin();
+    }
+    match /materials/{id} { allow read: if signedIn() && (admin() || request.auth.token.get('employeeId', '') != ''); allow write: if admin(); }
+    match /orders/{id} { allow read, write: if admin(); }
+    match /pushRecipients/{uid}/devices/{device} {
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && (admin() || request.auth.token.get('employeeId', '') != '')
+        && request.resource.data.keys().hasOnly(['token', 'platform'])
+        && request.resource.data.token == device && device.size() < 4096
+        && request.resource.data.platform in ['android', 'ios'];
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+    }
+    // Recipient mappings, notification delivery records and everything else are server-only.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

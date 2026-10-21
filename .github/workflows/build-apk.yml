@@ -1,34 +1,54 @@
-name: Build Android APK
-
+name: Verify employee app
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
+  pull_request:
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
-  build:
+  android:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
-      - name: Build APK
-        run: gradle assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Build, unit tests and lint
+        run: gradle --no-daemon assembleDebug testDebugUnitTest lintDebug
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: E-M-Cleaning-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: android-verification
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/reports/
+          retention-days: 14
+  firebase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --ignore-scripts
+      - run: npm ci --prefix firebase/functions --ignore-scripts
+      - run: npm test
+      - run: npm run test:rules
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: emulator-logs
+          path: '*-debug.log'

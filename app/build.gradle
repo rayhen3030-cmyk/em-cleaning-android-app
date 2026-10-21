@@ -6,6 +6,7 @@ plugins {
 android {
     namespace 'de.emcleaning.app'
     compileSdk 35
+    buildFeatures { buildConfig true }
 
     defaultConfig {
         applicationId "de.emcleaning.app"
@@ -17,6 +18,13 @@ android {
         versionName "3.0"
     }
 
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-test"
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -24,6 +32,9 @@ android {
 }
 
 dependencies {
+
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'com.google.firebase:firebase-messaging'
 
     // ARCore für Fenster-/Kameramessung
     implementation 'com.google.ar:core:1.54.0'
