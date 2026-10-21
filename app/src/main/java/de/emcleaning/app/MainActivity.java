@@ -3758,12 +3758,14 @@ public class MainActivity extends Activity {
 
                                     .addOnSuccessListener(
                                             this::sendDocuments
-                                    );
+                                    )
+                                    .addOnFailureListener(e -> reportDocumentLoadError(e));
 
                         } else {
 
                             if (loggedEmployeeId.isEmpty()) {
 
+                                sendJs("receiveDocumentLoadError", "Mitarbeiterkennung fehlt. Bitte erneut anmelden.");
                                 return;
                             }
 
@@ -3826,12 +3828,18 @@ public class MainActivity extends Activity {
                                                         result
                                                 );
                                             }
-                                    );
+                                    )
+                                    .addOnFailureListener(e -> reportDocumentLoadError(e));
                         }
                     }
             );
         }
 
+
+        private void reportDocumentLoadError(Exception e) {
+            android.util.Log.e("EMDocuments", "Dokumente konnten nicht geladen werden", e);
+            sendJs("receiveDocumentLoadError", "Dokumente konnten nicht geladen werden. Bitte Verbindung und Zugriffsrechte prüfen.");
+        }
 
         private void sendDocuments(
                 QuerySnapshot snapshots
