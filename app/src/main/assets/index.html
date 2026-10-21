@@ -5184,6 +5184,15 @@ function clearDocumentForm(keepStatus){
 
 function loadDocuments(){
 
+    // Do not show a stale empty result while the asynchronous Firebase request is running.
+    ['documentsList', 'documentsAdminList'].forEach(id => {
+        const box = el(id);
+        if (box) {
+            box.className = 'info';
+            box.textContent = 'Dokumente werden geladen...';
+        }
+    });
+
     callAndroid(
         'loadDocumentsFromFirestore',
         (
@@ -5214,6 +5223,11 @@ function(data){
     if(typeof data==='string'){
         data=JSON.parse(data);
     }
+
+    ['documentsList', 'documentsAdminList'].forEach(id => {
+        const box = el(id);
+        if (box) box.className = '';
+    });
 
     allDocuments=
         Array.isArray(data)
